@@ -303,7 +303,7 @@ export function FieldProject({
       placeholder="Chọn Lĩnh Vực"
       value={value}
       onChange={onChange}
-      initialOptions={["Dân sự", "Giải phóng mặt bằng", "Hạ tầng kỹ thuậ"]}
+      initialOptions={["Dân sự", "Giải phóng mặt bằng", "Hạ tầng kỹ thuật"]}
       persistKey="field-project-options" // lưu lại để tái sử dụng
       createDialogTitle="Thêm Nhóm Lĩnh Vực"
       inputLabel="Tên Lĩnh Vực"

@@ -9,8 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { ProjectTask } from "@/types/project"
+import { DocumentFolder, ProjectTask } from "@/types/project"
 import { TASK_STATUS_LABELS, TASK_PRIORITY_LABELS } from "@/utils/taskLabels"
+
 import {
   CalendarIcon,
   Save,
@@ -32,15 +33,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
+import { ProjectFormProps } from "@/types/ProjectFormProps"
+import { ChevronDown, ChevronRight } from "lucide-react"
 
+//img
+import folderIcon from "@/assets/img/ic_folder.png";
 
-interface ProjectFormProps {
-  project?: Project
-  onSave: (project: Omit<Project, 'id'> | Project) => void
-  onCancel: () => void
-  mode: 'create' | 'edit' | 'copy'
-  officeOnly?: boolean
-}
 
 export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProps) {
   const { projectTemplates, loading } = useProjectTemplates()
@@ -75,6 +73,7 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
   })
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [currentFile, setCurrentFile] = useState<{ url: string; name: string; type: string } | null>(null)
+  const [documents, setDocuments] = useState<DocumentFolder[]>([])
 
   const [formData, setFormData] = useState<Partial<Project>>({
     name: "",
@@ -114,30 +113,69 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
     relatedDocuments: [],
     roleExecutor: "",
     capitalProject: "",
-    field: ""
+    field: "",
+    documentFolder: []
   })
+  const [expandedFolders, setExpandedFolders] = useState<string[]>([])
+
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
+
+  const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false)
+
+  const [newFolderName, setNewFolderName] = useState("")
+
+  const removeFolderById = (folders: DocumentFolder[], targetId: string): DocumentFolder[] => {
+    return folders
+      .filter(f => f.id !== targetId)
+      .map(f => ({ ...f, subfolders: removeFolderById(f.subfolders, targetId) }))
+  }
+
+  const toggleFolder = (folderId: string) => {
+    setExpandedFolders(prev =>
+      prev.includes(folderId)
+        ? prev.filter(id => id !== folderId)
+        : [...prev, folderId]
+    )
+  }
+
+
+  const removeFileInFolder = (
+    folders: DocumentFolder[],
+    folderId: string,
+    fileId: string
+  ): DocumentFolder[] => {
+    return folders.map(f => {
+      if (f.id === folderId) {
+        return { ...f, files: f.files.filter(fl => fl.id !== fileId) }
+      }
+      return { ...f, subfolders: removeFileInFolder(f.subfolders, folderId, fileId) }
+    })
+  }
 
   useEffect(() => {
-    if (project && (mode === 'edit' || mode === 'copy')) {
+    if (project && (mode === "edit" || mode === "copy")) {
       setFormData({
         ...project,
         phases: project.phases?.map((phase) => ({
           ...phase,
-          id: mode === 'copy' ? `phase-${Date.now()}-${Math.random()}` : phase.id,
+          id: mode === "copy" ? `phase-${Date.now()}-${Math.random()}` : phase.id,
           tasks: phase.tasks.map((task) => ({
             ...task,
-            id: mode === 'copy' ? `task-${Date.now()}-${Math.random()}` : task.id,
-          }))
+            id: mode === "copy" ? `task-${Date.now()}-${Math.random()}` : task.id,
+          })),
         })),
         tasks: project.tasks?.map((task) => ({
           ...task,
-          id: mode === 'copy' ? `task-${Date.now()}-${Math.random()}` : task.id
+          id: mode === "copy" ? `task-${Date.now()}-${Math.random()}` : task.id,
         })),
-        id: mode === 'edit' ? project.id : undefined
-      })
-      setActiveTab("basic")
+        id: mode === "edit" ? project.id : undefined,
+        documentFolder: project.documentFolder || [], // Ensure documentFolder is initialized
+      });
+      // Initialize documents state with project.documentFolder
+      setDocuments(project.documentFolder || []);
+      setActiveTab("basic");
     }
-  }, [project, mode])
+  }, [project, mode]);
 
   const getDownloadUrl = (fileUrl: string, fileName?: string) =>
     buildDownloadUrl(fileUrl, fileName)
@@ -188,7 +226,12 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
       priority: newTask.priority || "medium",
       progress: newTask.progress || 0,
       legalBasis: newTask.legalBasis || "",
-      documentsTask: newTask.documentsTask || []
+      documentsTask: newTask.documentsTask || [],
+      assignee: newTask.assignee || "", 
+      startDate: newTask.startDate || null,
+      endDate: newTask.endDate || null,
+      dependencies: newTask.dependencies || []
+
     }
 
     const updatedPhases = formData.phases?.map(phase => {
@@ -308,14 +351,188 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
   }
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const projectData = {
-      ...formData,
-      id: mode === 'edit' ? project?.id : undefined,
-      createdAt: mode === 'create' ? new Date().toISOString() : project?.createdAt,
-      updatedAt: new Date().toISOString()
-    } as Project
-    onSave(projectData)
+  e.preventDefault()
+  const projectData = {
+    ...formData,
+    documentFolder: documents,   
+    id: mode === 'edit' ? project?.id : undefined,
+    createdAt: mode === 'create' ? new Date().toISOString() : project?.createdAt,
+    updatedAt: new Date().toISOString()
+  } as Project
+  onSave(projectData)
+}
+
+  const handleAddFolder = () => {
+  const folder: DocumentFolder = {
+    id: `folder-${Date.now()}-${Math.random()}`,
+    name: newFolderName,
+    subfolders: [],
+    files: []
+  }
+
+  const next =
+    currentFolderId
+      ? updateFolder(documents, currentFolderId, folder)
+      : [...documents, folder]
+
+  setDocuments(next)                                          
+  setFormData(prev => ({ ...prev, documentFolder: next }))    
+
+  setNewFolderName("")
+  setIsFolderDialogOpen(false)
+}
+
+
+  const updateFolder = (folders: DocumentFolder[], parentId: string, newFolder: DocumentFolder): DocumentFolder[] => {
+    return folders.map(folder => {
+      if (folder.id === parentId) {
+        return { ...folder, subfolders: [...folder.subfolders, newFolder] }
+      }
+      return { ...folder, subfolders: updateFolder(folder.subfolders, parentId, newFolder) }
+    })
+  }
+
+  const handleAddFile = (folderId: string, files: FileList) => {
+  const newFiles = Array.from(files).map(file => ({
+    id: `file-${Date.now()}-${Math.random()}`,
+    name: file.name,
+    url: URL.createObjectURL(file),
+    type: file.name.split(".").pop()?.toLowerCase() || "",
+    uploadedAt: new Date().toISOString(),
+    uploadedBy: "Bạn"
+  }))
+
+  const next = updateFolderWithFiles(documents, folderId, newFiles)
+
+  setDocuments(next)                                          
+  setFormData(prev => ({ ...prev, documentFolder: next }))    
+}
+
+
+  const updateFolderWithFiles = (folders: DocumentFolder[], folderId: string, newFiles: { id: string; name: string; url: string; type: string; uploadedAt: string; uploadedBy: string }[]): DocumentFolder[] => {
+    return folders.map(folder => {
+      if (folder.id === folderId) {
+        return { ...folder, files: [...folder.files, ...newFiles] }
+      }
+      return { ...folder, subfolders: updateFolderWithFiles(folder.subfolders, folderId, newFiles) }
+    })
+  }
+
+  const renderFolderTree = (folders: DocumentFolder[], parentId: string | null = null) => {
+    return folders.map(folder => {
+      const isExpanded = expandedFolders.includes(folder.id)
+
+      return (
+        <div key={folder.id} className="ml-4">
+          <div className="flex items-center gap-2 mb-2">
+            <button
+              type="button"
+              className="flex items-center gap-1"
+              onClick={() => toggleFolder(folder.id)}
+            >
+              {isExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+              <img src={folderIcon} alt="" className="w-6 h-6" />
+
+              <span className="font-medium">{folder.name}</span>
+            </button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setCurrentFolderId(folder.id)
+                setIsFolderDialogOpen(true)
+              }}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+
+            <Button type="button" variant="ghost" size="sm" asChild>
+              <label>
+                <FileText className="w-4 h-4" />
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.xls,.xlsx"
+                  className="hidden"
+                  onChange={(e) => handleAddFile(folder.id, e.target.files!)}
+                />
+              </label>
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setDocuments(prev => removeFolderById(prev, folder.id))
+                setFormData(prev => ({
+                  ...prev,
+                  documentFolder: removeFolderById(prev.documentFolder || [], folder.id),
+                }))
+              }}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {isExpanded && (
+            <>
+              {folder.files.length > 0 && (
+                <div className="ml-6 space-y-2">
+                  {folder.files.map(file => (
+                    <div key={file.id} className="flex items-center gap-2">
+                      <a
+                        href={getDownloadUrl(file.url, file.name)}
+                        download={file.name}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                       
+                        {file.name}
+                      </a>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCurrentFile({ url: file.url, name: file.name, type: file.type })
+                          setIsViewerOpen(true)
+                        }}
+                      >
+                        Xem
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setDocuments(prev => removeFileInFolder(prev, folder.id, file.id))
+                          setFormData(prev => ({
+                            ...prev,
+                            documentFolder: removeFileInFolder(prev.documentFolder || [], folder.id, file.id)
+                          }))
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {folder.subfolders.length > 0 && renderFolderTree(folder.subfolders, folder.id)}
+            </>
+          )}
+        </div>
+      )
+    })
   }
 
   return (
@@ -346,11 +563,12 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="template">Template</TabsTrigger>
           <TabsTrigger value="basic">Thông Tin Cơ Bản</TabsTrigger>
           <TabsTrigger value="phases">Giai Đoạn</TabsTrigger>
           <TabsTrigger value="settings">Cài Đặt</TabsTrigger>
+          <TabsTrigger value="documentation">Tài liệu dự án</TabsTrigger>
         </TabsList>
 
         <TabsContent value="template" className="space-y-4">
@@ -405,6 +623,41 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="documentation" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Tài liệu dự án
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setCurrentFolderId(null)
+                    setIsFolderDialogOpen(true)
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Thêm thư mục
+                </Button>
+              </div>
+              {documents.length > 0 ? (
+                <div>{renderFolderTree(documents)}</div>
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">Chưa có thư mục nào được tạo</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
 
         <TabsContent value="basic" className="space-y-4">
           <div className="grid grid-cols-1 gap-6">
@@ -1077,8 +1330,8 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                   onChange={(e) => setNewPhase(prev => ({ ...prev, order: parseInt(e.target.value) }))}
                 />
               </div>
-              
-            
+
+
               <div className="space-y-2">
                 <Label htmlFor="phaseLegalBasis">Cơ Sở Pháp Lý</Label>
                 <Input
@@ -1106,6 +1359,42 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                 disabled={!newPhase.name}
               >
                 {editingPhase ? 'Cập Nhật' : 'Thêm Giai Đoạn'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isFolderDialogOpen} onOpenChange={setIsFolderDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Thêm Thư Mục</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="folderName">Tên Thư Mục *</Label>
+                <Input
+                  id="folderName"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  placeholder="Nhập tên thư mục"
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsFolderDialogOpen(false)}
+              >
+                Hủy
+              </Button>
+              <Button
+                type="button"
+                onClick={handleAddFolder}
+                disabled={!newFolderName}
+              >
+                Thêm
               </Button>
             </DialogFooter>
           </DialogContent>
