@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { getAllProjects } from "@/setup_firebase/services/projectService"
+import { getAllProjects } from "@/services/ProjectService"
 
 export const useProjects = () => {
   const [projects, setProjects] = useState([])

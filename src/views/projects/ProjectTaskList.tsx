@@ -209,7 +209,7 @@ export function ProjectTaskList({ tasks, onTaskUpdate }: ProjectTaskListProps) {
                     )}
                     
                     {/* Documents */}
-                    {task.documents && task.documents.length > 0 && (
+                    {/* {task.documents && task.documents.length > 0 && (
                       <div className="mt-3 pt-3 border-t">
                         <p className="text-xs text-muted-foreground mb-1">Tài liệu ({task.documents.length}):</p>
                         <div className="flex flex-wrap gap-1">
@@ -221,7 +221,7 @@ export function ProjectTaskList({ tasks, onTaskUpdate }: ProjectTaskListProps) {
                           ))}
                         </div>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 )
               })}

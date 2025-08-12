@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/sidebar"
 
 const navigationItems = [
-  { title: "Bảng Điều Khiển", url: "/", icon: BarChart3 },
+  { title: "Bảng Điều Khiển", url: "/dashboard", icon: BarChart3 },
   { title: "Dự Án", url: "/projects", icon: Building },
   { title: "Công Việc", url: "/tasks", icon: FolderKanban },
   { title: "Tiến Độ", url: "/timeline", icon: CalendarDays },

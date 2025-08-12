@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Facebook, Mail, Lock, User } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/services/auth/AuthContext";
 import { mapFirebaseErr } from "@/utils/firebaseErrors";
 import toast from 'react-hot-toast';
 import { useNavigate } from "react-router-dom";
@@ -52,7 +52,8 @@ export default function AuthScreen() {
               </div>
 
               <AnimatePresence mode="wait" initial={false}>
-                {mode === "signin" ? <SignIn key="signin" /> : <SignUp key="signup" />}
+                {mode === "signin" ? <SignIn key="signin" /> : <SignUp key="signup" onSuccess={() => setMode("signin")} />
+                }
               </AnimatePresence>
 
               <Divider text="Hoặc tiếp tục với" />
@@ -167,7 +168,7 @@ function SignIn() {
           const password = String(fd.get("password") || "");
           try {
             await signIn(email, password, remember);
-           
+
             navigate("/dashboard", { replace: true });
           } catch (err: any) {
             setError(mapFirebaseErr(err));
@@ -236,10 +237,11 @@ function SignIn() {
   );
 }
 
-function SignUp() {
+function SignUp({ onSuccess }: { onSuccess: () => void }) {
   const { signUp } = useAuth();
   const navigate = useNavigate();
-  
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+
   return (
     <motion.form
       initial={{ opacity: 0, y: 10 }}
@@ -254,10 +256,11 @@ function SignUp() {
         const password = String(fd.get("password") || "");
         try {
           await signUp(email, password);
-            navigate("/dashboard", { replace: true });
+          onSuccess();
         } catch (err: any) {
-          toast.error(mapFirebaseErr(err), { duration: 5000});
-      }}}
+          toast.error(mapFirebaseErr(err), { duration: 5000 });
+        }
+      }}
     >
       <div className="space-y-2">
         <Label htmlFor="su-name">Tên người dùng</Label>

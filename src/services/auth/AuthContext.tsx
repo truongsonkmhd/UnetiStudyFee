@@ -12,7 +12,6 @@ import {
   signOut as fbSignOut,
   User
 } from "firebase/auth";
-// import app from "@/lib/firebase"; // nơi init firebase app
 
 type AuthCtx = {
   user: User | null;
@@ -52,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const forgot = (email: string) => sendPasswordResetEmail(auth, email);
 
   const signOut = () => fbSignOut(auth);
+  
 
   return (
     <Ctx.Provider value={{ user, loading, signIn, signUp, forgot, signOut }}>
@@ -65,3 +65,5 @@ export const useAuth = () => {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 };
+
+

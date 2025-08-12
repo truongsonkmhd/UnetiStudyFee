@@ -17,10 +17,8 @@ export interface Project {
   investmentApproval?: string               // Cấp phê duyệt quyết định đầu tư
   projectGroup?: string                     // Nhóm dự án (A, B, C,...)
   investor?: string                         // Chủ đầu tư
-  capitalSource?: string                    // Nguồn vốn
   investmentType?: string                   // Hình thức đầu tư (BT, BOT, PPP, ngân sách,...)
   managementType?: string                   // Loại hình quản lý dự án
-  biddingMethod?: string                    // Gói thầu chính (nếu có)
   projectScale?: string                     // Quy mô dự án (Số căn, diện tích, quy mô tài chính...)
   designStepCount?: number                  // Số bước thiết kế (1 bước, 2 bước...)
   designCapacity?: string                   // Năng lực thiết kế (có thể chọn tên đơn vị/tổ chức)
@@ -30,14 +28,12 @@ export interface Project {
   //  Các trường mở rộng cho thông tin xây dựng
   constructionLevel?: string                // Cấp công trình (1, 2, 3,...)
   constructionType?: string                 // Loại công trình (nhà ở, công nghiệp,...)
-  executionTime?: string                    // Thời gian thực hiện dự kiến
   constructionLocation?: string             // Địa điểm xây dựng
-  simplifiedLocation?: string               // Địa điểm rút gọn
   designStandards?: string                  // Tiêu chuẩn áp dụng (TCVN, QCVN...)
 
   //  Quản lý hồ sơ và mục tiêu
   goals?: string                            // Mục tiêu dự án
-  method?: string                           // Phương pháp tổng hợp / tiếp cận / thực hiện
+  syntheticMethod?: string                           // Phương pháp tổng hợp / tiếp cận / thực hiện
   notes?: string                            // Ghi chú khác
 
   //  Trường sẵn có
@@ -45,6 +41,23 @@ export interface Project {
   tasks?: ProjectTask[]
   createdAt?: string
   updatedAt?: string
+ 
+
+  //thông tin gói thầu
+  numberTBMT?: string // Số TBMT
+  timeExceution?: string // Thời gian thực hiện
+  contractorCompanyName?: string[] // Tên công ty trúng thầu 
+  contrator : string // Nhà thầu
+  contractorPrice?: number // Giá trúng thầu
+  relatedDocuments?: BaseDocument[] // Văn bản liên quan (có thể là danh sách URL
+  roleExecutor?: string // Vai trò thực hiện (có thể là tên người hoặc nhóm)
+
+  // Nguồn vốn 
+  capitalProject?: string // Nguồn vốn (có thể là tên nguồn vốn hoặc mã nguồn vốn)
+
+  //Lĩnh vực
+  field?: string // Lĩnh vực (có thể là tên lĩnh vực hoặc mã lĩnh vực)
+
 }
 
 export interface ProjectPhase {

@@ -35,8 +35,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Project } from "@/types/project"
-import { ProjectDetail } from "@/components/projects/ProjectDetail"
-import { ProjectForm } from "@/components/projects/ProjectForm"
+import { ProjectDetail } from "@/views/projects/ProjectDetail"
+import { ProjectForm } from "@/views/projects/ProjectForm"
 import { constructionProjectTemplate } from "@/data/projectTemplates"
 
 // Mock data - sẽ được thay thế bằng Supabase sau này

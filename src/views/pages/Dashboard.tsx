@@ -1,9 +1,9 @@
 import {
   DashboardStats
-} from "@/components/dashboard/DashboardStats"
+} from "@/views/dashboard/DashboardStats"
 import {
   ProjectCard
-} from "@/components/dashboard/ProjectCard"
+} from "@/views/dashboard/ProjectCard"
 import {
   Card,
   CardContent,
@@ -26,14 +26,14 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { Project } from "@/types/project"
-import { ProjectDetail } from "@/components/projects/ProjectDetail"
-import { ProjectForm } from "@/components/projects/ProjectForm"
+import { ProjectDetail } from "@/views/projects/ProjectDetail"
+import { ProjectForm } from "@/views/projects/ProjectForm"
 import { useProjects } from "@/hooks/useProjects"
 import {
   addProject,
   updateProject,
   deleteProject
-} from "@/setup_firebase/services/projectService"
+} from "@/services/ProjectService"
 const mockStats = {
   totalProjects: 24,
   activeProjects: 8,
@@ -136,10 +136,8 @@ export default function Dashboard() {
       investmentApproval: project.investmentApproval || "",
       projectGroup: project.projectGroup || "",
       investor: project.investor || "",
-      capitalSource: project.capitalSource || "",
       investmentType: project.investmentType || "",
       managementType: project.managementType || "",
-      biddingMethod: project.biddingMethod || "",
       projectScale: project.projectScale || "",
       designStepCount: project.designStepCount || 1,
       designCapacity: project.designCapacity || "",
@@ -147,13 +145,20 @@ export default function Dashboard() {
       legalDocuments: project.legalDocuments || [],
       constructionLevel: project.constructionLevel || "",
       constructionType: project.constructionType || "",
-      executionTime: project.executionTime || "",
       constructionLocation: project.constructionLocation || "",
-      simplifiedLocation: project.simplifiedLocation || "",
       designStandards: project.designStandards || "",
       goals: project.goals || "",
-      method: project.method || "",
-      notes: project.notes || ""
+      method: project.syntheticMethod || "",
+      notes: project.notes || "",
+      numberTBMT: project.numberTBMT || "",
+      timeExceution: project.timeExceution || "",
+      contractorCompanyName: project.contractorCompanyName || [],
+      contrator: project.contrator || "",
+      contractorPrice: project.contractorPrice || 0,
+      relatedDocuments: project.relatedDocuments || [],
+      roleExecutor: project.roleExecutor || "",
+      capitalProject: project.capitalProject || "",
+      field: project.field || ""
     }
 
     if (dialogMode === "create" || dialogMode === "copy") {

@@ -5,9 +5,8 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  DocumentData
 } from "firebase/firestore"
-import { db } from "../firebase_config"
+import { db } from "./FirebaseConfig.ts";
 import { Project, ProjectTemplate } from "@/types/project"  // Đảm bảo đã định nghĩa các kiểu này
 
 // Collections

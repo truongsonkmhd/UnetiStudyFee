@@ -5,11 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import { AppLayout } from "@/components/layout/AppLayout";
-import AuthScreen from "./components/login-and-registor/AuthScreen";
-import Dashboard from "./pages/Dashboard";
-import Projects from "./pages/Projects";
-import Tasks from "./pages/Tasks";
-import NotFound from "./pages/NotFound";
+import Dashboard from "../views/pages/Dashboard";
+import Projects from "../views/pages/Projects";
+import Tasks from "../views/pages/Tasks";
+import NotFound from "../views/pages/NotFound";
+import AuthScreen from "@/views/login-and-registor/AuthScreen";
 
 const queryClient = new QueryClient();
 

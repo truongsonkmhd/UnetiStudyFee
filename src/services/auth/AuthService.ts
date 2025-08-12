@@ -9,7 +9,7 @@ import {
   browserSessionPersistence,
   User,
 } from "firebase/auth";
-import { auth } from "@/setup_firebase/firebase_config"; 
+import { auth } from "@/services/FirebaseConfig"; 
 
 // Đăng nhập (remember = true => lưu session local)
 export async function signInEmail(email: string, password: string, remember = true) {

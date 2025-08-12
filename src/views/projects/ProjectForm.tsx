@@ -5,8 +5,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -26,12 +24,15 @@ import {
   DollarSign,
   Pencil
 } from "lucide-react"
-import { format } from "date-fns"
-import { vi } from "date-fns/locale"
 import { Project, ProjectTemplate, ProjectPhase } from "@/types/project"
 import { useProjectTemplates } from "@/hooks/useProjectsTemplates"
 import { buildDownloadUrl } from "@/helpers/buildDownloadUrl"
-import { getStorage, ref, uploadBytes, getDownloadURL, updateMetadata } from "firebase/storage"
+import { CapitalProject, DesignStepsField, FieldProject, ProjectGroupField } from "@/components/ui/CreatableSelectFieldProps"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { vi } from "date-fns/locale"
+
 
 interface ProjectFormProps {
   project?: Project
@@ -47,8 +48,11 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
   const [activeTab, setActiveTab] = useState("basic")
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null)
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false)
+  const [isPhaseDialogOpen, setIsPhaseDialogOpen] = useState(false)
   const [currentPhaseId, setCurrentPhaseId] = useState<string | null>(null)
   const [editingTask, setEditingTask] = useState<ProjectTask | null>(null)
+  const [editingPhase, setEditingPhase] = useState<ProjectPhase | null>(null)
+  const [newCompanyName, setNewCompanyName] = useState("")
   const [newTask, setNewTask] = useState<Partial<ProjectTask>>({
     name: "",
     description: "",
@@ -57,6 +61,17 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
     progress: 0,
     legalBasis: "",
     documentsTask: []
+  })
+  const [newPhase, setNewPhase] = useState<Partial<ProjectPhase>>({
+    name: "",
+    description: "",
+    order: 1,
+    status: "not_started",
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    legalBasis: "",
+    tasks: [],
+    documentProjectPhase: []
   })
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [currentFile, setCurrentFile] = useState<{ url: string; name: string; type: string } | null>(null)
@@ -79,10 +94,8 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
     investmentApproval: "",
     projectGroup: "",
     investor: "",
-    capitalSource: "",
     investmentType: "",
     managementType: "",
-    biddingMethod: "",
     projectScale: "",
     designStepCount: 1,
     designCapacity: "",
@@ -90,12 +103,18 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
     legalDocuments: [],
     constructionLevel: "",
     constructionType: "",
-    executionTime: "",
-    simplifiedLocation: "",
     designStandards: "",
     goals: "",
-    method: "",
-    notes: ""
+    syntheticMethod: "",
+    notes: "",
+    numberTBMT: "",
+    timeExceution: "",
+    contrator: "",
+    contractorPrice: 0,
+    relatedDocuments: [],
+    roleExecutor: "",
+    capitalProject: "",
+    field: ""
   })
 
   useEffect(() => {
@@ -210,6 +229,46 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
     setCurrentPhaseId(null)
   }
 
+  const handlePhaseSubmit = () => {
+    const phaseData: ProjectPhase = {
+      id: editingPhase ? editingPhase.id : `phase-${Date.now()}-${Math.random()}`,
+      name: newPhase.name || "",
+      description: newPhase.description || "",
+      order: newPhase.order || 1,
+      status: newPhase.status || "not_started",
+      startDate: newPhase.startDate,
+      endDate: newPhase.endDate,
+      legalBasis: newPhase.legalBasis || "",
+      tasks: editingPhase ? editingPhase.tasks : [],
+      documentProjectPhase: editingPhase ? editingPhase.documentProjectPhase : []
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      phases: editingPhase
+        ? prev.phases?.map(p => p.id === editingPhase.id ? phaseData : p)
+        : [...(prev.phases || []), phaseData]
+    }))
+
+    setIsPhaseDialogOpen(false)
+    resetPhaseForm()
+  }
+
+  const resetPhaseForm = () => {
+    setNewPhase({
+      name: "",
+      description: "",
+      order: (formData.phases?.length || 0) + 1,
+      status: "not_started",
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      legalBasis: "",
+      tasks: [],
+      documentProjectPhase: []
+    })
+    setEditingPhase(null)
+  }
+
   const handleAddTask = (phaseId: string) => {
     setCurrentPhaseId(phaseId)
     setEditingTask(null)
@@ -230,6 +289,22 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
     setNewTask(task)
     setCurrentPhaseId(phaseId)
     setIsTaskDialogOpen(true)
+  }
+
+  const handleEditPhase = (phase: ProjectPhase) => {
+    setEditingPhase(phase)
+    setNewPhase({
+      name: phase.name,
+      description: phase.description,
+      order: phase.order,
+      status: phase.status,
+      startDate: phase.startDate,
+      endDate: phase.endDate,
+      legalBasis: phase.legalBasis,
+      tasks: phase.tasks,
+      documentProjectPhase: phase.documentProjectPhase
+    })
+    setIsPhaseDialogOpen(true)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -396,9 +471,56 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                   </Select>
                 </div>
 
+                <div className="space-y-2">
+                  <CapitalProject
+                    value={formData.capitalProject}
+                    onChange={(v) => handleInputChange("capitalProject", v)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <FieldProject
+                    value={formData.field}
+                    onChange={(v) => handleInputChange("field", v)}
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 col-span-2">
+                    <div className="space-y-2">
+                      <Label>
+                        Cấp Công Trình <span className="text-red-500">*</span>
+                      </Label>
+                      <select
+                        className="border border-input rounded-md px-3 py-2 w-full bg-background"
+                        value={formData.constructionLevel || ""}
+                        onChange={(e) => handleInputChange("constructionLevel", e.target.value)}
+                      >
+                        <option value="">-- Chọn cấp công trình --</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <ProjectGroupField
+                        value={formData.projectGroup}
+                        onChange={(v) => handleInputChange("projectGroup", v)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <DesignStepsField
+                        value={formData.designStepCount || 1}
+                        onChange={(v) => handleInputChange("designStepCount", v)}
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
-                    <Label>Cấp Chủ Trương Đầu Tư</Label>
+                    <Label>Cấp QD Chủ Trương Đầu Tư</Label>
                     <Input value={formData.investmentLevel || ""} onChange={(e) => handleInputChange('investmentLevel', e.target.value)} />
                   </div>
 
@@ -408,18 +530,8 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Nhóm Dự Án</Label>
-                    <Input value={formData.projectGroup || ""} onChange={(e) => handleInputChange('projectGroup', e.target.value)} />
-                  </div>
-
-                  <div className="space-y-2">
                     <Label>Chủ Đầu Tư</Label>
                     <Input value={formData.investor || ""} onChange={(e) => handleInputChange('investor', e.target.value)} />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Nguồn Vốn</Label>
-                    <Input value={formData.capitalSource || ""} onChange={(e) => handleInputChange('capitalSource', e.target.value)} />
                   </div>
 
                   <div className="space-y-2">
@@ -433,18 +545,8 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Gói Thầu Chính</Label>
-                    <Input value={formData.biddingMethod || ""} onChange={(e) => handleInputChange('biddingMethod', e.target.value)} />
-                  </div>
-
-                  <div className="space-y-2">
                     <Label>Quy Mô Dự Án</Label>
                     <Input value={formData.projectScale || ""} onChange={(e) => handleInputChange('projectScale', e.target.value)} />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Số Bước Thiết Kế</Label>
-                    <Input type="number" min={1} value={formData.designStepCount || 1} onChange={(e) => handleInputChange('designStepCount', parseInt(e.target.value))} />
                   </div>
 
                   <div className="space-y-2">
@@ -458,23 +560,25 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Cấp Công Trình</Label>
-                    <Input value={formData.constructionLevel || ""} onChange={(e) => handleInputChange('constructionLevel', e.target.value)} />
-                  </div>
-
-                  <div className="space-y-2">
                     <Label>Loại Công Trình</Label>
                     <Input value={formData.constructionType || ""} onChange={(e) => handleInputChange('constructionType', e.target.value)} />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Thời Gian Thực Hiện</Label>
-                    <Input value={formData.executionTime || ""} onChange={(e) => handleInputChange('executionTime', e.target.value)} />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Địa Điểm Rút Gọn</Label>
-                    <Input value={formData.simplifiedLocation || ""} onChange={(e) => handleInputChange('simplifiedLocation', e.target.value)} />
+                  <div className="space-y-2 col-span-2">
+                    <Label>Phương Pháp Tổng Hợp</Label>
+                    <select
+                      className="border rounded p-2 w-full"
+                      value={formData.syntheticMethod || ""}
+                      onChange={(e) => handleInputChange('syntheticMethod', e.target.value)}
+                    >
+                      <option value="">-- Chọn phương pháp --</option>
+                      <option value="Tự tổng hợp">Tự tổng hợp</option>
+                      <option value="Tổng hợp từ hệ thống">Tổng hợp từ hệ thống</option>
+                      <option value="Tổng hợp từ báo cáo định kỳ">Tổng hợp từ báo cáo định kỳ</option>
+                      <option value="Kế thừa dự án trước">Kế thừa dự án trước</option>
+                      <option value="Tổng hợp từ nhà thầu">Tổng hợp từ nhà thầu</option>
+                      <option value="Tổng hợp từ đơn vị tư vấn">Tổng hợp từ đơn vị tư vấn</option>
+                    </select>
                   </div>
 
                   <div className="space-y-2 col-span-2">
@@ -486,10 +590,237 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                     <Label>Mục Tiêu</Label>
                     <Textarea value={formData.goals || ""} onChange={(e) => handleInputChange('goals', e.target.value)} rows={2} />
                   </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                  <div className="space-y-2 col-span-2">
-                    <Label>Phương Pháp Thực Hiện</Label>
-                    <Textarea value={formData.method || ""} onChange={(e) => handleInputChange('method', e.target.value)} rows={2} />
+            <Card>
+              <CardHeader>
+                <CardTitle>Thông Tin Gói Thầu</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Số TBMT</Label>
+                      <Input
+                        value={formData.numberTBMT || ""}
+                        onChange={(e) => handleInputChange("numberTBMT", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Thời Gian Thực Hiện</Label>
+                      <Input
+                        value={formData.timeExceution || ""}
+                        onChange={(e) => handleInputChange("timeExceution", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>
+                        Giá Trúng Thầu (VNĐ) <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="contractorPrice"
+                          type="number"
+                          min="0"
+                          value={formData.contractorPrice || 0}
+                          onChange={(e) =>
+                            handleInputChange("contractorPrice", parseInt(e.target.value))
+                          }
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Vai Trò Thực Hiện</Label>
+                      <Input
+                        value={formData.roleExecutor || ""}
+                        onChange={(e) => handleInputChange("roleExecutor", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Văn Bản Liên Quan</Label>
+                      <Input
+                        type="file"
+                        multiple
+                        accept=".pdf,.doc,.docx,.xls,.xlsx"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          const newDocs = files.map((file) => ({
+                            id: `doc-${Date.now()}-${Math.random()}`,
+                            name: file.name,
+                            uploadedAt: new Date().toISOString(),
+                            uploadedBy: "Bạn",
+                            type: "other",
+                            url: URL.createObjectURL(file),
+                          }));
+                          setFormData((prev) => ({
+                            ...prev,
+                            relatedDocuments: [...(prev.relatedDocuments || []), ...newDocs],
+                          }));
+                        }}
+                      />
+                      {formData.relatedDocuments && formData.relatedDocuments.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          {formData.relatedDocuments.map((doc) => {
+                            const href = getDownloadUrl(doc.url || "#", doc.name);
+                            return (
+                              <div key={doc.id} className="inline-flex items-center gap-2">
+                                <a
+                                  href={href}
+                                  download={doc.name}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-md hover:bg-blue-50 hover:border-blue-400 transition-colors text-sm text-blue-700 max-w-[200px]"
+                                  title="Tải về để xem"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                  <span className="truncate">{doc.name}</span>
+                                </a>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setCurrentFile({
+                                      url: doc.url,
+                                      name: doc.name,
+                                      type: doc.name.split(".").pop()?.toLowerCase() || "",
+                                    });
+                                    setIsViewerOpen(true);
+                                  }}
+                                >
+                                  Xem
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      relatedDocuments: prev.relatedDocuments?.filter(
+                                        (d) => d.id !== doc.id
+                                      ),
+                                    }));
+                                  }}
+                                  aria-label="Xóa"
+                                >
+                                  <Trash2 className="w-4 h-4 text-red-500" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Nhà Thầu</Label>
+                      <select
+                        className="border rounded p-2 w-full"
+                        value={formData.contrator || ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          handleInputChange("contrator", v);
+                          setFormData((prev) => ({
+                            ...prev,
+                            contractorCompanyName:
+                              v === "Độc lập"
+                                ? [prev.contractorCompanyName?.[0] || ""]
+                                : Array.isArray(prev.contractorCompanyName)
+                                  ? prev.contractorCompanyName.filter(Boolean)
+                                  : [],
+                          }));
+                        }}
+                      >
+                        <option value="">-- Chọn nhà thầu --</option>
+                        <option value="Độc lập">Độc lập</option>
+                        <option value="Liên danh">Liên danh</option>
+                      </select>
+                    </div>
+
+                    {formData.contrator === "Liên danh" ? (
+                      <div className="space-y-2">
+                        <Label>Các Công Ty Liên Danh</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            value={newCompanyName}
+                            onChange={(e) => setNewCompanyName(e.target.value)}
+                            placeholder="Nhập tên công ty và nhấn Thêm"
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              const name = newCompanyName.trim();
+                              if (!name) return;
+                              setFormData((prev) => ({
+                                ...prev,
+                                contractorCompanyName: [
+                                  ...(prev.contractorCompanyName || []),
+                                  name,
+                                ],
+                              }));
+                              setNewCompanyName("");
+                            }}
+                          >
+                            <Plus className="w-4 h-4 mr-1" /> Thêm
+                          </Button>
+                        </div>
+
+                        {(formData.contractorCompanyName?.length ?? 0) > 0 && (
+                          <div className="flex flex-wrap gap-2 pt-2">
+                            {formData.contractorCompanyName!.map((name, idx) => (
+                              <Badge
+                                key={`${name}-${idx}`}
+                                variant="secondary"
+                                className="gap-1"
+                              >
+                                {name}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      contractorCompanyName: (
+                                        prev.contractorCompanyName || []
+                                      ).filter((_, i) => i !== idx),
+                                    }))
+                                  }
+                                  aria-label="Xóa công ty"
+                                  title="Xóa"
+                                  className="inline-flex"
+                                >
+                                  <X className="w-3 h-3 ml-1" />
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label>Tên Công Ty Trúng Thầu</Label>
+                        <Input
+                          value={formData.contractorCompanyName?.[0] || ""}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              contractorCompanyName: [e.target.value],
+                            }))
+                          }
+                          placeholder="Nhập tên công ty"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -707,15 +1038,104 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
           </DialogContent>
         </Dialog>
 
+        <Dialog open={isPhaseDialogOpen} onOpenChange={(open) => {
+          setIsPhaseDialogOpen(open)
+          if (!open) resetPhaseForm()
+        }}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>{editingPhase ? 'Sửa Giai Đoạn' : 'Thêm Giai Đoạn'}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="phaseName">Tên Giai Đoạn *</Label>
+                <Input
+                  id="phaseName"
+                  value={newPhase.name || ""}
+                  onChange={(e) => setNewPhase(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Nhập tên giai đoạn"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phaseDescription">Mô Tả</Label>
+                <Textarea
+                  id="phaseDescription"
+                  value={newPhase.description || ""}
+                  onChange={(e) => setNewPhase(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Mô tả chi tiết về giai đoạn"
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phaseOrder">Thứ Tự</Label>
+                <Input
+                  id="phaseOrder"
+                  type="number"
+                  min="1"
+                  value={newPhase.order || 1}
+                  onChange={(e) => setNewPhase(prev => ({ ...prev, order: parseInt(e.target.value) }))}
+                />
+              </div>
+              
+            
+              <div className="space-y-2">
+                <Label htmlFor="phaseLegalBasis">Cơ Sở Pháp Lý</Label>
+                <Input
+                  id="phaseLegalBasis"
+                  value={newPhase.legalBasis || ""}
+                  onChange={(e) => setNewPhase(prev => ({ ...prev, legalBasis: e.target.value }))}
+                  placeholder="Nhập cơ sở pháp lý (nếu có)"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsPhaseDialogOpen(false)
+                  resetPhaseForm()
+                }}
+              >
+                Hủy
+              </Button>
+              <Button
+                type="button"
+                onClick={handlePhaseSubmit}
+                disabled={!newPhase.name}
+              >
+                {editingPhase ? 'Cập Nhật' : 'Thêm Giai Đoạn'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <TabsContent value="phases" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Giai Đoạn Dự Án</CardTitle>
             </CardHeader>
             <CardContent>
+              {selectedTemplate && (
+                <div className="mb-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingPhase(null)
+                      setIsPhaseDialogOpen(true)
+                      resetPhaseForm()
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Thêm Giai Đoạn
+                  </Button>
+                </div>
+              )}
               {formData.phases && formData.phases.length > 0 ? (
                 <div className="space-y-4">
-                  {formData.phases.map((phase, index) => (
+                  {formData.phases.map((phase) => (
                     <Card key={phase.id} className="border-l-4 border-l-primary">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
@@ -728,6 +1148,16 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                             {phase.legalBasis && (
                               <p className="text-xs text-blue-600">
                                 Cơ sở pháp lý: {phase.legalBasis}
+                              </p>
+                            )}
+                            {phase.startDate && (
+                              <p className="text-xs text-muted-foreground">
+                                Bắt đầu: {new Date(phase.startDate).toLocaleDateString()}
+                              </p>
+                            )}
+                            {phase.endDate && (
+                              <p className="text-xs text-muted-foreground">
+                                Kết thúc: {new Date(phase.endDate).toLocaleDateString()}
                               </p>
                             )}
                             <div className="space-y-1 mt-3">
@@ -781,7 +1211,6 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                                         <FileText className="w-4 h-4" />
                                         <span className="truncate">{doc.name}</span>
                                       </a>
-
                                       <Button
                                         type="button"
                                         variant="outline"
@@ -797,7 +1226,6 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                                       >
                                         Xem
                                       </Button>
-
                                       <Button
                                         type="button"
                                         variant="ghost"
@@ -815,12 +1243,10 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                                         <Trash2 className="w-4 h-4 text-red-500" />
                                       </Button>
                                     </div>
-
                                   )
                                 })}
                               </div>
                             )}
-
                             <div className="mt-3">
                               <div className="flex items-center justify-between">
                                 <button
@@ -843,7 +1269,6 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                                   Thêm Công Việc
                                 </Button>
                               </div>
-
                               {expandedPhases.includes(phase.id) && (
                                 <div className="mt-2 ml-6 space-y-2">
                                   {phase.tasks.map(task => (
@@ -895,13 +1320,30 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                               )}
                             </div>
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditPhase(phase)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const updatedPhases = formData.phases?.filter(p => p.id !== phase.id)
+                                setFormData(prev => ({
+                                  ...prev,
+                                  phases: updatedPhases,
+                                }))
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -975,8 +1417,7 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                 />
               ) : (
                 <iframe
-                  // src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(getDownloadUrl(currentFile.url, currentFile.name))}`}
-                  src={'https://view.officeapps.live.com/op/embed.aspx?src=https%3A%2F%2Ffilesamples.com%2Fsamples%2Fdocument%2Fdocx%2Fsample2.docx'}
+                  src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(getDownloadUrl(currentFile.url, currentFile.name))}`}
                   width="100%"
                   height="600px"
                   title={currentFile.name}

@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react"
-import { getAllProjectsTemplate } from "@/setup_firebase/services/projectService"
+import { getAllProjectsTemplate } from "@/services/ProjectService"
 import { ProjectTemplate } from "@/types/project"
 
 export const useProjectTemplates = () => {
   const [projectTemplates, setProjectTemplates] = useState<ProjectTemplate[]>([])
   const [loading, setLoading] = useState(true)
-
-  
 
   const fetchTemplates = async () => {
     setLoading(true)
