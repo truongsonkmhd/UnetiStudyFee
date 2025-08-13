@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { DocumentFolder, ProjectTask } from "@/types/project"
+import { BaseDocument, DocumentFolder, ProjectTask, toFileExt } from "@/types/project"
 import { TASK_STATUS_LABELS, TASK_PRIORITY_LABELS } from "@/utils/taskLabels"
 
 import {
@@ -138,7 +138,6 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
     )
   }
 
-
   const removeFileInFolder = (
     folders: DocumentFolder[],
     folderId: string,
@@ -227,7 +226,7 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
       progress: newTask.progress || 0,
       legalBasis: newTask.legalBasis || "",
       documentsTask: newTask.documentsTask || [],
-      assignee: newTask.assignee || "", 
+      assignee: newTask.assignee || "",
       startDate: newTask.startDate || null,
       endDate: newTask.endDate || null,
       dependencies: newTask.dependencies || []
@@ -351,36 +350,36 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
   }
 
   const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault()
-  const projectData = {
-    ...formData,
-    documentFolder: documents,   
-    id: mode === 'edit' ? project?.id : undefined,
-    createdAt: mode === 'create' ? new Date().toISOString() : project?.createdAt,
-    updatedAt: new Date().toISOString()
-  } as Project
-  onSave(projectData)
-}
-
-  const handleAddFolder = () => {
-  const folder: DocumentFolder = {
-    id: `folder-${Date.now()}-${Math.random()}`,
-    name: newFolderName,
-    subfolders: [],
-    files: []
+    e.preventDefault()
+    const projectData = {
+      ...formData,
+      documentFolder: documents,
+      id: mode === 'edit' ? project?.id : undefined,
+      createdAt: mode === 'create' ? new Date().toISOString() : project?.createdAt,
+      updatedAt: new Date().toISOString()
+    } as Project
+    onSave(projectData)
   }
 
-  const next =
-    currentFolderId
-      ? updateFolder(documents, currentFolderId, folder)
-      : [...documents, folder]
+  const handleAddFolder = () => {
+    const folder: DocumentFolder = {
+      id: `folder-${Date.now()}-${Math.random()}`,
+      name: newFolderName,
+      subfolders: [],
+      files: []
+    }
 
-  setDocuments(next)                                          
-  setFormData(prev => ({ ...prev, documentFolder: next }))    
+    const next =
+      currentFolderId
+        ? updateFolder(documents, currentFolderId, folder)
+        : [...documents, folder]
 
-  setNewFolderName("")
-  setIsFolderDialogOpen(false)
-}
+    setDocuments(next)
+    setFormData(prev => ({ ...prev, documentFolder: next }))
+
+    setNewFolderName("")
+    setIsFolderDialogOpen(false)
+  }
 
 
   const updateFolder = (folders: DocumentFolder[], parentId: string, newFolder: DocumentFolder): DocumentFolder[] => {
@@ -392,31 +391,46 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
     })
   }
 
+
+
   const handleAddFile = (folderId: string, files: FileList) => {
-  const newFiles = Array.from(files).map(file => ({
-    id: `file-${Date.now()}-${Math.random()}`,
-    name: file.name,
-    url: URL.createObjectURL(file),
-    type: file.name.split(".").pop()?.toLowerCase() || "",
-    uploadedAt: new Date().toISOString(),
-    uploadedBy: "Bạn"
-  }))
+    const newFiles: BaseDocument[] = Array.from(files).map(file => ({
+      id: globalThis.crypto?.randomUUID?.() ?? `file-${Date.now()}-${Math.random()}`,
+      name: file.name,
+      url: URL.createObjectURL(file),
+      type: toFileExt(file.name.split('.').pop()),
+      uploadedAt: new Date().toISOString(),
+      uploadedBy: 'Bạn',
+    }))
 
-  const next = updateFolderWithFiles(documents, folderId, newFiles)
-
-  setDocuments(next)                                          
-  setFormData(prev => ({ ...prev, documentFolder: next }))    
-}
-
-
-  const updateFolderWithFiles = (folders: DocumentFolder[], folderId: string, newFiles: { id: string; name: string; url: string; type: string; uploadedAt: string; uploadedBy: string }[]): DocumentFolder[] => {
-    return folders.map(folder => {
-      if (folder.id === folderId) {
-        return { ...folder, files: [...folder.files, ...newFiles] }
-      }
-      return { ...folder, subfolders: updateFolderWithFiles(folder.subfolders, folderId, newFiles) }
+    setDocuments(prevDocs => {
+      const next = updateFolderWithFiles(prevDocs, folderId, newFiles)
+      setFormData(prev => ({ ...prev, documentFolder: next }))
+      return next
     })
   }
+
+  const updateFolderWithFiles = (
+    folders: DocumentFolder[],
+    folderId: string,
+    newFiles: BaseDocument[]
+  ): DocumentFolder[] => {
+    let changed = false
+    const next = folders.map(folder => {
+      if (folder.id === folderId) {
+        changed = true
+        return { ...folder, files: [...folder.files, ...newFiles] }
+      }
+      const updatedSubs = updateFolderWithFiles(folder.subfolders, folderId, newFiles)
+      if (updatedSubs !== folder.subfolders) {
+        changed = true
+        return { ...folder, subfolders: updatedSubs }
+      }
+      return folder
+    })
+    return changed ? next : folders
+  }
+
 
   const renderFolderTree = (folders: DocumentFolder[], parentId: string | null = null) => {
     return folders.map(folder => {
@@ -494,7 +508,7 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline"
                       >
-                       
+
                         {file.name}
                       </a>
                       <Button
@@ -906,16 +920,16 @@ export function ProjectForm({ project, onSave, onCancel, mode }: ProjectFormProp
                         onChange={(e) => {
                           const files = Array.from(e.target.files || []);
                           const newDocs = files.map((file) => ({
-                            id: `doc-${Date.now()}-${Math.random()}`,
+                            id: globalThis.crypto?.randomUUID?.() ?? `file-${Date.now()}-${Math.random()}`,
                             name: file.name,
-                            uploadedAt: new Date().toISOString(),
-                            uploadedBy: "Bạn",
-                            type: "other",
                             url: URL.createObjectURL(file),
+                            type: toFileExt(file.name.split('.').pop()),
+                            uploadedAt: new Date().toISOString(),
+                            uploadedBy: 'Bạn',
                           }));
                           setFormData((prev) => ({
                             ...prev,
-                            relatedDocuments: [...(prev.relatedDocuments || []), ...newDocs],
+                            relatedDocuments: [...(prev.relatedDocuments || []), ...newDocs]
                           }));
                         }}
                       />

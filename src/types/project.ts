@@ -1,3 +1,10 @@
+const EXTENSIONS = ['pdf','docx','jpg','png','xlsx'] as const
+type FileExt = typeof EXTENSIONS[number] | 'other'
+
+export const toFileExt = (extRaw?: string): FileExt => {
+  const ext = (extRaw ?? '').toLowerCase()
+  return (EXTENSIONS as readonly string[]).includes(ext) ? (ext as FileExt) : 'other'
+}
 export interface Project {
   id: string
   name: string
@@ -58,6 +65,15 @@ export interface Project {
   //Lĩnh vực
   field?: string // Lĩnh vực (có thể là tên lĩnh vực hoặc mã lĩnh vực)
 
+  //Tài liệu dự án
+  documentFolder?: DocumentFolder[]
+}
+
+export interface DocumentFolder {
+  id: string
+  name: string
+  subfolders: DocumentFolder[]
+  files: BaseDocument[]
 }
 
 export interface ProjectPhase {
@@ -85,7 +101,7 @@ export interface ProjectTask {
   endDate?: string
   progress: number
   dependencies?: string[]
-  documentsTask?: TaskDocument[]
+  documentsTask?: BaseDocument[]
   legalBasis?: string
 }
 
@@ -95,14 +111,10 @@ export interface BaseDocument {
   url?: string
   uploadedAt: string
   uploadedBy: string
-}
-
-export interface TaskDocument extends BaseDocument {
-  type: 'report' | 'approval' | 'design' | 'contract' | 'certificate' | 'other'
+  type: FileExt
 }
 
 export interface ProjectPhaseDocument extends BaseDocument {
-  type: 'plan' | 'report' | 'contract' | 'approval' | 'legal' | 'other'
   description?: string
 }
 
