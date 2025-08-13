@@ -24,7 +24,6 @@ import {
   Plus,
   TrendingUp
 } from "lucide-react"
-import { useState } from "react"
 import { Project } from "@/types/project"
 import { ProjectDetail } from "@/views/projects/ProjectDetail"
 import { ProjectForm } from "@/views/projects/ProjectForm"
@@ -34,19 +33,39 @@ import {
   updateProject,
   deleteProject
 } from "@/services/ProjectService"
-const mockStats = {
-  totalProjects: 24,
-  activeProjects: 8,
-  completedProjects: 12,
-  delayedProjects: 3,
-  teamMembers: 45,
-  avgProgress: 67
-}
+import { useState, useMemo } from "react"
 
 export default function Dashboard() {
   const { projects, loading, refetch } = useProjects()
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [dialogMode, setDialogMode] = useState<'view' | 'create' | 'edit' | 'copy' | null>(null)
+
+  const stats = useMemo(() => {
+    const totalProjects = projects.length
+
+    const activeProjects = projects.filter(p => p.status === "active").length
+    const completedProjects = projects.filter(p => p.status === "completed").length
+
+    const now = new Date()
+    const delayedProjects = projects.filter(p => {
+      if (!p.endDate) return false
+      // trễ nếu quá hạn và chưa completed
+      return new Date(p.endDate) < now && p.status !== "completed"
+    }).length
+
+    // tổng số thành viên = tổng teamSize (nếu thiếu thì 0)
+    const teamMembers = projects.reduce((sum, p) => sum + (Number(p.teamSize) || 0), 0)
+
+    const avgProgress =
+      totalProjects === 0
+        ? 0
+        : Math.round(
+            projects.reduce((sum, p) => sum + (Number(p.progress) || 0), 0) / totalProjects
+          )
+
+    return { totalProjects, activeProjects, completedProjects, delayedProjects, teamMembers, avgProgress }
+  }, [projects])
+
 
   const handleExportExcel = async () => {
     try {
@@ -90,8 +109,6 @@ export default function Dashboard() {
     } catch (e) {
       console.error("Xuất Excel thất bại:", e)
     }
-
-
   }
 
   const handleCreateProject = () => {
@@ -208,7 +225,7 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
-      <DashboardStats stats={mockStats} />
+      <DashboardStats stats={stats} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
