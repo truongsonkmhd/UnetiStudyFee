@@ -9,7 +9,8 @@ import {
   BarChart3,
   Users,
   HardHat,
-  Wrench
+  Wrench,
+  DollarSign
 } from "lucide-react"
 
 import {
@@ -29,6 +30,7 @@ const navigationItems = [
   { title: "Dự Án", url: "/projects", icon: Building },
   { title: "Công Việc", url: "/tasks", icon: FolderKanban },
   { title: "Tiến Độ", url: "/timeline", icon: CalendarDays },
+  { title: "Giải Ngân", url: "/disbursement", icon: DollarSign  },
   { title: "Tài Liệu", url: "/documents", icon: FileText },
   { title: "Nhóm", url: "/team", icon: Users },
   { title: "Thảo Luận", url: "/discussions", icon: MessageSquare },

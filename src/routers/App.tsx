@@ -10,6 +10,7 @@ import Projects from "../views/pages/Projects";
 import Tasks from "../views/pages/Tasks";
 import NotFound from "../views/pages/NotFound";
 import AuthScreen from "@/views/login-and-registor/AuthScreen";
+import Disbursement from "@/views/pages/Disbursement";
 
 const queryClient = new QueryClient();
 
@@ -28,8 +29,9 @@ const App = () => (
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
-          <Route path="/tasks" element={<Tasks />} />
+          <Route path="/tasks" element={<Tasks />} />        
           <Route path="/timeline" element={<div>Trang Tiến Độ (Sắp Ra Mắt)</div>} />
+          <Route path="/disbursement" element={<Disbursement/>} />
           <Route path="/documents" element={<div>Trang Tài Liệu (Sắp Ra Mắt)</div>} />
           <Route path="/team" element={<div>Trang Nhóm (Sắp Ra Mắt)</div>} />
           <Route path="/discussions" element={<div>Trang Thảo Luận (Sắp Ra Mắt)</div>} />

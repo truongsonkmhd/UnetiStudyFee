@@ -38,24 +38,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import TaskForm, { TaskInput } from "@/views/tasks/TaskForm"
+import { Work } from "@/types/work"
 
-// ---- Kiểu dữ liệu Task & dữ liệu khởi tạo ----
-export type Task = {
-  id: string
-  title: string
-  description: string
-  status: "todo" | "in_progress" | "review" | "completed"
-  priority: "high" | "medium" | "low"
-  projectId: string
-  projectName: string
-  assignee: string
-  dueDate: string
-  createdDate: string
-  tags: string[]
-  completed: boolean
-}
 
-const initialTasks: Task[] = [
+ // mock data cho các công việc
+const initialTasks: Work[] = [
   {
     id: "1",
     title: "Thiết kế bản vẽ kiến trúc tầng 1",
@@ -156,23 +143,21 @@ const priorityConfig = {
   low: { label: "Thấp", className: "bg-muted text-muted-foreground" }
 }
 
-// mapping tiến độ theo trạng thái
-const progressByStatus: Record<Task["status"], number> = {
+const progressByStatus: Record<Work["status"], number> = {
   todo: 10,
   in_progress: 50,
   review: 90,
   completed: 100,
 }
 
-// màu cho progress theo trạng thái
-const colorByStatus: Record<Task["status"], string> = {
-  todo: "#9CA3AF",        // gray-400
-  in_progress: "#3B82F6", // blue-500
-  review: "#F59E0B",      // amber-500
-  completed: "#10B981",   // emerald-500
+const colorByStatus: Record<Work["status"], string> = {
+  todo: "#9CA3AF",        
+  in_progress: "#3B82F6", 
+  review: "#F59E0B",      
+  completed: "#10B981",  
 }
 
-function ColoredAnimatedProgress({ value, status }: { value: number; status: Task["status"] }) {
+function ColoredAnimatedProgress({ value, status }: { value: number; status: Work["status"] }) {
   const base = colorByStatus[status]
 
   return (
@@ -204,9 +189,9 @@ function TaskCard({
   onEdit,
   onAskDelete,
 }: {
-  task: Task
-  onEdit: (t: Task) => void
-  onAskDelete: (t: Task) => void
+  task: Work
+  onEdit: (t: Work) => void
+  onAskDelete: (t: Work) => void
 }) {
   const status = statusConfig[task.status]
   const priority = priorityConfig[task.priority]
@@ -291,22 +276,22 @@ function TaskCard({
 }
 
 export default function Tasks() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks)
+  const [tasks, setTasks] = useState<Work[]>(initialTasks)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
   const [activeTab, setActiveTab] = useState("all")
 
   // Edit
-  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [editingTask, setEditingTask] = useState<Work | null>(null)
   const [editOpen, setEditOpen] = useState(false)
 
   // Delete
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
+  const [taskToDelete, setTaskToDelete] = useState<Work | null>(null)
 
   const handleAddTask = (input: TaskInput) => {
-    const newTask: Task = {
+    const newTask: Work = {
       id: String(Date.now()),
       title: input.title,
       description: input.description,
@@ -335,12 +320,12 @@ export default function Tasks() {
     setEditingTask(null)
   }
 
-  const onEditClick = (t: Task) => {
+  const onEditClick = (t: Work) => {
     setEditingTask(t)
     setEditOpen(true)
   }
 
-  const onAskDelete = (t: Task) => {
+  const onAskDelete = (t: Work) => {
     setTaskToDelete(t)
     setDeleteDialogOpen(true)
   }
