@@ -5,12 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import { AppLayout } from "@/components/layout/AppLayout";
-import Dashboard from "../views/pages/Dashboard";
-import Projects from "../views/pages/Projects";
-import Tasks from "../views/pages/Tasks";
 import NotFound from "../views/pages/NotFound";
-import AuthScreen from "@/views/login-and-registor/AuthScreen";
-import Disbursement from "@/views/pages/Disbursement";
 
 const queryClient = new QueryClient();
 
@@ -23,22 +18,22 @@ const App = () => (
       <Routes>
         {/* trang public */}
         <Route path="/" element={<Navigate to="/auth" replace />} />
-        <Route path="/auth" element={<AuthScreen />} />
+        <Route path="/auth" element={<AppLayout />} />
 
         {/* các trang sau đăng nhập dùng layout chung */}
         <Route element={<AppLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/tasks" element={<Tasks />} />        
-          <Route path="/timeline" element={<div>Trang Tiến Độ (Sắp Ra Mắt)</div>} />
-          <Route path="/disbursement" element={<Disbursement/>} />
-          <Route path="/documents" element={<div>Trang Tài Liệu (Sắp Ra Mắt)</div>} />
-          <Route path="/team" element={<div>Trang Nhóm (Sắp Ra Mắt)</div>} />
-          <Route path="/discussions" element={<div>Trang Thảo Luận (Sắp Ra Mắt)</div>} />
-          <Route path="/templates" element={<div>Trang Mẫu (Sắp Ra Mắt)</div>} />
-          <Route path="/reports" element={<div>Trang Báo Cáo (Sắp Ra Mắt)</div>} />
-          <Route path="/tools" element={<div>Trang Công Cụ (Sắp Ra Mắt)</div>} />
-          <Route path="/settings" element={<div>Trang Cài Đặt (Sắp Ra Mắt)</div>} />
+          <Route path="/home" element={<div>Trang chủ (Sắp Ra Mắt)</div>} />
+          <Route path="/articles" element={<div>Bài viết (Sắp Ra Mắt)</div>} />
+          <Route path="/ranking" element={<div>Xếp hạng (Sắp Ra Mắt)</div>} />
+          <Route path="/createLession" element={<div>Tạo bài giảng (Sắp Ra Mắt)</div>} />
+          <Route path="/createTest" element={<div>Tạo bài thi (Sắp Ra Mắt)</div>} />
+          <Route path="/tests" element={<div>Bài thi (Sắp Ra Mắt)</div>} />
+          <Route path="/managerPersons" element={<div>Quản lý ... (Sắp Ra Mắt)</div>} />
+          <Route path="/managerinterest" element={<div>Quản lý quyền (Sắp Ra Mắt)</div>} />
+          <Route path="/classattended" element={<div>Lớp đã tham gia (Sắp Ra Mắt)</div>} />
+          <Route path="/posthistory" element={<div>Lịch sử bài (Sắp Ra Mắt)</div>} />
+          <Route path="/tutorial" element={<div>Hướng dẫn (Sắp Ra Mắt)</div>} />
+          <Route path="/settings" element={<div> Cài Đặt (Sắp Ra Mắt)</div>} />
         </Route>
 
         {/* catch-all */}
