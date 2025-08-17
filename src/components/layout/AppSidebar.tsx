@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom"
+import { NavLink, useLocation } from "react-router-dom";
 import {
   Building,
   FolderKanban,
@@ -11,8 +11,8 @@ import {
   HardHat,
   Wrench,
   DollarSign,
-  icons
-} from "lucide-react"
+  icons,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -24,23 +24,25 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import {
+  classIcon,
+  createLessionIcon,
+  createTestIcon,
+  historyTestIcon,
+  homepageIcon,
+  logoIcon,
+  managerIcon,
+  quyenIcon,
+  rankingIcon,
+  settingIcon,
+  smartIcon,
+  socialIcon,
+  testIcon,
+} from "@/assets";
+import { APP_NAME } from "@/utils/config";
 
 //img
-import logoIcon from "@/assets/img/logo_uneti.png";
-import homepageIcon from "@/assets/ic/ic_home_page_2.png";
-import socialIcon from "@/assets/ic/ic_social_2.png";
-import rankingIcon from "@/assets/ic/ic_ranking.png";
-import createLessionIcon from "@/assets/ic/ic_create_lession.png";
-import createTestIcon from "@/assets/ic/ic_create.png";
-import testIcon from "@/assets/ic/ic_test.png";
-import managerIcon from "@/assets/ic/ic_manager.png";
-import quyenIcon from "@/assets/ic/ic_quyen.png";
-import classIcon from "@/assets/ic/ic_class.png";
-import historyTestIcon from "@/assets/ic/ic_history_test.png";
-import smartIcon from "@/assets/ic/ic_smart.png";
-import settingIcon from "@/assets/ic/ic_setting.png";
-
 
 const navigationItems = [
   { title: "Trang chủ", url: "/home", icon: homepageIcon },
@@ -49,33 +51,36 @@ const navigationItems = [
   { title: "Tạo bài giảng", url: "/createLession", icon: createLessionIcon },
   { title: "Tạo bài thi", url: "/createTest", icon: createTestIcon },
   { title: "Bài thi", url: "/tests", icon: testIcon },
-  { title: "Quản lý sinh viên và giáo viên", url: "/managerPersons", icon: managerIcon },
+  {
+    title: "Quản lý sinh viên và giáo viên",
+    url: "/managerPersons",
+    icon: managerIcon,
+  },
   { title: "Quản lý quyền", url: "/managerinterest", icon: quyenIcon },
-
-]
+];
 
 const history = [
   { title: "Lớp đã tham gia", url: "/classattended", icon: classIcon },
   { title: "Lịch sử bài", url: "/posthistory", icon: historyTestIcon },
-]
+];
 
 const toolsItems = [
   { title: "Hướng dẫn", url: "/tutorial", icon: smartIcon },
   { title: "Cài Đặt", url: "/settings", icon: settingIcon },
-]
+];
 
 export function AppSidebar() {
-  const { state } = useSidebar()
-  const location = useLocation()
-  const currentPath = location.pathname
-  const isCollapsed = state === "collapsed"
+  const { state } = useSidebar();
+  const location = useLocation();
+  const currentPath = location.pathname;
+  const isCollapsed = state === "collapsed";
 
-  const isActive = (path: string) => currentPath === path
+  const isActive = (path: string) => currentPath === path;
 
   const getNavClassName = (path: string) =>
     isActive(path)
       ? "bg-primary text-primary-foreground font-medium shadow-construction"
-      : "hover:bg-muted transition-colors"
+      : "hover:bg-muted transition-colors";
 
   return (
     <Sidebar className={isCollapsed ? "w-16" : "w-64"} collapsible="icon">
@@ -95,8 +100,12 @@ export function AppSidebar() {
           />
           {!isCollapsed && (
             <div className="flex flex-col ml-3">
-              <span className="font-semibold text-sm text-foreground">Uneti Study</span>
-              <span className="text-xs text-muted-foreground">Học để làm chủ chi thức</span>
+              <span className="font-semibold text-sm text-foreground">
+                {APP_NAME}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Học để làm chủ tri thức
+              </span>
             </div>
           )}
         </div>
@@ -109,7 +118,10 @@ export function AppSidebar() {
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavClassName(item.url)}>
+                    <NavLink
+                      to={item.url}
+                      className={getNavClassName(item.url)}
+                    >
                       <img src={item.icon} alt="" className="w-4 h-4" />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
@@ -129,7 +141,10 @@ export function AppSidebar() {
               {history.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavClassName(item.url)}>
+                    <NavLink
+                      to={item.url}
+                      className={getNavClassName(item.url)}
+                    >
                       <img src={item.icon} alt="" className="w-4 h-4" />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
@@ -150,7 +165,10 @@ export function AppSidebar() {
               {toolsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavClassName(item.url)}>
+                    <NavLink
+                      to={item.url}
+                      className={getNavClassName(item.url)}
+                    >
                       <img src={item.icon} alt="" className="w-4 h-4" />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
@@ -162,5 +180,5 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }
