@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { PasswordField } from "@/components/ui/BasePasswordField";
 import { APP_NAME } from "@/utils/config";
 import { useEffect, useState } from "react";
+import { authService } from "@/services/AuthService";
 import BaseInput from "@/components/ui/BaseInputProps ";
 
 type Mode = "login" | "signup";
@@ -21,22 +22,74 @@ export default function AuthDialog({
     ? "Đăng nhập vào " + APP_NAME
     : "Đăng ký tài khoản " + APP_NAME;
 
-  // Hiển thị form Email & SĐT hay chưa (signup: ẩn mặc định, login: hiện mặc định)
-  const [useEmailPhone, setUseEmailPhone] = useState<boolean>(false);
+  const [useEmailPhone, setUseEmailPhone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fn = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", fn);
-    return () => window.removeEventListener("keydown", fn);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
   }, [onClose]);
 
-  // Reset khi chuyển mode
   useEffect(() => {
-    setUseEmailPhone(false); // login: hiện form ngay; signup: ẩn cho tới khi bấm chọn
+    setUseEmailPhone(false);
+    setError("");
   }, [isLogin]);
 
-  // login: ~480px; signup: ~640px
+  // Close dialog on successful login event
+  useEffect(() => {
+    const onLoggedIn = () => {
+      setSubmitting(false);
+      onClose();
+    };
+    window.addEventListener("auth:login", onLoggedIn as EventListener);
+    return () =>
+      window.removeEventListener("auth:login", onLoggedIn as EventListener);
+  }, [onClose]);
+
   const widthClass = "w-[480px]";
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+
+    const fd = new FormData(e.currentTarget);
+
+    if (isLogin) {
+      const identifier = (fd.get("identifier") as string)?.trim();
+      const password = (fd.get("password") as string) ?? "";
+
+      if (!identifier || !password) {
+        setError("Vui lòng nhập đầy đủ email/tài khoản và mật khẩu");
+        return;
+      }
+
+      try {
+        setSubmitting(true);
+
+        const req: any = { password };
+        if (identifier.includes("@")) req.email = identifier;
+        else req.username = identifier;
+
+        const res = await authService.authenticate(req);
+        console.log("MLEMEMEL" + res.success);
+
+        if (res.success) {
+          console.log(res.data.token + "---" + res.data.refreshToken);
+          window.dispatchEvent(new Event("auth:login"));
+        } else {
+          setError(res.message || "Đăng nhập thất bại");
+        }
+      } catch (err) {
+        setError("Đã xảy ra lỗi, vui lòng thử lại");
+      } finally {
+        setSubmitting(false);
+      }
+    } else {
+      alert("Flow đăng ký: cần nối API register của bạn.");
+    }
+  };
 
   return (
     <div
@@ -57,7 +110,6 @@ export default function AuthDialog({
           </button>
         )}
 
-        {/* Close */}
         <button
           onClick={onClose}
           className="absolute right-3 top-3 text-gray-500 hover:text-black"
@@ -76,13 +128,12 @@ export default function AuthDialog({
           {!useEmailPhone && (
             <p className="text-sm text-red-500 text-center mb-5 max-w-[420px] mx-auto">
               Mỗi người nên sử dụng riêng một tài khoản, tài khoản nhiều người
-              sử dụng chung sẽ bị khóa , học sinh phải chịu trách nhiệm.
+              sử dụng chung sẽ bị khóa, học sinh phải chịu trách nhiệm.
             </p>
           )}
         </div>
 
         <div className="mx-auto max-w-md">
-          {/* KHU VỰC CHỌN PHƯƠNG THỨC */}
           {!useEmailPhone && (
             <div className="grid grid-cols-1 gap-3">
               <button
@@ -94,7 +145,10 @@ export default function AuthDialog({
                   : "Đăng ký bằng email & Số điện thoại"}
               </button>
 
-              <button className="w-full border rounded-xl py-2 flex items-center justify-center gap-2 hover:bg-gray-50">
+              <button
+                className="w-full border rounded-xl py-2 flex items-center justify-center gap-2 hover:bg-gray-50"
+                onClick={() => alert("TODO: Đăng nhập/Đăng ký Google")}
+              >
                 <img
                   alt="Google"
                   src="https://www.svgrepo.com/show/355037/google.svg"
@@ -105,94 +159,78 @@ export default function AuthDialog({
             </div>
           )}
 
-          {/* FORM EMAIL & SĐT */}
           {useEmailPhone && (
-            <form
-              className="grid grid-cols-1 gap-3"
-              onSubmit={(e) => {
-                e.preventDefault();
-                // TODO: gọi API submit
-              }}
-            >
+            <form className="grid grid-cols-1 gap-3" onSubmit={handleSubmit}>
               {isLogin ? (
                 <>
-                  {/* LOGIN FORM */}
-
                   <BaseInput
-                    label="Email"
-                    type="email"
-                    name="email"
-                    placeholder="Nhập địa chỉ email hoặc tên người dùng của bạn"
+                    label="tài khoản"
+                    type="text"
+                    name="identifier"
+                    placeholder="taikhoan123"
                     required
                   />
 
-                  <div className="flex items-center justify-between"></div>
-                  <PasswordField label="Mật khẩu" name="Mật khẩu" />
+                  <PasswordField label="Mật khẩu" name="password" />
+
+                  {error && <p className="text-sm text-red-600">{error}</p>}
 
                   <Button
-                    onClick={() => ""} // mở dialog
+                    type="submit"
+                    disabled={submitting}
                     className="rounded-full px-4 hover:opacity-90"
                   >
-                    Đăng nhập
+                    {submitting ? "Đang đăng nhập..." : "Đăng nhập"}
                   </Button>
                 </>
               ) : (
                 <>
-                  {/* SIGNUP FORM */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="col-span-1">
                       <BaseInput
                         label="Họ"
-                        type="họ"
-                        name="họ"
+                        type="text"
+                        name="lastName"
                         placeholder="Nguyễn"
                         required
                       />
                     </div>
-
                     <div className="col-span-1">
                       <BaseInput
                         label="Tên"
-                        type="tên"
-                        name="tên"
+                        type="text"
+                        name="firstName"
                         placeholder="Văn A"
                         required
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <BaseInput
-                      label="Email"
-                      type="email"
-                      name="email"
-                      placeholder="you@example.com"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <BaseInput
-                      label="Số điện thoại"
-                      type="số điện thoại"
-                      name="số điện thoại"
-                      placeholder="09xx xxx xxx"
-                      required
-                    />
-                  </div>
-
-                  <PasswordField label="Mật khẩu" name="Mật khẩu" />
-
-                  <PasswordField
-                    label="Nhập lại mật khẩu"
-                    name="Nhập lại mật khẩu"
+                  <BaseInput
+                    label="Email"
+                    type="email"
+                    name="email"
+                    placeholder="you@example.com"
+                    required
                   />
+                  <BaseInput
+                    label="Số điện thoại"
+                    type="tel"
+                    name="phone"
+                    placeholder="09xx xxx xxx"
+                    required
+                  />
+                  <PasswordField label="Mật khẩu" name="password" />
+                  <PasswordField label="Nhập lại mật khẩu" name="confirm" />
+
+                  {error && <p className="text-sm text-red-600">{error}</p>}
 
                   <Button
-                    onClick={() => ""} // mở dialog
+                    type="submit"
+                    disabled={submitting}
                     className="rounded-full px-4 hover:opacity-90"
                   >
-                    Tạo tài khoản
+                    {submitting ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
                   </Button>
                 </>
               )}
@@ -200,8 +238,7 @@ export default function AuthDialog({
           )}
         </div>
 
-        {/* Switch + footer */}
-        <div className="mt-5 text-center text-sm">
+        <div className="mt-5 text-center text-sm space-y-2">
           {isLogin ? (
             <p>
               Bạn chưa có tài khoản?{" "}

@@ -2,10 +2,16 @@
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./routers/App";
-import "./index.css"
+import "./index.css";
+import React from "react";
+import { AuthProvider } from "./hooks/useAuth";
 
 createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
-      <App />
-  </BrowserRouter>
+  <React.StrictMode>
+    <AuthProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </AuthProvider>
+  </React.StrictMode>
 );
