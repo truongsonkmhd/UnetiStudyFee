@@ -7,6 +7,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import NotFound from "../views/pages/NotFound";
 import { HomePage } from "@/views/home/HomePage";
+import CourseLessonsAndExercises from "@/views/home/CourseLessonsAndExercises";
+import VideoCoursePlayer from "@/views/home/VideoCoursePlayer";
+import LeaderboardPage from "@/views/home/LeaderboardPage";
 
 const queryClient = new QueryClient();
 const isAuthenticated = false;
@@ -19,21 +22,15 @@ const App = () => (
 
       <Routes>
         {/* trang public */}
-        <Route path="/" element={<Navigate to="/auth" replace />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/auth" element={<AppLayout />} />
 
         <Route element={<AppLayout />}>
           <Route path="/home" element={HomePage()} />
           <Route path="/articles" element={<div>Bài viết (Sắp Ra Mắt)</div>} />
-          <Route path="/ranking" element={<div>Xếp hạng (Sắp Ra Mắt)</div>} />
-          <Route
-            path="/createLession"
-            element={<div>Tạo bài giảng (Sắp Ra Mắt)</div>}
-          />
-          <Route
-            path="/createTest"
-            element={<div>Tạo bài thi (Sắp Ra Mắt)</div>}
-          />
+          <Route path="/ranking" element={LeaderboardPage()} />
+          <Route path="/createLession" element={CourseLessonsAndExercises()} />
+          <Route path="/createTest" element={VideoCoursePlayer()} />
           <Route path="/tests" element={<div>Bài thi (Sắp Ra Mắt)</div>} />
           <Route
             path="/managerPersons"
