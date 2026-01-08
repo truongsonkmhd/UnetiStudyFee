@@ -1,0 +1,17 @@
+export const PATHS = {
+  HOME: "/",
+  AUTH: "/auth",
+  DASHBOARD: "/dashboard",
+  REGISTER: "/register",
+  PROJECTS: "/projects",
+  PROJECT_DETAIL: "/projects/:projectId",
+  PROJECT_NEW: "/projects/new",
+  PROJECT_EDIT: "/projects/:projectId/edit",
+  TASKS: "/tasks",
+  TASK_DETAIL: "/tasks/:taskId",
+  DISBURSEMENT: "/disbursement",
+  PHASES: "/phases",
+  REPORTS: "/reports",
+  UNAUTHORIZED: "/unauthorized",
+  MANAGERMENT_USERS: "/management-member",
+};

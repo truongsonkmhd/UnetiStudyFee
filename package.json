@@ -53,6 +53,7 @@
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
+    "query-string": "^9.3.1",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
@@ -85,7 +86,8 @@
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "vite-tsconfig-paths": "^5.1.4"
   },
   "description": "**URL**: https://lovable.dev/projects/1bd889a7-cfe1-4fbb-bd73-3bada220a27b",
   "main": "eslint.config.js",

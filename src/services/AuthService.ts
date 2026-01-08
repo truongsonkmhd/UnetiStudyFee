@@ -1,264 +1,79 @@
-import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
-import Cookies from "js-cookie";
-import { BaseService } from "./BaseService";
-import { AuthenticationResponse } from "@/model/AuthenticationResponse";
-import { AuthServiceResponse } from "@/model/AuthServiceResponse";
-import { IResponseMessage } from "@/model/IResponseMessage";
+import apiService from "@/apis/apiService";
 import { User } from "@/model/User";
+import { LoginData, LoginPayload } from "@/types/Auth";
 
-export interface AuthenticationRequest {
-  username: string;
-  password: string;
-  isRememberMe?: boolean;
-}
+const LOGIN_ENDPOINT = "/authenticate";
+const LOGOUT_ENDPOINT = "/authenticate/logout";
 
-export interface RefreshTokenRequest {
-  refreshToken: string;
-}
+const authService = {
+  login: async (payload: LoginPayload): Promise<LoginData> => {
+    const response = await apiService.post<LoginData>(LOGIN_ENDPOINT, payload);
 
-interface CustomAxiosRequestConfig extends AxiosRequestConfig {
-  _retry?: boolean;
-}
+    if (response && response.token) {
+      const storage = payload.isRememberMe ? localStorage : sessionStorage;
+      storage.setItem("access_token", response.token);
+      storage.setItem("refresh_token", response.refreshToken);
+      storage.setItem("user", JSON.stringify(response.user));
+    }
 
-let isRefreshing = false;
+    return response;
+  },
 
-class AuthService extends BaseService {
-  constructor() {
-    super("");
-    // Response interceptor for token refresh
-    this.apiClient.interceptors.response.use(
-      (response: AxiosResponse) => response,
-      async (error: AxiosError) => {
-        const originalRequest = error.config as CustomAxiosRequestConfig;
-
-        if (
-          error.response?.status === 401 &&
-          !originalRequest._retry &&
-          !this.isAuthEndpoint(originalRequest.url)
-        ) {
-          if (isRefreshing) {
-            await new Promise((resolve) => setTimeout(resolve, 100));
-            const newToken = Cookies.get("access_token");
-            if (newToken) {
-              originalRequest.headers.Authorization = `Bearer ${newToken}`;
-              return this.apiClient(originalRequest);
-            }
-          }
-
-          originalRequest._retry = true;
-          isRefreshing = true;
-
-          try {
-            const refreshToken = Cookies.get("refresh_token");
-            if (refreshToken) {
-              const response = await this.apiClient.post<
-                IResponseMessage<AuthenticationResponse>
-              >("/authenticate/refresh-token", { refreshToken });
-
-              if (response.data.status) {
-                const newToken = response.data.data.token;
-                Cookies.set("access_token", newToken, {
-                  secure: true,
-                  sameSite: "Strict",
-                  path: "/",
-                });
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                return this.apiClient(originalRequest);
-              }
-            }
-            this.clearTokens();
-            window.dispatchEvent(new CustomEvent("auth:logout"));
-          } catch (refreshError) {
-            this.clearTokens();
-            window.dispatchEvent(new CustomEvent("auth:logout"));
-          } finally {
-            isRefreshing = false;
-          }
-        }
-
-        return Promise.reject(error);
-      }
-    );
-  }
-
-  private storeAuthData(authData: AuthenticationResponse): void {
-    Cookies.set("access_token", authData.token, {
-      secure: true,
-      sameSite: "Strict",
-      path: "/",
-    });
-    Cookies.set("refresh_token", authData.refreshToken, {
-      secure: true,
-      sameSite: "Strict",
-      path: "/",
-    });
-    Cookies.set("user", JSON.stringify(authData.user), {
-      secure: true,
-      sameSite: "Strict",
-      path: "/",
-    });
-    Cookies.set(
-      "token_expiry",
-      (Date.now() + authData.expiresIn * 1000).toString(),
-      {
-        secure: true,
-        sameSite: "Strict",
-        path: "/",
-      }
-    );
-  }
-
-  async authenticate(
-    request: AuthenticationRequest
-  ): Promise<AuthServiceResponse<AuthenticationResponse>> {
+  logout: async (): Promise<void> => {
     try {
-      const response = await this.apiClient.post<
-        IResponseMessage<AuthenticationResponse>
-      >("/authenticate", request);
-      if (response.data.status) {
-        const authData = response.data.data;
-        this.storeAuthData(authData);
-        window.dispatchEvent(
-          new CustomEvent("auth:login", { detail: authData.user })
-        );
-        return {
-          success: true,
-          data: authData,
-          message: response.data.message || "Đăng nhập thành công",
-        };
-      }
-      return {
-        success: false,
-        message: response.data.message || "Đăng nhập thất bại",
-      };
+      await apiService.post<string>(LOGOUT_ENDPOINT);
+
+      console.log("Server logout successful.");
     } catch (error) {
-      return this.handleError(error as AxiosError);
-    }
-  }
+      console.error(
+        "Lỗi khi gọi API đăng xuất, nhưng vẫn sẽ tiếp tục xóa token ở client:",
+        error
+      );
+    } finally {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("capital-project-options");
+      localStorage.removeItem("debug");
+      localStorage.removeItem("design-steps-options");
+      localStorage.removeItem("field-project-options");
+      localStorage.removeItem("phase-templates:v1");
+      localStorage.removeItem("pocketbase_auth");
+      localStorage.removeItem("project-group-options");
 
-  async loginWithToken(
-    refreshToken: string
-  ): Promise<AuthServiceResponse<AuthenticationResponse>> {
-    try {
-      const request: RefreshTokenRequest = { refreshToken };
-      const response = await this.apiClient.post<
-        IResponseMessage<AuthenticationResponse>
-      >("/authenticate/login-with-token", request);
-      if (response.data.status) {
-        const authData = response.data.data;
-        this.storeAuthData(authData);
-        window.dispatchEvent(
-          new CustomEvent("auth:login", { detail: authData.user })
-        );
-        return {
-          success: true,
-          data: authData,
-          message: response.data.message || "Đăng nhập với token thành công",
-        };
+      sessionStorage.removeItem("access_token");
+      sessionStorage.removeItem("refresh_token");
+      sessionStorage.removeItem("user");
+
+      sessionStorage.removeItem("capital-project-options");
+      sessionStorage.removeItem("debug");
+      sessionStorage.removeItem("design-steps-options");
+      sessionStorage.removeItem("field-project-options");
+      sessionStorage.removeItem("phase-templates:v1");
+      sessionStorage.removeItem("pocketbase_auth");
+      sessionStorage.removeItem("project-group-options");
+
+      console.log("Client tokens cleared.");
+    }
+  },
+
+  signUp: () => {
+    console.log("sign");
+  },
+
+  getCurrentUser: (): User | null => {
+    const userStr =
+      localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (userStr) {
+      try {
+        return JSON.parse(userStr) as User;
+      } catch (e) {
+        console.error("Lỗi khi parse dữ liệu người dùng:", e);
+        return null;
       }
-      return {
-        success: false,
-        message: response.data.message || "Đăng nhập với token thất bại",
-      };
-    } catch (error) {
-      return this.handleError(error as AxiosError);
     }
-  }
+    return null;
+  },
+};
 
-  async refreshToken(
-    refreshToken: string
-  ): Promise<AuthServiceResponse<AuthenticationResponse>> {
-    try {
-      const request: RefreshTokenRequest = { refreshToken };
-      const response = await this.apiClient.post<
-        IResponseMessage<AuthenticationResponse>
-      >("/authenticate/refresh-token", request);
-      if (response.data.status) {
-        const authData = response.data.data;
-        this.storeAuthData(authData);
-        return {
-          success: true,
-          data: authData,
-          message: response.data.message || "Làm mới token thành công",
-        };
-      }
-      return {
-        success: false,
-        message: response.data.message || "Làm mới token thất bại",
-      };
-    } catch (error) {
-      return this.handleError(error as AxiosError);
-    }
-  }
-
-  isAuthenticated(): boolean {
-    const token = Cookies.get("access_token");
-    const expiry = Cookies.get("token_expiry");
-    if (!token || !expiry) return false;
-    return Date.now() < parseInt(expiry);
-  }
-
-  getCurrentUser(): User | null {
-    try {
-      const userStr = Cookies.get("user");
-      return userStr ? JSON.parse(userStr) : null;
-    } catch (error) {
-      console.error("Error parsing user from cookie:", error);
-      return null;
-    }
-  }
-
-  getAccessToken(): string | undefined {
-    return Cookies.get("access_token");
-  }
-
-  getRefreshToken(): string | undefined {
-    return Cookies.get("refresh_token");
-  }
-
-  logout(): void {
-    this.clearTokens();
-    window.dispatchEvent(new CustomEvent("auth:logout"));
-  }
-
-  clearTokens(): void {
-    Cookies.remove("access_token", { path: "/" });
-    Cookies.remove("refresh_token", { path: "/" });
-    Cookies.remove("user", { path: "/" });
-    Cookies.remove("token_expiry", { path: "/" });
-  }
-
-  async ensureValidToken(): Promise<boolean> {
-    const token = this.getAccessToken();
-    const expiry = Cookies.get("token_expiry");
-    if (!token || !expiry) return false;
-
-    const timeUntilExpiry = parseInt(expiry) - Date.now();
-    if (timeUntilExpiry < 5 * 60 * 1000) {
-      const refreshToken = this.getRefreshToken();
-      if (refreshToken && !isRefreshing) {
-        isRefreshing = true;
-        try {
-          const result = await this.refreshToken(refreshToken);
-          return result.success;
-        } finally {
-          isRefreshing = false;
-        }
-      }
-      return false;
-    }
-    return true;
-  }
-
-  async initializeAuth(): Promise<boolean> {
-    const refreshToken = this.getRefreshToken();
-    if (refreshToken && !this.isAuthenticated()) {
-      const result = await this.loginWithToken(refreshToken);
-      return result.success;
-    }
-    return this.isAuthenticated();
-  }
-}
-
-export const authService = new AuthService();
 export default authService;

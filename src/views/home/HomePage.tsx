@@ -57,49 +57,6 @@ export type Course = {
   createdAt?: string; // ISO date
 };
 
-const proCourses: Course[] = [
-  {
-    id: "c-htmlcss-pro",
-    title: "HTML, CSS Pro",
-    color: "from-blue-500 to-indigo-500",
-    author: "Sơn Đặng",
-    students: 498,
-    duration: "116h50p",
-    price: 1299000,
-    oldPrice: 2500000,
-    isNew: true,
-    isPro: true,
-    majors: ["cntt"],
-    createdAt: "2024-11-03",
-  },
-  {
-    id: "c-js-pro",
-    title: "JavaScript Pro",
-    color: "from-yellow-400 to-orange-400",
-    author: "Sơn Đặng",
-    students: 235,
-    duration: "45h40p",
-    price: 1399000,
-    oldPrice: 2299000,
-    isPro: true,
-    majors: ["cntt"],
-    createdAt: "2024-09-15",
-  },
-  {
-    id: "c-sass",
-    title: "Ngôn ngữ Sass",
-    color: "from-pink-400 to-rose-400",
-    author: "Sơn Đặng",
-    students: 27,
-    duration: "6h18p",
-    price: 299000,
-    oldPrice: 400000,
-    isPro: true,
-    majors: ["cntt"],
-    createdAt: "2024-08-20",
-  },
-];
-
 const freeCourses: Course[] = [
   {
     id: "c-fundamental",
@@ -624,7 +581,6 @@ export function HomePage() {
   const teacherOptions = useMemo(() => {
     const set = new Set<string>();
     freeCourses.forEach((c) => set.add(c.author));
-    proCourses.forEach((c) => set.add(c.author));
     return Array.from(set).sort();
   }, []);
 
@@ -671,9 +627,6 @@ export function HomePage() {
         }
       />
       <CoursesRow courses={requiredCourses} />
-
-      <SectionHeader title="Khóa học tính phí" />
-      <CoursesRow courses={sortCourses(proCourses, "newest")} />
     </PageContainer>
   );
 }
