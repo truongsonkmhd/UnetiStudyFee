@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "./context/AuthContext";
+import { actionAuth } from "./context/AuthContext";
 import { PATHS } from "@/constants/paths";
 
 interface PublicRouteProps {
@@ -7,14 +7,14 @@ interface PublicRouteProps {
 }
 
 const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = actionAuth();
 
   if (isLoading) {
     return null;
   }
 
   if (isAuthenticated) {
-    return <Navigate to={PATHS.DASHBOARD} replace />;
+    return <Navigate to={PATHS.HOME} replace />;
   }
 
   return <>{children}</>;

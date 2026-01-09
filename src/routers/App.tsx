@@ -3,11 +3,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import NotFound from "../views/pages/NotFound";
-import { HomePage } from "@/views/home/HomePage";
-import CourseLessonsAndExercises from "@/views/home/CourseLessonsAndExercises";
-import VideoCoursePlayer from "@/views/home/VideoCoursePlayer";
-import LeaderboardPage from "@/views/home/LeaderboardPage";
+import NotFound from "../views/common/NotFound";
+import { HomePage } from "@/views/pages/HomePage";
+import CourseLessonsAndExercises from "@/views/pages/CourseLessonsAndExercises";
+import VideoCoursePlayer from "@/views/pages/VideoCoursePlayer";
+import LeaderboardPage from "@/views/pages/LeaderboardPage";
 
 import { PATHS } from "@/constants/paths";
 import AuthScreen from "@/views/login-and-registor/AuthScreen";
@@ -15,6 +15,10 @@ import { AppLayout } from "@/components/layout/AppLayout";
 
 import { Routes, Route, Navigate } from "react-router-dom";
 import PublicRoute from "@/components/PublicRoute";
+import ProfilePage from "@/views/profile/ProfilePage";
+import UnauthorizedPage from "@/components/UnauthorizedPage";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { Role, ROLES } from "@/types/Auth";
 // import PrivateRoute from "@/components/PrivateRoute"; // nếu bạn có
 
 const queryClient = new QueryClient();
@@ -29,6 +33,8 @@ const App = () => (
       <Sonner />
 
       <Routes>
+        <Route path="/" element={<Navigate to={PATHS.AUTH} replace />} />
+
         <Route
           path={PATHS.AUTH}
           element={
@@ -38,44 +44,90 @@ const App = () => (
             </PublicRoute>
           }
         />
+        <Route path={PATHS.PROFILE_PAGE} element={<ProfilePage />} />
 
         <Route element={<AppLayout />}>
+          <Route path={PATHS.UNAUTHORIZED} element={<UnauthorizedPage />} />
+
+          <Route path={PATHS.HOME} element={<HomePage />} />
           <Route
-            path="/home"
+            path={PATHS.ARTICLES}
+            element={<div>Bài viết (Sắp Ra Mắt)</div>}
+          />
+          <Route path={PATHS.RANKING} element={<LeaderboardPage />} />
+          <Route
+            path={PATHS.CREATE_LESSON}
             element={
-              isAuthenticated ? (
-                <HomePage />
-              ) : (
-                <Navigate to={PATHS.AUTH} replace />
-              )
+              <ProtectedRoute
+                requiredRoles={[
+                  Role.ROLE_ADMIN,
+                  Role.ROLE_SYS_ADMIN,
+                  Role.ROLE_TEACHER,
+                ]}
+              >
+                <CourseLessonsAndExercises />
+              </ProtectedRoute>
             }
           />
-          <Route path="/articles" element={<div>Bài viết (Sắp Ra Mắt)</div>} />
-          <Route path="/ranking" element={<LeaderboardPage />} />
           <Route
-            path="/createLession"
-            element={<CourseLessonsAndExercises />}
-          />
-          <Route path="/createTest" element={<VideoCoursePlayer />} />
-          <Route path="/tests" element={<div>Bài thi (Sắp Ra Mắt)</div>} />
-          <Route
-            path="/managerPersons"
-            element={<div>Quản lý ... (Sắp Ra Mắt)</div>}
-          />
-          <Route
-            path="/managerinterest"
-            element={<div>Quản lý quyền (Sắp Ra Mắt)</div>}
+            path={PATHS.CREATE_TEST}
+            element={
+              <ProtectedRoute
+                requiredRoles={[
+                  Role.ROLE_ADMIN,
+                  Role.ROLE_SYS_ADMIN,
+                  Role.ROLE_TEACHER,
+                ]}
+              >
+                <VideoCoursePlayer />
+              </ProtectedRoute>
+            }
           />
           <Route
-            path="/classattended"
-            element={<div>Lớp đã tham gia (Sắp Ra Mắt)</div>}
+            path={PATHS.CREATE_TEST}
+            element={<div>Bài thi (Sắp Ra Mắt)</div>}
           />
           <Route
-            path="/posthistory"
-            element={<div>Lịch sử bài (Sắp Ra Mắt)</div>}
+            path={PATHS.MANAGER_PERSONS}
+            element={
+              <ProtectedRoute
+                requiredRoles={[Role.ROLE_ADMIN, Role.ROLE_SYS_ADMIN]}
+              >
+                <div>Quản lý ... (Sắp Ra Mắt)</div>
+              </ProtectedRoute>
+            }
           />
-          <Route path="/tutorial" element={<div>Hướng dẫn (Sắp Ra Mắt)</div>} />
-          <Route path="/settings" element={<div>Cài Đặt</div>} />
+          <Route
+            path={PATHS.MANAGER_INTEREST}
+            element={
+              <ProtectedRoute
+                requiredRoles={[Role.ROLE_ADMIN, Role.ROLE_SYS_ADMIN]}
+              >
+                <div>Quản lý quyền (Sắp Ra Mắt)</div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={PATHS.CLASS_ATTENDED}
+            element={
+              <ProtectedRoute requiredRoles={[Role.ROLE_STUDENT]}>
+                <div>Lớp đã tham gia (Sắp Ra Mắt)</div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={PATHS.POST_HISTORY}
+            element={
+              <ProtectedRoute requiredRoles={[Role.ROLE_STUDENT]}>
+                <div>Lịch sử bài (Sắp Ra Mắt)</div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={PATHS.TUTORIAL}
+            element={<div>Hướng dẫn (Sắp Ra Mắt)</div>}
+          />
+          <Route path={PATHS.SETTINGS} element={<div>Cài Đặt</div>} />
         </Route>
 
         {/* catch-all */}

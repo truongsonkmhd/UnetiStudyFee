@@ -1,17 +1,21 @@
 export const PATHS = {
-  HOME: "/",
   AUTH: "/auth",
-  DASHBOARD: "/dashboard",
+
+  //page
+  HOME: "/home",
   REGISTER: "/register",
-  PROJECTS: "/projects",
-  PROJECT_DETAIL: "/projects/:projectId",
-  PROJECT_NEW: "/projects/new",
-  PROJECT_EDIT: "/projects/:projectId/edit",
-  TASKS: "/tasks",
-  TASK_DETAIL: "/tasks/:taskId",
-  DISBURSEMENT: "/disbursement",
-  PHASES: "/phases",
-  REPORTS: "/reports",
+  ARTICLES: "/articles",
+  RANKING: "/ranking",
+  CREATE_LESSON: "/createLession",
+  CREATE_TEST: "/createTest",
+  SETTINGS: "/settings",
+  TUTORIAL: "/tutorial",
+  POST_HISTORY: "/posthistory",
+  CLASS_ATTENDED: "/classattended",
+  MANAGER_INTEREST: "/managerinterest",
+  MANAGER_PERSONS: "/managerPersons",
+
+  //other
+  PROFILE_PAGE: "/profilePage",
   UNAUTHORIZED: "/unauthorized",
-  MANAGERMENT_USERS: "/management-member",
 };

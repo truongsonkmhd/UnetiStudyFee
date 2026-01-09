@@ -2,9 +2,6 @@ import React, { useMemo, useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Crown, Play, Star, Users, Clock } from "lucide-react";
 
-/* ============================
-   MOCK DATA
-============================ */
 const heroSlides = [
   {
     id: "s1",

@@ -1,6 +1,7 @@
 import { User } from "@/model/User";
 import authService from "@/services/AuthService";
-import { LoginPayload } from "@/types/Auth";
+import { LoginData, LoginPayload } from "@/types/Auth";
+import { JwtClaims } from "@/types/JwtClaims";
 import { Permission } from "@/types/Permission";
 import React, {
   createContext,
@@ -9,10 +10,10 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { getRolesFromClaims } from "../common/getRolesAndPermissionFromClaims";
 
 interface AuthContextType {
-  user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  jwtClaims: JwtClaims | null;
   isAuthenticated: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   logout: () => Promise<void>;
@@ -25,36 +26,39 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [jwtClaims, setJwtClaims] = useState<JwtClaims | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    console.log(
+      "AuthProvider mounting, checking existing token...423423423432"
+    );
     try {
-      const currentUser = authService.getCurrentUser();
-      if (currentUser) {
-        setUser(currentUser);
+      const jwtClaims = authService.getJwtClaimDecoded();
+      if (jwtClaims) {
+        setJwtClaims(jwtClaims);
       }
     } catch (error) {
-      console.error("Không thể lấy thông tin người dùng:", error);
-      setUser(null);
+      console.error("Không thể decode JWT claims:", error);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   const login = async (payload: LoginPayload) => {
-    const response = await authService.login(payload);
-    setUser(response.user);
+    await authService.login(payload);
+    const claims = authService.getJwtClaimDecoded();
+    setJwtClaims(claims);
   };
 
   const logout = async () => {
     await authService.logout();
-    setUser(null);
+    setJwtClaims(null);
   };
 
   const forgot = () => {
     authService.logout();
-    setUser(null);
+    setJwtClaims(null);
   };
 
   const signUp = async () => {
@@ -62,20 +66,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const hasRole = (allowedRoles: string[]): boolean => {
-    if (!user?.roles?.length) return false;
+    if (!jwtClaims?.scope?.length) return false;
 
-    // role code từ user (vd: "ADMIN", "TEACHER"...)
-    const userRoleCodes = user.roles
-      .map((r) => r?.code)
-      .filter(Boolean) as string[];
+    const roleContain = getRolesFromClaims(jwtClaims).filter(
+      Boolean
+    ) as string[];
 
-    return allowedRoles.some((role) => userRoleCodes.includes(role));
+    return allowedRoles.some((role) => roleContain.includes(role));
   };
 
   const value = {
-    user,
-    setUser,
-    isAuthenticated: !!user,
+    jwtClaims,
+    isAuthenticated: !!jwtClaims,
     login,
     logout,
     forgot,
@@ -91,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useAuth = (): AuthContextType => {
+export const actionAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error("useAuth phải được sử dụng bên trong một AuthProvider");

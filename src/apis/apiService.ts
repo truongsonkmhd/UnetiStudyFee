@@ -1,8 +1,6 @@
-// src/api/apiService.ts
-
-import axiosClient from './axiosClient';
-import axiosClientDowload from './axiosClientDowload';
-import axios, { type AxiosRequestConfig } from 'axios';
+import axiosClient from "./axiosClient";
+import axiosClientDowload from "./axiosClientDowload";
+import axios, { type AxiosRequestConfig } from "axios";
 // Định nghĩa một object chứa tất cả các phương thức gọi API
 const apiService = {
   /**
@@ -48,7 +46,6 @@ const apiService = {
   postDowload<T>(url: string, body?: object): Promise<any> {
     return axiosClientDowload.postDowload<T>(url, body);
   },
-
 };
 
 export default apiService;

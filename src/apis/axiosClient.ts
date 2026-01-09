@@ -9,7 +9,7 @@ import axios, {
 import queryString from "query-string";
 import { toast } from "sonner";
 
-const baseUrlRaw = import.meta.env.VITE_API_URL || "http://localhost:8083/api";
+const baseUrlRaw = import.meta.env.VITE_API_URL || "http://localhost:8097/api";
 const refreshEndpointRaw =
   import.meta.env.VITE_REFRESH_TOKEN_ENDPOINT || "/authenticate/refresh-token";
 
@@ -104,7 +104,6 @@ axiosClient.interceptors.response.use(
           const storage = localStorage;
           storage.setItem("access_token", data.token);
           storage.setItem("refresh_token", data.refreshToken);
-          storage.setItem("user", JSON.stringify(data.user));
 
           const newAccessToken = data.token;
 

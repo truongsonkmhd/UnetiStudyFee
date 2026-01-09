@@ -1,19 +1,47 @@
 import apiService from "@/apis/apiService";
-import { User } from "@/model/User";
+import { decodeToken } from "@/components/common/decodeToken";
 import { LoginData, LoginPayload } from "@/types/Auth";
+import { JwtClaims } from "@/types/JwtClaims";
 
 const LOGIN_ENDPOINT = "/authenticate";
 const LOGOUT_ENDPOINT = "/authenticate/logout";
+const REGISTER_ENDPOINT = "/authenticate/register";
+
+const ACCESS_TOKEN_KEY = "access_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
+
+function getStorageByRememberMe(isRememberMe?: boolean) {
+  return isRememberMe ? localStorage : sessionStorage;
+}
+
+function getTokenFromAnyStorage(key: string): string | null {
+  return localStorage.getItem(key) || sessionStorage.getItem(key);
+}
+
+function clearAuthStorage() {
+  // Local
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem("debug");
+
+  // Session
+  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+  sessionStorage.removeItem("debug");
+}
 
 const authService = {
   login: async (payload: LoginPayload): Promise<LoginData> => {
     const response = await apiService.post<LoginData>(LOGIN_ENDPOINT, payload);
 
-    if (response && response.token) {
-      const storage = payload.isRememberMe ? localStorage : sessionStorage;
-      storage.setItem("access_token", response.token);
-      storage.setItem("refresh_token", response.refreshToken);
-      storage.setItem("user", JSON.stringify(response.user));
+    if (response?.token) {
+      const storage = getStorageByRememberMe(payload.isRememberMe);
+      storage.setItem(ACCESS_TOKEN_KEY, response.token);
+
+      // nếu backend có refreshToken thì lưu
+      if (response.refreshToken) {
+        storage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+      }
     }
 
     return response;
@@ -22,7 +50,6 @@ const authService = {
   logout: async (): Promise<void> => {
     try {
       await apiService.post<string>(LOGOUT_ENDPOINT);
-
       console.log("Server logout successful.");
     } catch (error) {
       console.error(
@@ -30,50 +57,39 @@ const authService = {
         error
       );
     } finally {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("user");
-      localStorage.removeItem("capital-project-options");
-      localStorage.removeItem("debug");
-      localStorage.removeItem("design-steps-options");
-      localStorage.removeItem("field-project-options");
-      localStorage.removeItem("phase-templates:v1");
-      localStorage.removeItem("pocketbase_auth");
-      localStorage.removeItem("project-group-options");
-
-      sessionStorage.removeItem("access_token");
-      sessionStorage.removeItem("refresh_token");
-      sessionStorage.removeItem("user");
-
-      sessionStorage.removeItem("capital-project-options");
-      sessionStorage.removeItem("debug");
-      sessionStorage.removeItem("design-steps-options");
-      sessionStorage.removeItem("field-project-options");
-      sessionStorage.removeItem("phase-templates:v1");
-      sessionStorage.removeItem("pocketbase_auth");
-      sessionStorage.removeItem("project-group-options");
-
+      clearAuthStorage();
       console.log("Client tokens cleared.");
     }
   },
 
-  signUp: () => {
-    console.log("sign");
-  },
+  signUp: async () => {
+    const response = await apiService.post<LoginData>(REGISTER_ENDPOINT);
 
-  getCurrentUser: (): User | null => {
-    const userStr =
-      localStorage.getItem("user") || sessionStorage.getItem("user");
-    if (userStr) {
-      try {
-        return JSON.parse(userStr) as User;
-      } catch (e) {
-        console.error("Lỗi khi parse dữ liệu người dùng:", e);
-        return null;
+    if (response?.token) {
+      localStorage.setItem(ACCESS_TOKEN_KEY, response.token);
+
+      // nếu backend có refreshToken thì lưu
+      if (response.refreshToken) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
       }
     }
-    return null;
+
+    return response;
   },
+
+  getJwtClaimDecoded: (): JwtClaims | null => {
+    const token = getTokenFromAnyStorage(ACCESS_TOKEN_KEY);
+    console.log("Getting JWT claims from stored token.");
+
+    if (!token) return null;
+    return decodeToken(token);
+  },
+
+  getAccessToken: (): string | null => getTokenFromAnyStorage(ACCESS_TOKEN_KEY),
+  getRefreshToken: (): string | null =>
+    getTokenFromAnyStorage(REFRESH_TOKEN_KEY),
+
+  clear: () => clearAuthStorage(),
 };
 
 export default authService;

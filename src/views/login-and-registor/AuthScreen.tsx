@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
-import { useAuth } from "@/components/context/AuthContext";
+import { actionAuth } from "@/components/context/AuthContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { PATHS } from "@/constants/paths";
@@ -12,7 +12,7 @@ import bgLeft from "@/assets/img/bg_left.png";
 import bgRight from "@/assets/img/bg_right.png";
 import logoUneti from "@/assets/img/logo_uneti.png";
 import { FormInputComp } from "@/components/ui/FormInput";
-import { Plus, X } from "lucide-react";
+import { X } from "lucide-react";
 import { FormSelectComp } from "@/components/ui/FormSelect";
 
 export default function AuthScreen() {
@@ -22,7 +22,7 @@ export default function AuthScreen() {
     <div className="min-h-screen bg-white">
       {/* Top blue header */}
       <header className="bg-[#0b66c3] text-white shadow">
-        <div className="mx-auto max-w-[1400px] px-4 py-4 flex items-center justify-center gap-4">
+        <div className="mx-auto max-w-[1000px] px-4 py-4 flex items-center justify-center gap-4">
           {/* Logo placeholder */}
           <img
             src={logoUneti}
@@ -44,14 +44,14 @@ export default function AuthScreen() {
       <img
         src={bgLeft}
         alt="bg-left"
-        className="pointer-events-none select-none absolute left-0 bottom-0 w-[520px] max-w-[55vw] opacity-100"
+        className="pointer-events-none select-none absolute left-0 bottom-0 w-[520px] max-w-[25vw] opacity-100"
         draggable={false}
       />
 
       <img
         src={bgRight}
         alt="bg-right"
-        className="pointer-events-none select-none absolute right-0 bottom-0 w-[820px] max-w-[70vw] opacity-100"
+        className="pointer-events-none select-none absolute right-0 bottom-0 w-[820px] max-w-[39vw] opacity-100"
         draggable={false}
       />
 
@@ -72,9 +72,6 @@ export default function AuthScreen() {
 }
 
 function LoginCard({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
-  // captcha mock (đổi ảnh khi refresh)
-  const [capSeed, setCapSeed] = useState(1);
-
   return (
     <Card className="w-full max-w-[440px] shadow-lg border rounded-lg overflow-hidden">
       {/* Background inside card (nhẹ, giống ảnh) */}
@@ -104,10 +101,26 @@ function LoginCard({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
 }
 
 function SignIn({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
-  const { login } = useAuth();
+  const { login } = actionAuth();
   const navigate = useNavigate();
 
-  const [remember, setRemember] = useState(false);
+  const [remember, setRemember] = useState<boolean>(() => {
+    return localStorage.getItem("auth_remember_me") === "true";
+  });
+
+  const [saveUserName, setSaveUserName] = useState<string>(() => {
+    return localStorage.getItem("auth_username") || "";
+  });
+
+  const [password, setPassword] = useState<string>("");
+
+  const handleRememberChange = (value: boolean) => {
+    setRemember(value);
+    if (!value) {
+      localStorage.removeItem("auth_remember_me");
+      localStorage.removeItem("auth_username");
+    }
+  };
   const [error, setError] = useState<string | null>(null);
 
   return (
@@ -127,10 +140,24 @@ function SignIn({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
             return;
           }
 
-          toast.promise(login({ username, password, isRememberMe: remember }), {
+          const payload = {
+            username,
+            password,
+            isRememberMe: remember,
+          };
+
+          toast.promise(login(payload), {
             loading: "Đang đăng nhập...",
             success: () => {
-              navigate(PATHS.DASHBOARD ?? "/home", { replace: true });
+              if (remember) {
+                localStorage.setItem("auth_remember_me", "true");
+                localStorage.setItem("auth_username", username);
+              } else {
+                localStorage.removeItem("auth_remember_me");
+                localStorage.removeItem("auth_username");
+              }
+
+              navigate(PATHS.HOME, { replace: true });
               return "Đăng nhập thành công!";
             },
             error: (err: any) => {
@@ -144,19 +171,32 @@ function SignIn({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
       >
         <div>
           <div className="mb-1 text-xs text-slate-600">Tài khoản</div>
-          <Input name="username" className="h-10" />
+          <Input
+            name="username"
+            className="h-10"
+            value={saveUserName}
+            onChange={(e) => setSaveUserName(e.target.value)}
+            autoComplete="username"
+          />
         </div>
 
         <div>
           <div className="mb-1 text-xs text-slate-600">Mật khẩu</div>
-          <Input name="password" type="password" className="h-10" />
+          <Input
+            name="password"
+            type="password"
+            className="h-10"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete={remember ? "current-password" : "off"}
+          />
         </div>
 
         <div className="flex items-center justify-between pt-1">
           <label className="flex items-center gap-2 text-sm text-slate-600">
             <Checkbox
               checked={remember}
-              onCheckedChange={(v) => setRemember(Boolean(v))}
+              onCheckedChange={(v) => handleRememberChange(Boolean(v))}
             />
             Ghi nhớ
           </label>
@@ -182,31 +222,6 @@ function SignIn({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
         </Button>
       </form>
 
-      {/* Divider */}
-      <div className="relative py-1">
-        <div className="h-px bg-slate-200" />
-        <div className="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-2 text-xs text-slate-500">
-          hoặc
-        </div>
-      </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        className="h-10 w-full rounded-md flex items-center justify-center gap-2"
-        onClick={() =>
-          toast.info("Chức năng đăng nhập Google (chưa triển khai)")
-        }
-      >
-        <img
-          src="https://www.svgrepo.com/show/475656/google-color.svg"
-          alt="Google"
-          className="h-5 w-5"
-        />
-        Đăng nhập bằng Google
-      </Button>
-
-      {/* Register link */}
       <div className="mt-8 text-center">
         <button
           type="button"

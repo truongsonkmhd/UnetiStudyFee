@@ -1,18 +1,4 @@
 import { NavLink, useLocation } from "react-router-dom";
-import {
-  Building,
-  FolderKanban,
-  CalendarDays,
-  FileText,
-  MessageSquare,
-  Settings,
-  BarChart3,
-  Users,
-  HardHat,
-  Wrench,
-  DollarSign,
-  icons,
-} from "lucide-react";
 
 import {
   Sidebar,
@@ -41,30 +27,76 @@ import {
   testIcon,
 } from "@/assets";
 import { APP_NAME } from "@/utils/config";
+import { Role, ROLES } from "@/types/Auth";
+import { PATHS } from "@/constants/paths";
+import { actionAuth } from "../context/AuthContext";
+import { hasAnyRole } from "../common/getRolesAndPermissionFromClaims";
 
 //img
 
-const navigationItems = [
-  { title: "Trang chủ", url: "/home", icon: homepageIcon },
-  { title: "Bài viết", url: "/articles", icon: socialIcon },
-  { title: "Bảng xếp hạng", url: "/ranking", icon: rankingIcon },
-  { title: "Tạo bài giảng", url: "/createLession", icon: createLessionIcon },
-  { title: "Tạo bài thi", url: "/createTest", icon: createTestIcon },
-  { title: "Bài thi", url: "/tests", icon: testIcon },
+const navigationItems: {
+  title: string;
+  url: string;
+  icon: string;
+  requiredRoles?: Role[];
+}[] = [
+  { title: "Trang chủ", url: PATHS.HOME, icon: homepageIcon },
+  { title: "Bài viết", url: PATHS.ARTICLES, icon: socialIcon },
+  { title: "Bảng xếp hạng", url: PATHS.RANKING, icon: rankingIcon },
+
+  {
+    title: "Tạo bài giảng",
+    url: PATHS.CREATE_LESSON,
+    icon: createLessionIcon,
+    requiredRoles: [Role.ROLE_ADMIN, Role.ROLE_SYS_ADMIN, Role.ROLE_TEACHER],
+  },
+  {
+    title: "Tạo bài thi",
+    url: PATHS.CREATE_TEST,
+    icon: createTestIcon,
+    requiredRoles: [Role.ROLE_ADMIN, Role.ROLE_SYS_ADMIN, Role.ROLE_TEACHER],
+  },
+
   {
     title: "Quản lý sinh viên và giáo viên",
-    url: "/managerPersons",
+    url: PATHS.MANAGER_PERSONS,
     icon: managerIcon,
+    requiredRoles: [Role.ROLE_ADMIN, Role.ROLE_SYS_ADMIN],
   },
-  { title: "Quản lý quyền", url: "/managerinterest", icon: quyenIcon },
+  {
+    title: "Quản lý quyền",
+    url: PATHS.MANAGER_INTEREST,
+    icon: quyenIcon,
+    requiredRoles: [Role.ROLE_ADMIN, Role.ROLE_SYS_ADMIN],
+  },
 ];
 
-const history = [
-  { title: "Lớp đã tham gia", url: "/classattended", icon: classIcon },
-  { title: "Lịch sử bài", url: "/posthistory", icon: historyTestIcon },
+const history: {
+  title: string;
+  url: string;
+  icon: string;
+  requiredRoles?: Role[];
+}[] = [
+  {
+    title: "Lớp đã tham gia",
+    url: PATHS.CLASS_ATTENDED,
+    icon: classIcon,
+    requiredRoles: [Role.ROLE_STUDENT, Role.ROLE_ADMIN, Role.ROLE_SYS_ADMIN],
+  },
+  {
+    title: "Lịch sử bài",
+    url: PATHS.POST_HISTORY,
+    icon: historyTestIcon,
+    requiredRoles: [Role.ROLE_STUDENT, Role.ROLE_ADMIN, Role.ROLE_SYS_ADMIN],
+  },
 ];
 
-const toolsItems = [
+const toolsItems: {
+  title: string;
+  url: string;
+  icon: string;
+  requiredRoles?: Role[];
+}[] = [
   { title: "Hướng dẫn", url: "/tutorial", icon: smartIcon },
   { title: "Cài Đặt", url: "/settings", icon: settingIcon },
 ];
@@ -75,6 +107,8 @@ export function AppSidebar() {
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
 
+  const { jwtClaims } = actionAuth();
+
   const isActive = (path: string) => currentPath === path;
 
   const getNavClassName = (path: string) =>
@@ -82,11 +116,20 @@ export function AppSidebar() {
       ? "bg-primary text-primary-foreground font-medium shadow-construction"
       : "hover:bg-muted transition-colors";
 
+  const visibleNavItems = navigationItems.filter((i) =>
+    hasAnyRole(jwtClaims, i.requiredRoles)
+  );
+
+  const visibleHistory = history.filter((i) =>
+    hasAnyRole(jwtClaims, i.requiredRoles)
+  );
+
+  const visibleTools = toolsItems.filter((i) =>
+    hasAnyRole(jwtClaims, i.requiredRoles)
+  );
   return (
     <Sidebar className={isCollapsed ? "w-16" : "w-64"} collapsible="icon">
       <SidebarContent className="bg-card border-r border-border">
-        {/* Logo section */}
-        {/* Logo section: giữ kích thước logo cố định */}
         <div
           className={[
             "h-16 border-b flex items-center",
@@ -110,12 +153,11 @@ export function AppSidebar() {
           )}
         </div>
 
-        {/* Navigation */}
         <SidebarGroup>
           <SidebarGroupLabel>Tổng quan</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigationItems.map((item) => (
+              {visibleNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -132,13 +174,13 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mx-2 my-2 border-t rounded-full border-gray-300"></div>
+        <div className="mx-2 my-2 border-t rounded-full border-gray-300" />
 
         <SidebarGroup>
           <SidebarGroupLabel>Lịch sử</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {history.map((item) => (
+              {visibleHistory.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -155,14 +197,11 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mx-2 my-2 border-t rounded-full border-gray-300"></div>
-
-        {/* Tools section */}
         <SidebarGroup>
-          <SidebarGroupLabel>Hướng dẫn & Cài Đặt</SidebarGroupLabel>
+          <SidebarGroupLabel>Tổng quan</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {toolsItems.map((item) => (
+              {visibleTools.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
