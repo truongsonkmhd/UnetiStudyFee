@@ -1,4 +1,4 @@
-import { Gender } from "./Gender";
+import { Gender } from "../types/Gender";
 import { RoleResponse } from "./RoleResponse";
 
 export interface UserResponse {

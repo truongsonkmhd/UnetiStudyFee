@@ -4,7 +4,6 @@ export const PATHS = {
   //page
   HOME: "/home",
   REGISTER: "/register",
-  ARTICLES: "/articles",
   RANKING: "/ranking",
   CREATE_LESSON: "/createLession",
   CREATE_TEST: "/createTest",

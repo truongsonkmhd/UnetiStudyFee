@@ -1,7 +1,7 @@
-import { UserType } from "@/model/UserType";
+import { UserType } from "@/components/enum/UserType";
 import { Gender } from "./Gender";
-import { UserStatus } from "@/model/UserStatus";
-import { Role } from "./Auth";
+import { UserStatus } from "@/components/enum/UserStatus";
+import { Role } from "@/types/Role";
 
 export interface User {
   id?: string;

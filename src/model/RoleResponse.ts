@@ -1,4 +1,4 @@
-import { Permission } from "./Permission";
+import { Permission } from "@/types/Permission";
 
 export interface RoleResponse {
   id: string;

@@ -1,13 +1,13 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { PATHS } from "@/constants/paths";
-import { Role } from "@/types/Auth";
 import { actionAuth } from "./context/AuthContext";
 import PageLoader from "@/views/common/PageLoader";
+import { RoleEnum } from "./enum/RoleEnum";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRoles: Role[];
+  requiredRoles: RoleEnum[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({

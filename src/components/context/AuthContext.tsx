@@ -1,8 +1,6 @@
-import { User } from "@/model/User";
 import authService from "@/services/AuthService";
-import { LoginData, LoginPayload } from "@/types/Auth";
+import { LoginPayload } from "@/types/Auth";
 import { JwtClaims } from "@/types/JwtClaims";
-import { Permission } from "@/types/Permission";
 import React, {
   createContext,
   useState,
@@ -11,6 +9,7 @@ import React, {
   ReactNode,
 } from "react";
 import { getRolesFromClaims } from "../common/getRolesAndPermissionFromClaims";
+import { RegisterPayload } from "@/model/payload/RegisterPayload";
 
 interface AuthContextType {
   jwtClaims: JwtClaims | null;
@@ -18,7 +17,7 @@ interface AuthContextType {
   login: (payload: LoginPayload) => Promise<void>;
   logout: () => Promise<void>;
   forgot: () => void;
-  signUp: () => Promise<void>;
+  signUp: (payload: RegisterPayload) => Promise<void>;
   isLoading: boolean;
   hasRole: (allowedRoles: string[]) => boolean;
 }
@@ -30,9 +29,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    console.log(
-      "AuthProvider mounting, checking existing token...423423423432"
-    );
     try {
       const jwtClaims = authService.getJwtClaimDecoded();
       if (jwtClaims) {
@@ -61,8 +57,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setJwtClaims(null);
   };
 
-  const signUp = async () => {
-    authService.signUp();
+  const signUp = async (payload: RegisterPayload) => {
+    await authService.signUp(payload);
+    const claims = authService.getJwtClaimDecoded();
+    setJwtClaims(claims);
   };
 
   const hasRole = (allowedRoles: string[]): boolean => {

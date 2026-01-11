@@ -18,7 +18,7 @@ import PublicRoute from "@/components/PublicRoute";
 import ProfilePage from "@/views/profile/ProfilePage";
 import UnauthorizedPage from "@/components/UnauthorizedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { Role, ROLES } from "@/types/Auth";
+import { RoleEnum } from "@/components/enum/RoleEnum";
 // import PrivateRoute from "@/components/PrivateRoute"; // nếu bạn có
 
 const queryClient = new QueryClient();
@@ -50,19 +50,16 @@ const App = () => (
           <Route path={PATHS.UNAUTHORIZED} element={<UnauthorizedPage />} />
 
           <Route path={PATHS.HOME} element={<HomePage />} />
-          <Route
-            path={PATHS.ARTICLES}
-            element={<div>Bài viết (Sắp Ra Mắt)</div>}
-          />
+
           <Route path={PATHS.RANKING} element={<LeaderboardPage />} />
           <Route
             path={PATHS.CREATE_LESSON}
             element={
               <ProtectedRoute
                 requiredRoles={[
-                  Role.ROLE_ADMIN,
-                  Role.ROLE_SYS_ADMIN,
-                  Role.ROLE_TEACHER,
+                  RoleEnum.ROLE_ADMIN,
+                  RoleEnum.ROLE_SYS_ADMIN,
+                  RoleEnum.ROLE_TEACHER,
                 ]}
               >
                 <CourseLessonsAndExercises />
@@ -74,9 +71,9 @@ const App = () => (
             element={
               <ProtectedRoute
                 requiredRoles={[
-                  Role.ROLE_ADMIN,
-                  Role.ROLE_SYS_ADMIN,
-                  Role.ROLE_TEACHER,
+                  RoleEnum.ROLE_ADMIN,
+                  RoleEnum.ROLE_SYS_ADMIN,
+                  RoleEnum.ROLE_TEACHER,
                 ]}
               >
                 <VideoCoursePlayer />
@@ -91,7 +88,7 @@ const App = () => (
             path={PATHS.MANAGER_PERSONS}
             element={
               <ProtectedRoute
-                requiredRoles={[Role.ROLE_ADMIN, Role.ROLE_SYS_ADMIN]}
+                requiredRoles={[RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN]}
               >
                 <div>Quản lý ... (Sắp Ra Mắt)</div>
               </ProtectedRoute>
@@ -101,7 +98,7 @@ const App = () => (
             path={PATHS.MANAGER_INTEREST}
             element={
               <ProtectedRoute
-                requiredRoles={[Role.ROLE_ADMIN, Role.ROLE_SYS_ADMIN]}
+                requiredRoles={[RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN]}
               >
                 <div>Quản lý quyền (Sắp Ra Mắt)</div>
               </ProtectedRoute>
@@ -110,7 +107,7 @@ const App = () => (
           <Route
             path={PATHS.CLASS_ATTENDED}
             element={
-              <ProtectedRoute requiredRoles={[Role.ROLE_STUDENT]}>
+              <ProtectedRoute requiredRoles={[RoleEnum.ROLE_STUDENT]}>
                 <div>Lớp đã tham gia (Sắp Ra Mắt)</div>
               </ProtectedRoute>
             }
@@ -118,7 +115,7 @@ const App = () => (
           <Route
             path={PATHS.POST_HISTORY}
             element={
-              <ProtectedRoute requiredRoles={[Role.ROLE_STUDENT]}>
+              <ProtectedRoute requiredRoles={[RoleEnum.ROLE_STUDENT]}>
                 <div>Lịch sử bài (Sắp Ra Mắt)</div>
               </ProtectedRoute>
             }

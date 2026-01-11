@@ -253,6 +253,10 @@ function RegisterCard({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const navigate = useNavigate();
+
+  const { signUp } = actionAuth();
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -280,13 +284,41 @@ function RegisterCard({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
   };
 
   const handleSubmit = () => {
-    if (validateForm()) {
-      const payload = {
-        ...formData,
-      };
-      console.log("Form submitted:", payload);
-      alert("Đăng ký thành công! (Check console)");
-    }
+    if (!validateForm()) return;
+
+    const payload = {
+      fullName: formData.fullName,
+      userName: formData.userName,
+      password: formData.password,
+      email: formData.email,
+      phone: formData.phone || undefined,
+
+      gender: (formData.gender || undefined) as any,
+      birthday: formData.birthday || undefined,
+
+      contactAddress: formData.contactAddress || undefined,
+      currentResidence: formData.currentResidence || undefined,
+
+      studentId: formData.studentId,
+      classId: formData.classId,
+
+      roleCodes: ["STUDENT"],
+    };
+
+    toast.promise(signUp(payload), {
+      loading: "Đang đăng ký...",
+      success: () => {
+        navigate(PATHS.HOME, { replace: true });
+        return "Đăng ký thành công!";
+      },
+      error: (err: any) => {
+        const msg =
+          err?.detail ||
+          err?.message ||
+          "Đăng ký thất bại, vui lòng kiểm tra lại thông tin.";
+        return msg;
+      },
+    });
   };
 
   return (

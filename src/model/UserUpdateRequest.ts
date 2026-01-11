@@ -1,5 +1,5 @@
 import { AddressRequest } from "./AddressRequest";
-import { Gender } from "./Gender";
+import { Gender } from "../types/Gender";
 
 export interface UserUpdateRequest {
   fullName?: string;

@@ -48,7 +48,7 @@ type JoinedClass = {
 };
 
 export default function ProfilePage() {
-  const { jwtClaims, logout } = actionAuth();
+  const { jwtClaims } = actionAuth();
   const navigate = useNavigate();
 
   const joinedClasses: JoinedClass[] = [];
@@ -73,12 +73,12 @@ export default function ProfilePage() {
             <div className="flex flex-col items-center text-center">
               <div className="h-44 w-44 rounded-full border border-red-400 bg-muted flex items-center justify-center">
                 <span className="text-6xl font-semibold text-foreground/80">
-                  {user.avatar}
+                  {jwtClaims.userInfor?.avatar}
                 </span>
               </div>
 
               <div className="mt-4 text-red-700 font-semibold">
-                {user.fullName}
+                {jwtClaims.userInfor?.fullName}
               </div>
 
               <Button className="mt-3 w-full bg-red-700 hover:bg-red-800">
@@ -89,38 +89,38 @@ export default function ProfilePage() {
                 <InfoRow
                   icon={<User className="h-4 w-4" />}
                   label="Tài khoản"
-                  value={user.username}
+                  value={jwtClaims.userInfor?.username || ""}
                 />
-                {/* <InfoRow
+                <InfoRow
                   icon={<GraduationCap className="h-4 w-4" />}
                   label="Lớp"
-                  value={user.className || ""}
+                  value={jwtClaims.userInfor?.classId || ""}
                 />
                 <InfoRow
                   icon={<Mail className="h-4 w-4" />}
                   label="Email"
-                  value={user.email || ""}
+                  value={jwtClaims.userInfor?.email || ""}
                 />
                 <InfoRow
                   icon={<CalendarDays className="h-4 w-4" />}
                   label="Ngày sinh"
-                  value={user.dob || ""}
+                  value={jwtClaims.userInfor?.birthday || ""}
                 />
                 <InfoRow
                   icon={<Info className="h-4 w-4" />}
                   label="Giới tính"
-                  value={user.gender || ""}
+                  value={jwtClaims.userInfor?.gender || ""}
                 />
                 <InfoRow
                   icon={<MapPin className="h-4 w-4" />}
-                  label="Địa chỉ"
-                  value={user.address || ""}
+                  label="Địa chỉ liên hệ"
+                  value={jwtClaims.userInfor?.contactAddress || ""}
                 />
                 <InfoRow
                   icon={<Info className="h-4 w-4" />}
-                  label="Giới thiệu"
-                  value={user.bio || ""}
-                /> */}
+                  label="Địa chỉ nơi ở hiện tại"
+                  value={jwtClaims.userInfor?.currentResidence || ""}
+                />
               </div>
             </div>
           </CardContent>

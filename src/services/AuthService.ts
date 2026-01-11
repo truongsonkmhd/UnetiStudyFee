@@ -1,5 +1,7 @@
 import apiService from "@/apis/apiService";
 import { decodeToken } from "@/components/common/decodeToken";
+import { ApiResponse } from "@/model/common/ApiResponse";
+import { RegisterPayload } from "@/model/payload/RegisterPayload";
 import { LoginData, LoginPayload } from "@/types/Auth";
 import { JwtClaims } from "@/types/JwtClaims";
 
@@ -62,19 +64,23 @@ const authService = {
     }
   },
 
-  signUp: async () => {
-    const response = await apiService.post<LoginData>(REGISTER_ENDPOINT);
+  signUp: async (payload: RegisterPayload): Promise<LoginData> => {
+    const data = await apiService.post<LoginData>(REGISTER_ENDPOINT, payload);
 
-    if (response?.token) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, response.token);
+    console.log("Received registration response:", data);
+
+    if (data?.token) {
+      localStorage.setItem(ACCESS_TOKEN_KEY, data.token);
 
       // nếu backend có refreshToken thì lưu
-      if (response.refreshToken) {
-        localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+      if (data.refreshToken) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
       }
     }
 
-    return response;
+    console.log("Registration successful:", data);
+
+    return data;
   },
 
   getJwtClaimDecoded: (): JwtClaims | null => {
