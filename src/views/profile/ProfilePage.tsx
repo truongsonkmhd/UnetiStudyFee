@@ -73,12 +73,12 @@ export default function ProfilePage() {
             <div className="flex flex-col items-center text-center">
               <div className="h-44 w-44 rounded-full border border-red-400 bg-muted flex items-center justify-center">
                 <span className="text-6xl font-semibold text-foreground/80">
-                  {jwtClaims.userInfor?.avatar}
+                  {/* {jwtClaims.userInfor?.avatar} */}
                 </span>
               </div>
 
               <div className="mt-4 text-red-700 font-semibold">
-                {jwtClaims.userInfor?.fullName}
+                {/* {jwtClaims.userInfor?.fullName} */}
               </div>
 
               <Button className="mt-3 w-full bg-red-700 hover:bg-red-800">
@@ -89,19 +89,23 @@ export default function ProfilePage() {
                 <InfoRow
                   icon={<User className="h-4 w-4" />}
                   label="Tài khoản"
-                  value={jwtClaims.userInfor?.username || ""}
+                  value={
+                    jwtClaims.userName || ""
+                  }
                 />
                 <InfoRow
                   icon={<GraduationCap className="h-4 w-4" />}
                   label="Lớp"
-                  value={jwtClaims.userInfor?.classId || ""}
+                  value={jwtClaims.classId || ""}
                 />
-                <InfoRow
+                {/* <InfoRow
                   icon={<Mail className="h-4 w-4" />}
                   label="Email"
-                  value={jwtClaims.userInfor?.email || ""}
-                />
-                <InfoRow
+                  value={
+                    jwtClaims.userInfor?.email || ""
+                  }
+                /> */}
+                {/* <InfoRow
                   icon={<CalendarDays className="h-4 w-4" />}
                   label="Ngày sinh"
                   value={jwtClaims.userInfor?.birthday || ""}
@@ -120,7 +124,7 @@ export default function ProfilePage() {
                   icon={<Info className="h-4 w-4" />}
                   label="Địa chỉ nơi ở hiện tại"
                   value={jwtClaims.userInfor?.currentResidence || ""}
-                />
+                /> */}
               </div>
             </div>
           </CardContent>

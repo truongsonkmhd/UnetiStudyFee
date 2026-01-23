@@ -2,7 +2,7 @@ import apiService from "@/apis/apiService";
 import { decodeToken } from "@/components/common/decodeToken";
 import { ApiResponse } from "@/model/common/ApiResponse";
 import { RegisterPayload } from "@/model/payload/RegisterPayload";
-import { LoginData, LoginPayload } from "@/types/Auth";
+import { LoginData, LoginPayload } from "@/types/auth";
 import { JwtClaims } from "@/types/JwtClaims";
 
 const LOGIN_ENDPOINT = "/authenticate";

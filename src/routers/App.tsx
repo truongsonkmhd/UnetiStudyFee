@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -6,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import NotFound from "../views/common/NotFound";
 import { HomePage } from "@/views/pages/HomePage";
 import CourseLessonsAndExercises from "@/views/pages/CourseLessonsAndExercises";
-import VideoCoursePlayer from "@/views/pages/VideoCoursePlayer";
 import LeaderboardPage from "@/views/pages/LeaderboardPage";
 
 import { PATHS } from "@/constants/paths";
@@ -19,17 +17,24 @@ import ProfilePage from "@/views/profile/ProfilePage";
 import UnauthorizedPage from "@/components/UnauthorizedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { RoleEnum } from "@/components/enum/RoleEnum";
+import ClassManagementDashboard from "@/views/class_managerment/ClassManagementDashboard";
+import CodingExerciseManager from "@/views/coding-exercise/CodingExerciseManager";
+import QuizListPage from "@/views/quiz_storage/QuizListPage";
 // import PrivateRoute from "@/components/PrivateRoute"; // nếu bạn có
 
 const queryClient = new QueryClient();
 
 // demo (sau này lấy từ auth context)
 const isAuthenticated = false;
+const contestLessonId = '5818438b-0a9b-4002-bf65-1b1e4dbb08d2';
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
+     {/* <Toaster
+        richColors ={true} 
+        position="top-right"
+      /> */}
       <Sonner />
 
       <Routes>
@@ -76,10 +81,57 @@ const App = () => (
                   RoleEnum.ROLE_TEACHER,
                 ]}
               >
-                <VideoCoursePlayer />
+                <CodingExerciseManager />
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path={PATHS.EXERCISE_LIBRARY}
+            element={
+              <ProtectedRoute
+                requiredRoles={[
+                  RoleEnum.ROLE_ADMIN,
+                  RoleEnum.ROLE_SYS_ADMIN,
+                  RoleEnum.ROLE_TEACHER,
+                ]}
+              >
+           <QuizListPage contestLessonId={contestLessonId} />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PATHS.MANAGER_CONTEST}
+            element={
+              <ProtectedRoute
+                requiredRoles={[
+                  RoleEnum.ROLE_ADMIN,
+                  RoleEnum.ROLE_SYS_ADMIN,
+                  RoleEnum.ROLE_TEACHER,
+                ]}
+              >
+                <CodingExerciseManager />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PATHS.MANAGER_CLASS}
+            element={
+              <ProtectedRoute
+                requiredRoles={[
+                  RoleEnum.ROLE_ADMIN,
+                  RoleEnum.ROLE_SYS_ADMIN,
+                  RoleEnum.ROLE_TEACHER,
+                ]}
+              >
+                
+                <ClassManagementDashboard />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path={PATHS.CREATE_TEST}
             element={<div>Bài thi (Sắp Ra Mắt)</div>}

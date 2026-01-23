@@ -1,0 +1,6 @@
+export enum ClassContestStatus {
+  SCHEDULED = "SCHEDULED",
+  ONGOING = "ONGOING",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED"
+}

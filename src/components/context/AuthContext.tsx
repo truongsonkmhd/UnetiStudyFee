@@ -1,5 +1,4 @@
 import authService from "@/services/AuthService";
-import { LoginPayload } from "@/types/Auth";
 import { JwtClaims } from "@/types/JwtClaims";
 import React, {
   createContext,
@@ -10,6 +9,7 @@ import React, {
 } from "react";
 import { getRolesFromClaims } from "../common/getRolesAndPermissionFromClaims";
 import { RegisterPayload } from "@/model/payload/RegisterPayload";
+import { LoginPayload } from "@/types/auth";
 
 interface AuthContextType {
   jwtClaims: JwtClaims | null;

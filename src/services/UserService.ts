@@ -1,105 +1,81 @@
 import apiService from "@/apis/apiService";
-import { UserPageResponse } from "@/model/UserPageResponse";
-import { UserRequest } from "@/model/UserRequest";
-import { UserUpdateRequest } from "@/model/UserUpdateRequest";
-import { User } from "@/types/UserInfo";
+import { Answer } from "@/types/Answer";
+import { Question } from "@/types/Question";
+import { Quiz } from "@/types/Quiz";
+import { QuizSummary } from "@/types/QuizSummary";
 
-const BASE_URL = "/users";
+const QUIZ_BASE_ENDPOINT = "/admin/quiz";
 
-const userService = {
-  getAllV1: (): Promise<User[]> => {
-    return apiService.get<User[]>(BASE_URL);
-  },
+const quizService = {
+  // ===== Quiz CRUD =====
+  getAll: (contestLessonId: string): Promise<QuizSummary[]> =>
+    apiService.get<QuizSummary[]>(
+      `${QUIZ_BASE_ENDPOINT}?contestLessonId=${contestLessonId}`
+    ),
 
-  getAllUsersWithSortBy: (
-    sortBy?: string,
-    pageNo: number = 1,
-    pageSize: number = 10,
-    search?: string
-  ): Promise<UserPageResponse> => {
-    const params = new URLSearchParams();
-    if (sortBy) params.append("sortBy", sortBy);
-    params.append("pageNo", String(pageNo - 1));
-    params.append("pageSize", String(pageSize));
-    if (search) params.append("search", search);
-    return apiService.get<UserPageResponse>(
-      `${BASE_URL}/List?${params.toString()}`
-    );
-  },
+  getById: (quizId: string): Promise<Quiz> =>
+    apiService.get<Quiz>(`${QUIZ_BASE_ENDPOINT}/${quizId}`),
 
-  getAllUsersWithSortByMultipleColumns: (
-    sorts: string[],
-    pageNo: number = 1,
-    pageSize: number = 20
-  ): Promise<UserPageResponse> => {
-    return apiService.get<UserPageResponse>(`${BASE_URL}/List_sort_multiple`, {
-      sort: sorts,
-      pageNo,
-      pageSize,
-    });
-  },
+  create: (payload: Quiz): Promise<Quiz> =>
+    apiService.post<Quiz>(QUIZ_BASE_ENDPOINT, payload),
 
-  // getAll: (): Promise<UserDTO[]> => {
-  //   return apiService.get<UserDTO[]>(BASE_URL);
-  // },
+  update: (quizId: string, payload: Partial<Quiz>): Promise<Quiz> =>
+    apiService.put<Quiz>(`${QUIZ_BASE_ENDPOINT}/${quizId}`, payload),
 
-  // getById: (userId: string): Promise<UserDTO> => {
-  //   return apiService.get<UserDTO>(`${BASE_URL}/${userId}`);
-  // },
+  delete: (quizId: string): Promise<void> =>
+    apiService.delete<void>(`${QUIZ_BASE_ENDPOINT}/${quizId}`),
 
-  create: async (payload: UserRequest): Promise<string> => {
-    try {
-      const res = await apiService.post<string>(`${BASE_URL}/add`, payload);
-      return res;
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message ||
-        error.response?.data?.detail ||
-        error.message ||
-        `Lỗi không xác định khi tạo người dùng. (Mã lỗi ${
-          error.response?.status || "?"
-        })`;
+  publish: (quizId: string): Promise<Quiz> =>
+    apiService.post<Quiz>(`${QUIZ_BASE_ENDPOINT}/${quizId}/publish`),
 
-      throw new Error(message);
-    }
-  },
+  unpublish: (quizId: string): Promise<Quiz> =>
+    apiService.post<Quiz>(`${QUIZ_BASE_ENDPOINT}/${quizId}/unpublish`),
 
-  // update: async (
-  //   userId: string,
-  //   payload: UserUpdateRequest
-  // ): Promise<UserDTO> => {
-  //   try {
-  //     const res = await apiService.put<UserDTO>(
-  //       `${BASE_URL}/upd/${userId}`,
-  //       payload
-  //     );
-  //     return res;
-  //   } catch (error: any) {
-  //     const message =
-  //       error.response?.data?.message ||
-  //       error.response?.data?.detail ||
-  //       error.message ||
-  //       `Lỗi không xác định khi sửa người dùng. (Mã lỗi ${
-  //         error.response?.status || "?"
-  //       })`;
+  // ===== Question =====
+  addQuestion: (payload: {
+    quizId: string;
+    content: string;
+    timeLimitSeconds: number;
+    points: number;
+    answers: Answer[];
+  }): Promise<Question> =>
+    apiService.post<Question>(`${QUIZ_BASE_ENDPOINT}/question`, payload),
 
-  //     throw new Error(message);
-  //   }
-  // },
+  updateQuestion: (
+    questionId: string,
+    payload: Partial<Question>
+  ): Promise<Question> =>
+    apiService.put<Question>(
+      `${QUIZ_BASE_ENDPOINT}/question/${questionId}`,
+      payload
+    ),
 
-  remove: (userId: string): Promise<string> => {
-    return apiService.delete<string>(`${BASE_URL}/del/${userId}`);
-  },
+  deleteQuestion: (questionId: string): Promise<void> =>
+    apiService.delete<void>(
+      `${QUIZ_BASE_ENDPOINT}/question/${questionId}`
+    ),
 
-  // changePassword: (
-  //   payload: UserPasswordRequest,
-  //   isResetPassword: boolean
-  // ): Promise<string> => {
-  //   return apiService.post<string>(
-  //     `${BASE_URL}/change-pwd/${isResetPassword}`,
-  //     payload
-  //   );
-  // },
+  // ===== Answer =====
+  addAnswer: (payload: {
+    questionId: string;
+    content: string;
+    isCorrect: boolean;
+  }): Promise<Answer> =>
+    apiService.post<Answer>(`${QUIZ_BASE_ENDPOINT}/answer`, payload),
+
+  updateAnswer: (
+    answerId: string,
+    payload: Partial<Answer>
+  ): Promise<Answer> =>
+    apiService.put<Answer>(
+      `${QUIZ_BASE_ENDPOINT}/answer/${answerId}`,
+      payload
+    ),
+
+  deleteAnswer: (answerId: string): Promise<void> =>
+    apiService.delete<void>(
+      `${QUIZ_BASE_ENDPOINT}/answer/${answerId}`
+    ),
 };
 
-export default userService;
+export default quizService;

@@ -1,4 +1,4 @@
-import { Gender } from "@/types/Gender";
+import { Gender } from "@/types/enum/Gender";
 
 export type RegisterPayload = {
   fullName: string;

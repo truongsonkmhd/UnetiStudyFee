@@ -58,6 +58,39 @@ const navigationItems: {
       RoleEnum.ROLE_TEACHER,
     ],
   },
+   {
+    title: "Kho bài code",
+    url: PATHS.EXERCISE_LIBRARY,
+    icon: createTestIcon,
+    requiredRoles: [
+      RoleEnum.ROLE_ADMIN,
+      RoleEnum.ROLE_SYS_ADMIN,
+      RoleEnum.ROLE_TEACHER,
+    ],
+  },
+
+  {
+    title: "Kho bài kiểm tra",
+    url: PATHS.MANAGER_CONTEST,
+    icon: createTestIcon,
+    requiredRoles: [
+      RoleEnum.ROLE_ADMIN,
+      RoleEnum.ROLE_SYS_ADMIN,
+      RoleEnum.ROLE_TEACHER,
+    ],
+  },
+
+  {
+    title: "Quản lý lớp thi",
+    url: PATHS.MANAGER_CLASS,
+    icon: createTestIcon,
+    requiredRoles: [
+      RoleEnum.ROLE_ADMIN,
+      RoleEnum.ROLE_SYS_ADMIN,
+      RoleEnum.ROLE_TEACHER,
+    ],
+  },
+
   {
     title: "Quản lý sinh viên và giáo viên",
     url: PATHS.MANAGER_PERSONS,

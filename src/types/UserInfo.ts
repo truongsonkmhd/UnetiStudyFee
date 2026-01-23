@@ -1,5 +1,5 @@
 import { UserType } from "@/components/enum/UserType";
-import { Gender } from "./Gender";
+import { Gender } from "./enum/Gender";
 import { UserStatus } from "@/components/enum/UserStatus";
 import { Role } from "@/types/Role";
 
