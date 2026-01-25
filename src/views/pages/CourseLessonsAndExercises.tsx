@@ -309,15 +309,15 @@ export default function CourseLessonsAndExercises() {
   const subtopics = Array.from(new Set(mockExercises.map((e) => e.subtopic)));
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 p-4">
-      <div className="mx-auto max-w-7xl grid grid-cols-12 gap-4">
+    <div className="w-full min-h-screen bg-background p-4">
+      <div className="mx-auto max-w-7xl grid grid-cols-12 gap-6">
         {/* Main */}
         <div className="col-span-12 lg:col-span-9 space-y-6">
           {/* Bài giảng */}
-          <section className="bg-white rounded-2xl shadow-sm border p-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Bài giảng</h2>
-              <span className="text-sm text-gray-500">
+          <section className="bg-card rounded-2xl shadow-sm border border-border p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-foreground">Bài giảng</h2>
+              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 {mockChapters.length} chương ·{" "}
                 {mockChapters.reduce((a, c) => a + c.lessons.length, 0)} bài học
               </span>
@@ -327,10 +327,10 @@ export default function CourseLessonsAndExercises() {
                 <div key={c.id} className="py-2">
                   <button
                     onClick={() => toggle(c.id)}
-                    className="w-full flex items-center justify-between py-2"
+                    className="w-full flex items-center justify-between py-3 group"
                   >
-                    <span className="font-medium">{c.title}</span>
-                    <span className="text-sm text-gray-500">
+                    <span className="font-bold text-foreground group-hover:text-primary transition-colors">{c.title}</span>
+                    <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md">
                       {c.lessons.length} bài học
                     </span>
                   </button>
@@ -339,15 +339,15 @@ export default function CourseLessonsAndExercises() {
                       {c.lessons.map((l) => (
                         <li
                           key={l.id}
-                          className="flex items-center justify-between rounded-lg border px-3 py-2 hover:bg-gray-50"
+                          className="flex items-center justify-between rounded-xl border border-border px-4 py-3 hover:bg-muted transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <span className="w-6 text-gray-400">
-                              {l.index}.
+                            <span className="w-6 text-muted-foreground/40 font-bold">
+                              {String(l.index).padStart(2, '0')}.
                             </span>
-                            <span className="text-sm">{l.title}</span>
+                            <span className="text-sm font-semibold text-foreground">{l.title}</span>
                           </div>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs font-bold text-muted-foreground/60 tabular-nums">
                             {l.duration}
                           </span>
                         </li>
@@ -360,19 +360,19 @@ export default function CourseLessonsAndExercises() {
           </section>
 
           {/* Bài tập */}
-          <section className="bg-white rounded-2xl shadow-sm border p-4">
-            <h2 className="text-lg font-semibold mb-4">Bài tập</h2>
+          <section className="bg-card rounded-2xl shadow-sm border border-border p-6">
+            <h2 className="text-xl font-bold text-foreground mb-6">Bài tập</h2>
 
             {/* Search + quick filter */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-3">
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Tìm kiếm mã, tiêu đề, nhóm..."
-                className="flex-1 rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
+                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
               />
               <select
-                className="rounded-xl border px-3 py-2"
+                className="rounded-xl border border-border bg-background px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 value={difficulty ?? ""}
                 onChange={(e) =>
                   setDifficulty(e.target.value ? Number(e.target.value) : null)
@@ -393,46 +393,46 @@ export default function CourseLessonsAndExercises() {
                   setCategoryFilter(null);
                   setSubtopicFilter(null);
                 }}
-                className="rounded-xl border px-3 py-2 hover:bg-gray-50"
+                className="rounded-xl border border-border bg-muted px-4 py-2.5 hover:bg-muted/80 transition-all font-bold text-xs uppercase tracking-widest text-muted-foreground"
               >
                 Xóa lọc
               </button>
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto border rounded-xl">
+            <div className="overflow-x-auto border border-border rounded-xl">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-gray-600">
-                  <tr>
-                    <th className="px-3 py-2 text-left w-16">STT</th>
-                    <th className="px-3 py-2 text-left">Mã số</th>
-                    <th className="px-3 py-2 text-left">Tiêu đề</th>
-                    <th className="px-3 py-2 text-left">Nhóm</th>
-                    <th className="px-3 py-2 text-left">Chủ đề con</th>
-                    <th className="px-3 py-2 text-left w-24">Độ khó</th>
+                <thead className="bg-muted/50 text-muted-foreground">
+                  <tr className="text-[10px] font-black uppercase tracking-widest">
+                    <th className="px-4 py-4 text-left w-16">STT</th>
+                    <th className="px-4 py-4 text-left">Mã số</th>
+                    <th className="px-4 py-4 text-left">Tiêu đề</th>
+                    <th className="px-4 py-4 text-left">Nhóm</th>
+                    <th className="px-4 py-4 text-left">Chủ đề con</th>
+                    <th className="px-4 py-4 text-left w-24">Độ khó</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pageItems.map((e, idx) => (
                     <tr
                       key={e.id}
-                      className={cn(idx % 2 === 0 ? "bg-white" : "bg-gray-50")}
+                      className={cn("border-b border-border/50", idx % 2 === 0 ? "bg-card" : "bg-muted/10")}
                     >
-                      <td className="px-3 py-2">{pager.start + idx}</td>
-                      <td className="px-3 py-2 text-blue-600 font-medium">
+                      <td className="px-4 py-3 text-muted-foreground/60 font-medium">{pager.start + idx}</td>
+                      <td className="px-4 py-3 text-primary font-bold">
                         {e.code}
                       </td>
-                      <td className="px-3 py-2">
-                        <span className="text-red-600 hover:underline cursor-pointer">
+                      <td className="px-4 py-3">
+                        <span className="text-foreground font-bold hover:text-primary cursor-pointer transition-colors">
                           {e.title}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-gray-700">{e.group}</td>
-                      <td className="px-3 py-2 text-gray-700">{e.subtopic}</td>
-                      <td className="px-3 py-2">
-                        <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs">
-                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          {e.difficulty}
+                      <td className="px-4 py-3 text-muted-foreground font-medium">{e.group}</td>
+                      <td className="px-4 py-3 text-muted-foreground font-medium">{e.subtopic}</td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/30 px-2 py-1 text-[10px] font-black uppercase tracking-tighter">
+                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                          Lv.{e.difficulty}
                         </span>
                       </td>
                     </tr>
@@ -460,28 +460,28 @@ export default function CourseLessonsAndExercises() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => pager.goto(1)}
-                  className="px-3 py-1 rounded-lg border hover:bg-gray-50"
+                  className="px-3 py-1.5 rounded-xl border border-border bg-background hover:bg-muted font-bold text-xs transition-all"
                 >
                   «
                 </button>
                 <button
                   onClick={() => pager.goto(pager.page - 1)}
-                  className="px-3 py-1 rounded-lg border hover:bg-gray-50"
+                  className="px-3 py-1.5 rounded-xl border border-border bg-background hover:bg-muted font-bold text-xs transition-all text-muted-foreground"
                 >
-                  ‹
+                  PREV
                 </button>
-                <span className="px-2">
+                <span className="px-4 text-xs font-black uppercase tracking-widest text-muted-foreground">
                   Trang {pager.page}/{pager.totalPages}
                 </span>
                 <button
                   onClick={() => pager.goto(pager.page + 1)}
-                  className="px-3 py-1 rounded-lg border hover:bg-gray-50"
+                  className="px-3 py-1.5 rounded-xl border border-border bg-background hover:bg-muted font-bold text-xs transition-all text-muted-foreground"
                 >
-                  ›
+                  NEXT
                 </button>
                 <button
                   onClick={() => pager.goto(pager.totalPages)}
-                  className="px-3 py-1 rounded-lg border hover:bg-gray-50"
+                  className="px-3 py-1.5 rounded-xl border border-border bg-background hover:bg-muted font-bold text-xs transition-all"
                 >
                   »
                 </button>
@@ -492,42 +492,45 @@ export default function CourseLessonsAndExercises() {
 
         {/* Sidebar filters */}
         <aside className="col-span-12 lg:col-span-3 space-y-4">
-          <div className="bg-white rounded-2xl shadow-sm border p-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Độ khó</h3>
+          <div className="bg-card rounded-2xl shadow-sm border border-border p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-foreground">Độ khó</h3>
               <button
                 onClick={() => setGradeFilter([])}
-                className="text-xs text-blue-600"
+                className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-all"
               >
-                Bỏ chọn tất cả
+                Bỏ chọn
               </button>
             </div>
             <div className="mt-2 space-y-1">
               {[1, 2, 3, 4, 5].map((lv) => (
-                <label key={lv} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={gradeFilter.includes(lv)}
-                    onChange={(e) =>
-                      setGradeFilter((s) =>
-                        e.target.checked
-                          ? [...s, lv]
-                          : s.filter((x) => x !== lv)
-                      )
-                    }
-                  />
-                  <span>Cấp {lv}</span>
+                <label key={lv} className="flex items-center gap-3 group cursor-pointer p-1">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={gradeFilter.includes(lv)}
+                      onChange={(e) =>
+                        setGradeFilter((s) =>
+                          e.target.checked
+                            ? [...s, lv]
+                            : s.filter((x) => x !== lv)
+                        )
+                      }
+                      className="w-4 h-4 rounded-md border-border bg-background text-primary focus:ring-primary/20"
+                    />
+                  </div>
+                  <span className="text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors">Cấp {lv}</span>
                 </label>
               ))}
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border p-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Chủ đề con</h3>
+          <div className="bg-card rounded-2xl shadow-sm border border-border p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-foreground">Chủ đề con</h3>
               <button
                 onClick={() => setSubtopicFilter(null)}
-                className="text-xs text-blue-600"
+                className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-all"
               >
                 Bỏ chọn
               </button>
@@ -537,10 +540,10 @@ export default function CourseLessonsAndExercises() {
                 <li key={s}>
                   <button
                     className={cn(
-                      "w-full text-left rounded-lg px-2 py-1",
+                      "w-full text-left rounded-xl px-3 py-2 font-semibold text-sm transition-all",
                       subtopicFilter === s
-                        ? "bg-blue-50 text-blue-700"
-                        : "hover:bg-gray-50"
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                        : "text-muted-foreground hover:bg-muted"
                     )}
                     onClick={() => setSubtopicFilter(s)}
                   >
@@ -551,12 +554,12 @@ export default function CourseLessonsAndExercises() {
             </ul>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border p-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Nhóm</h3>
+          <div className="bg-card rounded-2xl shadow-sm border border-border p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-foreground">Nhóm</h3>
               <button
                 onClick={() => setCategoryFilter(null)}
-                className="text-xs text-blue-600"
+                className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-all"
               >
                 Bỏ chọn
               </button>
@@ -566,16 +569,16 @@ export default function CourseLessonsAndExercises() {
                 <li key={c} className="flex items-center justify-between">
                   <button
                     className={cn(
-                      "text-left flex-1 rounded-lg px-2 py-1",
+                      "text-left flex-1 rounded-xl px-3 py-2 font-semibold text-sm transition-all",
                       categoryFilter === c
-                        ? "bg-blue-50 text-blue-700"
-                        : "hover:bg-gray-50"
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                        : "text-muted-foreground hover:bg-muted"
                     )}
                     onClick={() => setCategoryFilter(c)}
                   >
                     {c}
                   </button>
-                  <span className="text-xs text-gray-500 ml-2">
+                  <span className="text-[10px] font-black tabular-nums text-muted-foreground bg-muted w-7 h-7 flex items-center justify-center rounded-full opacity-60">
                     {mockExercises.filter((e) => e.group === c).length}
                   </span>
                 </li>
@@ -583,17 +586,17 @@ export default function CourseLessonsAndExercises() {
             </ul>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border p-4">
-            <h3 className="font-semibold mb-2">Tìm kiếm nhanh</h3>
+          <div className="bg-card rounded-2xl shadow-sm border border-border p-5">
+            <h3 className="font-bold text-foreground mb-4">Tìm kiếm nhanh</h3>
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Tìm mã/tiêu đề..."
-              className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 font-medium"
             />
             <button
               onClick={() => setSearch("")}
-              className="mt-2 w-full rounded-xl border px-3 py-2 hover:bg-gray-50"
+              className="mt-3 w-full rounded-xl border border-border bg-muted px-4 py-2.5 hover:bg-muted/80 transition-all font-bold text-xs uppercase tracking-widest text-muted-foreground"
             >
               Xóa ô tìm kiếm
             </button>

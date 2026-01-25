@@ -286,7 +286,7 @@ const atLeastTenForMajor = (
    COMPONENTS DÙNG CHUNG
 ============================ */
 const PageContainer: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <div className="min-h-screen bg-white">
+  <div className="min-h-screen bg-background">
     <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 py-6">
       {children}
     </div>
@@ -300,9 +300,9 @@ const SectionHeader: React.FC<{
 }> = ({ title, subtitle, rightSlot }) => (
   <div className="mb-4 mt-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
-      <h2 className="text-[22px] font-semibold tracking-tight">{title}</h2>
+      <h2 className="text-[22px] font-semibold tracking-tight text-foreground">{title}</h2>
       {subtitle ? (
-        <p className="text-slate-500 text-sm mt-1">{subtitle}</p>
+        <p className="text-muted-foreground text-sm mt-1">{subtitle}</p>
       ) : null}
     </div>
     {rightSlot}
@@ -377,7 +377,7 @@ const Carousel: React.FC<{
                   </p>
                   <a
                     href="#"
-                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-medium text-slate-900 shadow"
+                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/95 text-slate-900 dark:bg-slate-900/90 dark:text-white px-4 py-2 text-sm font-medium shadow transition-all hover:scale-105"
                   >
                     {s.cta}
                     <Play size={16} />
@@ -409,9 +409,8 @@ const Carousel: React.FC<{
           <button
             key={i}
             onClick={() => setIndex(i)}
-            className={`h-1.5 w-6 rounded-full transition-colors ${
-              i === index ? "bg-slate-800" : "bg-slate-300"
-            }`}
+            className={`h-1.5 rounded-full transition-all ${i === index ? "w-8 bg-primary" : "w-4 bg-muted hover:bg-muted-foreground/30"
+              }`}
             aria-label={`Go to slide ${i + 1}`}
           />
         ))}
@@ -426,18 +425,19 @@ const Carousel: React.FC<{
 const CourseCard: React.FC<{ course: Course }> = ({ course }) => (
   <motion.div
     whileHover={{ y: -4 }}
-    className="group overflow-hidden rounded-2xl border bg-white shadow-sm hover:shadow-md"
+    className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all"
   >
     <div
-      className={`relative h-36 sm:h-40 bg-gradient-to-r ${course.color} p-4 text-white`}
-    >
-      <div className="flex items-start justify-between">
-        <h4 className="text-lg font-semibold leading-snug drop-shadow">
+      className={`relative h-1 w-full bg-gradient-to-r ${course.color}`}
+    />
+    <div className="p-4">
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <h4 className="text-lg font-bold leading-snug text-card-foreground group-hover:text-primary transition-colors line-clamp-2">
           {course.title}
         </h4>
         {course.isPro ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-1 text-xs font-semibold text-slate-900">
-            <Crown size={14} /> Pro
+          <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-1 text-[10px] font-bold text-amber-600 border border-amber-500/20">
+            <Crown size={12} /> PRO
           </span>
         ) : null}
       </div>
@@ -447,31 +447,27 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => (
         </span>
       ) : null}
     </div>
-    <div className="p-4">
+    <div className="px-4 pb-4">
       {course.price ? (
-        <div className="mb-1 flex items-center gap-2">
+        <div className="mb-2 flex items-center gap-2">
           {course.oldPrice ? (
-            <span className="text-slate-400 line-through text-sm">
+            <span className="text-muted-foreground line-through text-xs italic">
               {course.oldPrice.toLocaleString("vi-VN")}đ
             </span>
           ) : null}
-          <span className="text-rose-600 font-semibold">
+          <span className="text-rose-500 font-extrabold">
             {course.price.toLocaleString("vi-VN")}đ
           </span>
         </div>
       ) : (
-        <div className="mb-1 text-emerald-600 font-semibold">Miễn phí</div>
+        <div className="mb-2 text-emerald-500 font-extrabold text-sm uppercase tracking-wider">Miễn phí</div>
       )}
-      <div className="mt-2 flex flex-wrap items-center gap-4 text-slate-600 text-sm">
+      <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground text-xs font-medium">
         <span className="inline-flex items-center gap-1">
-          <Users size={16} /> {course.author}
-        </span>
-
-        <span className="inline-flex items-center gap-1">
-          <Users size={16} /> {course.students.toLocaleString("vi-VN")}
+          <Users size={14} className="text-primary/60" /> {course.author}
         </span>
         <span className="inline-flex items-center gap-1">
-          <Clock size={16} /> {course.duration}
+          <Clock size={14} className="text-primary/60" /> {course.duration}
         </span>
       </div>
     </div>
@@ -505,9 +501,9 @@ const MajorSelect: React.FC<{
 }> = ({ value, onChange }) => {
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span className="text-slate-600">Chuyên ngành:</span>
+      <span className="text-muted-foreground font-medium">Chuyên ngành:</span>
       <select
-        className="rounded-md border px-2 py-1.5 text-sm"
+        className="rounded-xl border border-border bg-background px-3 py-1.5 text-sm font-semibold text-foreground focus:ring-2 focus:ring-primary outline-none transition-all"
         value={value}
         onChange={(e) => onChange(e.target.value as Major)}
       >
@@ -527,9 +523,9 @@ const SortSelect: React.FC<{
 }> = ({ value, onChange }) => {
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span className="text-slate-600">Sắp xếp:</span>
+      <span className="text-muted-foreground font-medium">Sắp xếp:</span>
       <select
-        className="rounded-md border px-2 py-1.5 text-sm"
+        className="rounded-xl border border-border bg-background px-3 py-1.5 text-sm font-semibold text-foreground focus:ring-2 focus:ring-primary outline-none transition-all"
         value={value}
         onChange={(e) => onChange(e.target.value as SortKey)}
       >
@@ -549,9 +545,9 @@ const TeacherSelect: React.FC<{
 }> = ({ value, options, onChange }) => {
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span className="text-slate-600">Giáo viên:</span>
+      <span className="text-muted-foreground font-medium">Giáo viên:</span>
       <select
-        className="rounded-md border px-2 py-1.5 text-sm"
+        className="rounded-xl border border-border bg-background px-3 py-1.5 text-sm font-semibold text-foreground focus:ring-2 focus:ring-primary outline-none transition-all"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >
@@ -616,7 +612,7 @@ export function HomePage() {
             <SortSelect value={sortKey} onChange={setSortKey} />
             <a
               href="#"
-              className="hidden md:inline-flex items-center gap-2 text-sm text-slate-700 hover:underline"
+              className="hidden md:inline-flex items-center gap-2 text-sm text-primary font-bold hover:underline underline-offset-4"
             >
               Xem lộ trình <ArrowRight size={16} />
             </a>

@@ -1,0 +1,53 @@
+/* src/views/coding-template-exercise/TemplateCreate.css */
+
+.test-case-item {
+  transition: all 0.2s ease-in-out;
+  background-color: #ffffff;
+}
+
+.test-case-item:hover {
+  border-color: #6366f1 !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+}
+
+.form-label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.card {
+  border-radius: 1rem !important;
+  overflow: hidden;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.card-header {
+  background-color: #f9fafb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  padding: 1rem 1.5rem !important;
+}
+
+.card-body {
+  padding: 1.5rem !important;
+}
+
+.font-monospace {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+form > .card {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+form > .card:nth-child(1) { animation-delay: 0.1s; }
+form > .card:nth-child(2) { animation-delay: 0.2s; }
+form > .card:nth-child(3) { animation-delay: 0.3s; }
+form > .card:nth-child(4) { animation-delay: 0.4s; }

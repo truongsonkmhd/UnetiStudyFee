@@ -34,6 +34,17 @@ const apiService = {
     return axiosClient.put<T>(url, body);
   },
 
+    /**
+   * Phương thức PATCH chung
+   * @param url - Đường dẫn tương đối của endpoint
+   * @param body - Dữ liệu cần gửi trong body (tùy chọn)
+   * @returns Promise<T> - Dữ liệu đã được bóc tách từ response
+   */
+  patch<T>(url: string, body?: object): Promise<T> {
+    return axiosClient.patch<T>(url, body);
+  },
+
+
   /**
    * Phương thức DELETE chung
    * @param url - Đường dẫn tương đối của endpoint

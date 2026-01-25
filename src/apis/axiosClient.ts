@@ -1,4 +1,4 @@
-import { LoginData } from "@/types/Auth";
+import { LoginData } from "@/types/auth";
 import axios, {
   type AxiosResponse,
   type AxiosError,
@@ -187,6 +187,11 @@ interface CustomAxiosInstance extends AxiosInstance {
   ): Promise<R>;
   delete<T = any, R = T, D = any>(
     url: string,
+    config?: AxiosRequestConfig<D>
+  ): Promise<R>;
+  patch<T = any, R = T, D = any>(
+    url: string,
+    data?: D,
     config?: AxiosRequestConfig<D>
   ): Promise<R>;
 }

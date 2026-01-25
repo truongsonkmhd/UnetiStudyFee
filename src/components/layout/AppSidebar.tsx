@@ -36,74 +36,85 @@ const navigationItems: {
   icon: string;
   requiredRoles?: RoleEnum[];
 }[] = [
-  { title: "Trang chủ", url: PATHS.HOME, icon: homepageIcon },
-  { title: "Bảng xếp hạng", url: PATHS.RANKING, icon: rankingIcon },
-  {
-    title: "Tạo bài giảng",
-    url: PATHS.CREATE_LESSON,
-    icon: createLessionIcon,
-    requiredRoles: [
-      RoleEnum.ROLE_ADMIN,
-      RoleEnum.ROLE_SYS_ADMIN,
-      RoleEnum.ROLE_TEACHER,
-    ],
-  },
-  {
-    title: "Tạo bài thi",
-    url: PATHS.CREATE_TEST,
-    icon: createTestIcon,
-    requiredRoles: [
-      RoleEnum.ROLE_ADMIN,
-      RoleEnum.ROLE_SYS_ADMIN,
-      RoleEnum.ROLE_TEACHER,
-    ],
-  },
-   {
-    title: "Kho bài code",
-    url: PATHS.EXERCISE_LIBRARY,
-    icon: createTestIcon,
-    requiredRoles: [
-      RoleEnum.ROLE_ADMIN,
-      RoleEnum.ROLE_SYS_ADMIN,
-      RoleEnum.ROLE_TEACHER,
-    ],
-  },
+    { title: "Trang chủ", url: PATHS.HOME, icon: homepageIcon },
+    { title: "Bảng xếp hạng", url: PATHS.RANKING, icon: rankingIcon },
+    {
+      title: "Tạo bài giảng",
+      url: PATHS.CREATE_LESSON,
+      icon: createLessionIcon,
+      requiredRoles: [
+        RoleEnum.ROLE_ADMIN,
+        RoleEnum.ROLE_SYS_ADMIN,
+        RoleEnum.ROLE_TEACHER,
+      ],
+    },
+    {
+      title: "Tạo bài thi",
+      url: PATHS.CREATE_TEST,
+      icon: createTestIcon,
+      requiredRoles: [
+        RoleEnum.ROLE_ADMIN,
+        RoleEnum.ROLE_SYS_ADMIN,
+        RoleEnum.ROLE_TEACHER,
+      ],
+    },
+    {
+      title: "Kho bài code",
+      url: PATHS.CODING_EXERCISE_LIBRARY,
+      icon: createTestIcon,
+      requiredRoles: [
+        RoleEnum.ROLE_ADMIN,
+        RoleEnum.ROLE_SYS_ADMIN,
+        RoleEnum.ROLE_TEACHER,
+      ],
+    },
 
-  {
-    title: "Kho bài kiểm tra",
-    url: PATHS.MANAGER_CONTEST,
-    icon: createTestIcon,
-    requiredRoles: [
-      RoleEnum.ROLE_ADMIN,
-      RoleEnum.ROLE_SYS_ADMIN,
-      RoleEnum.ROLE_TEACHER,
-    ],
-  },
+    {
+      title: "Kho bài quiz",
+      url: PATHS.QUIZ_LIBRARY,
+      icon: createTestIcon,
+      requiredRoles: [
+        RoleEnum.ROLE_ADMIN,
+        RoleEnum.ROLE_SYS_ADMIN,
+        RoleEnum.ROLE_TEACHER,
+      ],
+    },
 
-  {
-    title: "Quản lý lớp thi",
-    url: PATHS.MANAGER_CLASS,
-    icon: createTestIcon,
-    requiredRoles: [
-      RoleEnum.ROLE_ADMIN,
-      RoleEnum.ROLE_SYS_ADMIN,
-      RoleEnum.ROLE_TEACHER,
-    ],
-  },
+    {
+      title: "Kho bài kiểm tra",
+      url: PATHS.MANAGER_CONTEST,
+      icon: createTestIcon,
+      requiredRoles: [
+        RoleEnum.ROLE_ADMIN,
+        RoleEnum.ROLE_SYS_ADMIN,
+        RoleEnum.ROLE_TEACHER,
+      ],
+    },
 
-  {
-    title: "Quản lý sinh viên và giáo viên",
-    url: PATHS.MANAGER_PERSONS,
-    icon: managerIcon,
-    requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
-  },
-  {
-    title: "Quản lý quyền",
-    url: PATHS.MANAGER_INTEREST,
-    icon: quyenIcon,
-    requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
-  },
-];
+    {
+      title: "Quản lý lớp thi",
+      url: PATHS.MANAGER_CLASS,
+      icon: createTestIcon,
+      requiredRoles: [
+        RoleEnum.ROLE_ADMIN,
+        RoleEnum.ROLE_SYS_ADMIN,
+        RoleEnum.ROLE_TEACHER,
+      ],
+    },
+
+    {
+      title: "Quản lý sinh viên và giáo viên",
+      url: PATHS.MANAGER_PERSONS,
+      icon: managerIcon,
+      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
+    },
+    {
+      title: "Quản lý quyền",
+      url: PATHS.MANAGER_INTEREST,
+      icon: quyenIcon,
+      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
+    },
+  ];
 
 const history: {
   title: string;
@@ -111,27 +122,27 @@ const history: {
   icon: string;
   requiredRoles?: RoleEnum[];
 }[] = [
-  {
-    title: "Lớp đã tham gia",
-    url: PATHS.CLASS_ATTENDED,
-    icon: classIcon,
-    requiredRoles: [
-      RoleEnum.ROLE_STUDENT,
-      RoleEnum.ROLE_ADMIN,
-      RoleEnum.ROLE_SYS_ADMIN,
-    ],
-  },
-  {
-    title: "Lịch sử bài",
-    url: PATHS.POST_HISTORY,
-    icon: historyTestIcon,
-    requiredRoles: [
-      RoleEnum.ROLE_STUDENT,
-      RoleEnum.ROLE_ADMIN,
-      RoleEnum.ROLE_SYS_ADMIN,
-    ],
-  },
-];
+    {
+      title: "Lớp đã tham gia",
+      url: PATHS.CLASS_ATTENDED,
+      icon: classIcon,
+      requiredRoles: [
+        RoleEnum.ROLE_STUDENT,
+        RoleEnum.ROLE_ADMIN,
+        RoleEnum.ROLE_SYS_ADMIN,
+      ],
+    },
+    {
+      title: "Lịch sử bài",
+      url: PATHS.POST_HISTORY,
+      icon: historyTestIcon,
+      requiredRoles: [
+        RoleEnum.ROLE_STUDENT,
+        RoleEnum.ROLE_ADMIN,
+        RoleEnum.ROLE_SYS_ADMIN,
+      ],
+    },
+  ];
 
 const toolsItems: {
   title: string;
@@ -139,9 +150,9 @@ const toolsItems: {
   icon: string;
   requiredRoles?: RoleEnum[];
 }[] = [
-  { title: "Hướng dẫn", url: "/tutorial", icon: smartIcon },
-  { title: "Cài Đặt", url: "/settings", icon: settingIcon },
-];
+    { title: "Hướng dẫn", url: "/tutorial", icon: smartIcon },
+    { title: "Cài Đặt", url: "/settings", icon: settingIcon },
+  ];
 
 /** ====== ROLE THEME ====== */
 type RoleTheme = {
@@ -152,24 +163,24 @@ type RoleTheme = {
 
 const ROLE_THEME: Record<string, RoleTheme> = {
   [RoleEnum.ROLE_SYS_ADMIN]: {
-    sidebarBg: "bg-red-50",
-    activeItem: "bg-red-600 text-white font-medium shadow",
-    groupLabel: "text-red-700",
+    sidebarBg: "bg-red-50/50 dark:bg-red-950/20",
+    activeItem: "bg-red-600 text-white font-medium shadow dark:bg-red-500",
+    groupLabel: "text-red-700 dark:text-red-400",
   },
   [RoleEnum.ROLE_ADMIN]: {
-    sidebarBg: "bg-blue-50",
-    activeItem: "bg-blue-600 text-white font-medium shadow",
-    groupLabel: "text-blue-700",
+    sidebarBg: "bg-blue-50/50 dark:bg-blue-950/20",
+    activeItem: "bg-blue-600 text-white font-medium shadow dark:bg-blue-500",
+    groupLabel: "text-blue-700 dark:text-blue-400",
   },
   [RoleEnum.ROLE_TEACHER]: {
-    sidebarBg: "bg-emerald-50",
-    activeItem: "bg-emerald-600 text-white font-medium shadow",
-    groupLabel: "text-emerald-700",
+    sidebarBg: "bg-emerald-50/50 dark:bg-emerald-950/20",
+    activeItem: "bg-emerald-600 text-white font-medium shadow dark:bg-emerald-500",
+    groupLabel: "text-emerald-700 dark:text-emerald-400",
   },
   [RoleEnum.ROLE_STUDENT]: {
-    sidebarBg: "bg-purple-50",
-    activeItem: "bg-purple-600 text-white font-medium shadow",
-    groupLabel: "text-purple-700",
+    sidebarBg: "bg-purple-50/50 dark:bg-purple-950/20",
+    activeItem: "bg-purple-600 text-white font-medium shadow dark:bg-purple-500",
+    groupLabel: "text-purple-700 dark:text-purple-400",
   },
 };
 

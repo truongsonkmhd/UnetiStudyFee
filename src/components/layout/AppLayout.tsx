@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import {
   DropdownMenu,
@@ -95,6 +96,8 @@ export function AppLayout() {
             </form>
 
             <div className="flex items-center gap-2">
+              <ThemeToggle />
+
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Bell className="w-5 h-5" />
               </Button>
@@ -106,7 +109,7 @@ export function AppLayout() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-muted transition">
-                    <img
+                    {/* <img
                       src={getAvatarSrc(jwtClaims.userInfor?.avatar)}
                       alt={jwtClaims.userInfor?.fullName}
                       className="h-9 w-9 rounded-full object-cover ring-1 ring-black/10"
@@ -119,14 +122,14 @@ export function AppLayout() {
                       <span className="text-xs text-muted-foreground">
                         {jwtClaims.userInfor?.classId}
                       </span>
-                    </div>
+                    </div> */}
                   </button>
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuLabel className="py-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-black/10">
+                      {/* <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-black/10">
                         <img
                           src={getAvatarSrc(jwtClaims.userInfor?.avatar)}
                           alt={jwtClaims.userInfor?.fullName}
@@ -141,7 +144,7 @@ export function AppLayout() {
                         <span className="text-sm text-muted-foreground">
                           {jwtClaims.userInfor?.classId}
                         </span>
-                      </div>
+                      </div> */}
                     </div>
                   </DropdownMenuLabel>
 
@@ -198,7 +201,7 @@ function ChatQAButton2() {
       onClick={() => navigate("/chat")}
       title="Chat hỏi đáp"
       aria-label="Chat hỏi đáp"
-      className="relative inline-flex items-center justify-center h-14 w-14 rounded-full bg-white ring-1 ring-black/10 shadow-lg hover:shadow-xl transition-transform duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-violet-300"
+      className="relative inline-flex items-center justify-center h-14 w-14 rounded-full bg-card ring-1 ring-border shadow-lg hover:shadow-xl transition-transform duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary"
     >
       <img
         src={chatboxCuImg}

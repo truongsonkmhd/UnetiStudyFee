@@ -1,4 +1,11 @@
-import React from "react";
+export interface ExerciseTestCase {
+  testCaseId?: string;
+  input: string;
+  expectedOutput: string;
+  isPublic: boolean;
+  explanation?: string;
+  orderIndex?: number;
+}import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,10 +21,6 @@ import {
 import {
   User,
   GraduationCap,
-  Mail,
-  CalendarDays,
-  MapPin,
-  Info,
   Clock,
   LayoutList,
   Inbox,
@@ -71,9 +74,10 @@ export default function ProfilePage() {
         <Card className="col-span-12 lg:col-span-3 shadow-sm">
           <CardContent className="p-6">
             <div className="flex flex-col items-center text-center">
-              <div className="h-44 w-44 rounded-full border border-red-400 bg-muted flex items-center justify-center">
-                <span className="text-6xl font-semibold text-foreground/80">
+              <div className="h-44 w-44 rounded-full border-2 border-primary/20 bg-muted flex items-center justify-center shadow-inner">
+                <span className="text-6xl font-semibold text-muted-foreground/40">
                   {/* {jwtClaims.userInfor?.avatar} */}
+                  <User size={80} />
                 </span>
               </div>
 
@@ -81,7 +85,7 @@ export default function ProfilePage() {
                 {/* {jwtClaims.userInfor?.fullName} */}
               </div>
 
-              <Button className="mt-3 w-full bg-red-700 hover:bg-red-800">
+              <Button className="mt-6 w-full font-bold shadow-lg shadow-primary/20">
                 Chỉnh sửa hồ sơ
               </Button>
 
@@ -140,7 +144,7 @@ export default function ProfilePage() {
               <TabsList className="bg-transparent p-0 gap-2">
                 <TabsTrigger
                   value="overview"
-                  className="data-[state=active]:text-red-700 data-[state=active]:border-b-2 data-[state=active]:border-red-700 rounded-none"
+                  className="data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none font-bold"
                 >
                   <LayoutList className="h-4 w-4 mr-2" />
                   Tổng quan
@@ -148,7 +152,7 @@ export default function ProfilePage() {
 
                 <TabsTrigger
                   value="history"
-                  className="data-[state=active]:text-red-700 data-[state=active]:border-b-2 data-[state=active]:border-red-700 rounded-none"
+                  className="data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none font-bold"
                 >
                   <Clock className="h-4 w-4 mr-2" />
                   Lịch sử
@@ -160,8 +164,8 @@ export default function ProfilePage() {
               <TabsContent value="overview" className="mt-0">
                 <SectionTitle title="Danh sách lớp học đã tham gia:" />
 
-                <div className="rounded-md border">
-                  <div className="bg-red-100/70 px-3 py-2">
+                <div className="rounded-xl border border-border overflow-hidden">
+                  <div className="bg-muted/50 px-3 py-2 border-b border-border">
                     <div className="grid grid-cols-12 text-sm font-medium text-muted-foreground">
                       <div className="col-span-1 text-center">STT</div>
                       <div className="col-span-4">Môn học</div>
@@ -228,18 +232,21 @@ function InfoRow({
   value: string;
 }) {
   return (
-    <div className="flex items-start gap-2 text-red-700">
-      <div className="mt-0.5">{icon}</div>
+    <div className="flex items-start gap-2 text-foreground/70">
+      <div className="mt-0.5 text-primary/70">{icon}</div>
       <div className="flex-1">
-        <span className="font-medium">{label}:</span>{" "}
-        <span className="text-foreground/80">{value}</span>
+        <span className="font-bold text-xs uppercase tracking-tight text-muted-foreground">{label}:</span>{" "}
+        <div className="text-foreground font-semibold">{value || "N/A"}</div>
       </div>
     </div>
   );
 }
 
 function SectionTitle({ title }: { title: string }) {
-  return <div className="text-sm font-semibold text-red-700 mb-2">{title}</div>;
+  return <div className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+    <div className="w-1 h-4 bg-primary rounded-full" />
+    {title}
+  </div>;
 }
 
 function EmptyState() {

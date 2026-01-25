@@ -1,28 +1,33 @@
 // src/components/QuizEditorModal.tsx
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Save, Eye, CheckCircle, Circle, ChevronDown, ChevronUp, AlertCircle, Loader } from 'lucide-react';
-import { Quiz } from '@/types/Quiz';
-import quizService from '@/services/UserService';
-import { Answer } from '@/types/Answer';
-import { Question } from '@/types/Question';
+import { QuizTemplate } from '@/types/quiz/QuizTemplate';
+import { QuestionTemplate } from '@/types/quiz/QuestionTemplate';
+import { AnswerTemplate } from '@/types/quiz/AnswerTemplate';
+import { QuizTemplateDetail } from '@/model/quiz-template/QuizTemplateDetail';
+import { CreateQuizTemplateRequest } from '@/model/quiz-template/CreateQuizTemplateRequest';
+import { UpdateQuizTemplateRequest } from '@/model/quiz-template/UpdateQuizTemplateRequest';
+import quizTemplateService from '@/services/quizTemplateService';
+import { toast } from 'sonner';
 
 interface QuizEditorModalProps {
-  contestLessonId: string;
   quizId: string | null;
   onClose: (shouldRefresh: boolean) => void;
 }
 
 const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
-  contestLessonId,
   quizId,
   onClose
 }) => {
-  const [quiz, setQuiz] = useState<Quiz>({
-    title: '',
+  const [quiz, setQuiz] = useState<Partial<QuizTemplateDetail>>({
+    version: 1,
+    templateName: '',
+    description: '',
+    category: '',
     passScore: 70,
-    isPublished: false,
-    contestLessonId,
-    questions: []
+    timeLimitMinutes: 30,
+    isActive: true,
+    questions: [],
   });
 
   const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
@@ -43,47 +48,47 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const data = await quizService.getById(quizId);
+      const data = await quizTemplateService.getTemplateById(quizId);
       setQuiz(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load quiz');
+      setError(err instanceof Error ? err.message : 'Failed to load quiz template');
     } finally {
       setLoading(false);
     }
   };
 
   const addQuestion = () => {
-    const newQuestion: Question = {
+    const newQuestion: QuestionTemplate = {
       content: '',
-      timeLimitSeconds: 5,
+      timeLimitSeconds: 60,
       points: 1,
-      questionOrder: quiz.questions.length + 1,
+      questionOrder: (quiz.questions?.length || 0) + 1,
       answers: [
         { content: '', isCorrect: false, answerOrder: 1 },
         { content: '', isCorrect: false, answerOrder: 2 }
       ]
     };
-    setQuiz({ ...quiz, questions: [...quiz.questions, newQuestion] });
-    setExpandedQuestion(quiz.questions.length);
+    setQuiz({ ...quiz, questions: [...(quiz.questions || []), newQuestion] });
+    setExpandedQuestion(quiz.questions?.length || 0);
   };
 
-  const updateQuestion = (index: number, field: keyof Question, value: any) => {
-    const updatedQuestions = [...quiz.questions];
+  const updateQuestion = (index: number, field: keyof QuestionTemplate, value: any) => {
+    const updatedQuestions = [...(quiz.questions || [])];
     updatedQuestions[index] = { ...updatedQuestions[index], [field]: value };
     setQuiz({ ...quiz, questions: updatedQuestions });
   };
 
   const deleteQuestion = (index: number) => {
-    const updatedQuestions = quiz.questions
+    const updatedQuestions = (quiz.questions || [])
       .filter((_, i) => i !== index)
       .map((q, idx) => ({ ...q, questionOrder: idx + 1 }));
     setQuiz({ ...quiz, questions: updatedQuestions });
   };
 
   const addAnswer = (questionIndex: number) => {
-    const updatedQuestions = [...quiz.questions];
+    const updatedQuestions = [...(quiz.questions || [])];
     const question = updatedQuestions[questionIndex];
-    const newAnswer: Answer = {
+    const newAnswer: AnswerTemplate = {
       content: '',
       isCorrect: false,
       answerOrder: question.answers.length + 1
@@ -95,10 +100,10 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
   const updateAnswer = (
     questionIndex: number,
     answerIndex: number,
-    field: keyof Answer,
+    field: keyof AnswerTemplate,
     value: any
   ) => {
-    const updatedQuestions = [...quiz.questions];
+    const updatedQuestions = [...(quiz.questions || [])];
     updatedQuestions[questionIndex].answers[answerIndex] = {
       ...updatedQuestions[questionIndex].answers[answerIndex],
       [field]: value
@@ -107,7 +112,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
   };
 
   const deleteAnswer = (questionIndex: number, answerIndex: number) => {
-    const updatedQuestions = [...quiz.questions];
+    const updatedQuestions = [...(quiz.questions || [])];
     updatedQuestions[questionIndex].answers = updatedQuestions[questionIndex].answers
       .filter((_, i) => i !== answerIndex)
       .map((a, idx) => ({ ...a, answerOrder: idx + 1 }));
@@ -115,32 +120,35 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
   };
 
   const toggleCorrectAnswer = (questionIndex: number, answerIndex: number) => {
-    const updatedQuestions = [...quiz.questions];
+    const updatedQuestions = [...(quiz.questions || [])];
     updatedQuestions[questionIndex].answers[answerIndex].isCorrect =
       !updatedQuestions[questionIndex].answers[answerIndex].isCorrect;
     setQuiz({ ...quiz, questions: updatedQuestions });
   };
 
   const validateQuiz = (): string | null => {
-    if (!quiz.title.trim()) {
-      return 'Please enter quiz title';
+    if (!quiz.templateName?.trim()) {
+      return 'Vui lòng nhập tên mẫu bài kiểm tra';
     }
-    if (quiz.questions.length === 0) {
-      return 'Please add at least one question';
+    if (!quiz.category?.trim()) {
+      return 'Vui lòng nhập danh mục';
     }
-    for (let i = 0; i < quiz.questions.length; i++) {
-      const q = quiz.questions[i];
+    if ((quiz.questions?.length || 0) === 0) {
+      return 'Vui lòng thêm ít nhất một câu hỏi';
+    }
+    for (let i = 0; i < (quiz.questions?.length || 0); i++) {
+      const q = quiz.questions![i];
       if (!q.content.trim()) {
-        return `Question ${i + 1} is empty`;
+        return `Câu hỏi ${i + 1} còn trống`;
       }
       if (q.answers.length < 2) {
-        return `Question ${i + 1} needs at least 2 answers`;
+        return `Câu hỏi ${i + 1} cần ít nhất 2 đáp án`;
       }
       if (!q.answers.some(a => a.isCorrect)) {
-        return `Question ${i + 1} needs at least one correct answer`;
+        return `Câu hỏi ${i + 1} cần ít nhất một đáp án đúng`;
       }
       if (q.answers.some(a => !a.content.trim())) {
-        return `Question ${i + 1} has empty answers`;
+        return `Câu hỏi ${i + 1} có đáp án còn trống`;
       }
     }
     return null;
@@ -149,7 +157,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
   const handleSaveQuiz = async () => {
     const validationError = validateQuiz();
     if (validationError) {
-      alert(validationError);
+      toast.error(validationError);
       return;
     }
 
@@ -158,16 +166,33 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
       setError(null);
 
       if (quizId) {
-        await quizService.update(quizId, quiz);
+        const updateRequest: UpdateQuizTemplateRequest = {
+          version: quiz.version + 1,
+          templateName: quiz.templateName,
+          description: quiz.description,
+          category: quiz.category,
+          passScore: quiz.passScore,
+          timeLimitMinutes: quiz.timeLimitMinutes,
+          isActive: quiz.isActive,
+        };
+        await quizTemplateService.updateTemplate(quizId, updateRequest);
       } else {
-        await quizService.create(quiz);
+        const createRequest: CreateQuizTemplateRequest = {
+          templateName: quiz.templateName!,
+          description: quiz.description || '',
+          category: quiz.category!,
+          passScore: quiz.passScore || 70,
+          timeLimitMinutes: quiz.timeLimitMinutes || 30,
+          questions: quiz.questions || [],
+        };
+        await quizTemplateService.createTemplate(createRequest);
       }
 
-      alert('Quiz saved successfully!');
+      toast.success('Mẫu quiz được lưu thành công!');
       onClose(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save quiz');
-      alert(err instanceof Error ? err.message : 'Failed to save quiz');
+      setError(err instanceof Error ? err.message : 'Failed to save quiz template');
+      toast.error(err instanceof Error ? err.message : 'Mẫu quiz lưu thất bại!');
     } finally {
       setSaving(false);
     }
@@ -175,10 +200,10 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-8">
-          <Loader className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading quiz...</p>
+      <div className="fixed inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-[100]">
+        <div className="bg-card rounded-2xl p-8 border border-border shadow-2xl flex flex-col items-center gap-4">
+          <Loader className="w-12 h-12 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium">Đang tải mẫu quiz...</p>
         </div>
       </div>
     );
@@ -186,60 +211,59 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
 
   if (showPreview) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-        <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full my-8 max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white border-b border-gray-200 p-6 z-10">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-800">Quiz Preview</h2>
-              <button
-                onClick={() => setShowPreview(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-              >
-                Back to Edit
-              </button>
-            </div>
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-[100] p-4 overflow-y-auto">
+        <div className="bg-card rounded-3xl shadow-2xl border border-border max-w-4xl w-full my-8 max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-card/90 backdrop-blur border-b border-border p-6 z-10 flex justify-between items-center">
+            <h2 className="text-2xl font-black text-foreground tracking-tight">Xem trước Quiz</h2>
+            <button
+              onClick={() => setShowPreview(false)}
+              className="px-6 py-2 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20"
+            >
+              Quay lại chỉnh sửa
+            </button>
           </div>
 
           <div className="p-6">
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">{quiz.title}</h3>
-              <div className="flex gap-4 text-sm text-gray-600">
-                <span>📝 {quiz.questions.length} Questions</span>
-                <span>✅ Pass Score: {quiz.passScore}%</span>
-                <span>⏱️ 5 seconds per question</span>
+            <div className="bg-primary/5 border-l-4 border-primary p-6 rounded-2xl mb-8">
+              <h3 className="text-xl font-black text-foreground mb-3">{quiz.templateName}</h3>
+              <div className="flex flex-wrap gap-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="flex items-center gap-1.5 bg-background border border-border px-3 py-1.5 rounded-lg">📝 {quiz.questions?.length || 0} Câu hỏi</span>
+                <span className="flex items-center gap-1.5 bg-background border border-border px-3 py-1.5 rounded-lg">✅ Điểm đạt: {quiz.passScore}%</span>
+                <span className="flex items-center gap-1.5 bg-background border border-border px-3 py-1.5 rounded-lg">⏱️ 5 giây/câu</span>
               </div>
             </div>
 
-            {quiz.questions.map((question, qIdx) => (
-              <div key={qIdx} className="mb-6 p-4 border border-gray-200 rounded-lg">
-                <div className="flex items-start gap-3 mb-4">
-                  <span className="bg-indigo-100 text-indigo-700 font-bold px-3 py-1 rounded">
+            {quiz.questions?.map((question, qIdx) => (
+              <div key={qIdx} className="mb-8 p-6 bg-muted/20 border border-border rounded-2xl group hover:border-primary/30 transition-all shadow-sm">
+                <div className="flex items-start gap-4 mb-6">
+                  <span className="bg-primary text-primary-foreground font-black px-4 py-1.5 rounded-xl shadow-lg shadow-primary/10">
                     Q{qIdx + 1}
                   </span>
-                  <p className="flex-1 text-gray-800 font-semibold">{question.content}</p>
-                  <span className="text-sm text-gray-500">⏱️ {question.timeLimitSeconds}s</span>
+                  <p className="flex-1 text-lg font-bold text-foreground leading-relaxed">{question.content}</p>
+                  <span className="text-xs font-bold uppercase text-muted-foreground/60 bg-muted px-2 py-1 rounded-md">⏱️ {question.timeLimitSeconds}s</span>
                 </div>
 
-                <div className="space-y-2 pl-12">
+                <div className="space-y-3 pl-12">
                   {question.answers.map((answer, aIdx) => (
                     <div
                       key={aIdx}
-                      className={`p-3 rounded-lg border-2 ${
-                        answer.isCorrect
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-gray-200 bg-white'
-                      }`}
+                      className={`p-4 rounded-2xl border-2 transition-all ${answer.isCorrect
+                        ? 'border-emerald-500/50 bg-emerald-500/5 shadow-md shadow-emerald-500/5'
+                        : 'border-border bg-background'
+                        }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         {answer.isCorrect ? (
-                          <CheckCircle className="w-5 h-5 text-green-600" />
+                          <CheckCircle className="w-6 h-6 text-emerald-500" />
                         ) : (
-                          <Circle className="w-5 h-5 text-gray-400" />
+                          <Circle className="w-6 h-6 text-muted-foreground/30" />
                         )}
-                        <span className="text-gray-800">{answer.content}</span>
+                        <span className={`font-semibold ${answer.isCorrect ? 'text-emerald-500' : 'text-foreground'}`}>
+                          {answer.content}
+                        </span>
                         {answer.isCorrect && (
-                          <span className="ml-auto text-xs font-semibold text-green-600">
-                            CORRECT
+                          <span className="ml-auto text-[10px] font-black tracking-widest text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                            ĐÚNG
                           </span>
                         )}
                       </div>
@@ -255,179 +279,211 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full my-8 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-[100] p-4 overflow-y-auto">
+      <div className="bg-card rounded-3xl shadow-2xl border border-border max-w-5xl w-full my-8 max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 z-10">
+        <div className="sticky top-0 bg-card/90 backdrop-blur border-b border-border p-6 z-10">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-800">
-              {quizId ? 'Edit Quiz' : 'Create New Quiz'}
+            <h2 className="text-2xl font-black text-foreground tracking-tight">
+              {quizId ? 'Sửa mẫu quiz' : 'Tạo mẫu quiz mới'}
             </h2>
             <button
               onClick={() => onClose(false)}
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground"
             >
-              <X className="w-6 h-6 text-gray-600" />
+              <X className="w-6 h-6" />
             </button>
           </div>
         </div>
 
         {/* Error Display */}
         {error && (
-          <div className="mx-6 mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800">{error}</p>
+          <div className="mx-6 mt-6 bg-destructive/10 border border-destructive/20 rounded-2xl p-4">
+            <p className="text-destructive font-semibold flex items-center gap-2">
+              <AlertCircle size={18} />
+              {error}
+            </p>
           </div>
         )}
 
         {/* Content */}
         <div className="p-6">
           {/* Quiz Basic Info */}
-          <div className="space-y-4 mb-6">
+          <div className="space-y-6 mb-8 bg-muted/10 p-6 rounded-3xl border border-border/50">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Quiz Title *
+              <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                Tên mẫu <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
-                value={quiz.title}
-                onChange={(e) => setQuiz({ ...quiz, title: e.target.value })}
-                placeholder="Enter quiz title..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                value={quiz.templateName || ''}
+                onChange={(e) => setQuiz({ ...quiz, templateName: e.target.value })}
+                placeholder="VD: Kiểm tra giữa kỳ Cấu trúc dữ liệu..."
+                className="w-full px-5 py-3 bg-background border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-foreground font-bold"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                Mô tả
+              </label>
+              <textarea
+                value={quiz.description || ''}
+                onChange={(e) => setQuiz({ ...quiz, description: e.target.value })}
+                placeholder="Mô tả ngắn gọn về bài kiểm tra này..."
+                rows={3}
+                className="w-full px-5 py-3 bg-background border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-foreground font-medium"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Pass Score (%)
-                </label>
-                <input
-                  type="number"
-                  value={quiz.passScore}
-                  onChange={(e) => setQuiz({ ...quiz, passScore: parseFloat(e.target.value) })}
-                  min="0"
-                  max="100"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Total Questions
+                <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                  Danh mục <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
-                  value={quiz.questions.length}
-                  readOnly
-                  className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg"
+                  value={quiz.category || ''}
+                  onChange={(e) => setQuiz({ ...quiz, category: e.target.value })}
+                  placeholder="Toán học, Công nghệ..."
+                  className="w-full px-5 py-3 bg-background border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-foreground font-bold"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                  Điểm đạt (%)
+                </label>
+                <input
+                  type="number"
+                  value={quiz.passScore || 70}
+                  onChange={(e) => setQuiz({ ...quiz, passScore: parseFloat(e.target.value) })}
+                  min="0"
+                  max="100"
+                  className="w-full px-5 py-3 bg-background border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-foreground font-bold"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                  Thời gian (phút)
+                </label>
+                <input
+                  type="number"
+                  value={quiz.timeLimitMinutes || 30}
+                  onChange={(e) => setQuiz({ ...quiz, timeLimitMinutes: parseInt(e.target.value) })}
+                  min="1"
+                  className="w-full px-5 py-3 bg-background border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-foreground font-bold"
                 />
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 mb-6">
+          <div className="flex flex-wrap gap-4 mb-8">
             <button
               onClick={addQuestion}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95"
             >
               <Plus className="w-5 h-5" />
-              Add Question
+              Thêm câu hỏi
             </button>
             <button
               onClick={() => setShowPreview(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="flex items-center gap-2 px-6 py-3 bg-muted text-muted-foreground border border-border rounded-2xl font-bold hover:bg-muted/80 transition-all active:scale-95"
             >
               <Eye className="w-5 h-5" />
-              Preview
+              Xem trước
             </button>
             <button
               onClick={handleSaveQuiz}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 ml-auto disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 ml-auto disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
             >
               {saving ? (
                 <>
                   <Loader className="w-5 h-5 animate-spin" />
-                  Saving...
+                  Đang lưu...
                 </>
               ) : (
                 <>
                   <Save className="w-5 h-5" />
-                  Save Quiz
+                  Lưu mẫu quiz
                 </>
               )}
             </button>
           </div>
 
-          {quiz.questions.length === 0 && (
-            <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500 mb-4">No questions yet. Click "Add Question" to start.</p>
+          {(quiz.questions?.length || 0) === 0 && (
+            <div className="text-center py-20 bg-muted/20 rounded-3xl border-2 border-dashed border-border flex flex-col items-center gap-4">
+              <div className="w-20 h-20 bg-background rounded-full flex items-center justify-center border border-border shadow-sm text-muted-foreground/30">
+                <AlertCircle className="w-12 h-12" />
+              </div>
+              <div>
+                <p className="text-foreground font-bold tracking-wide">Chưa có câu hỏi nào</p>
+                <p className="text-muted-foreground text-sm uppercase tracking-tighter font-black opacity-60">Nhấn "Thêm câu hỏi" để bắt đầu</p>
+              </div>
             </div>
           )}
 
           {/* Questions List */}
           <div className="space-y-4">
-            {quiz.questions.map((question, qIdx) => (
-              <div key={qIdx} className="bg-white rounded-lg shadow-lg overflow-hidden">
+            {(quiz.questions || []).map((question, qIdx) => (
+              <div key={qIdx} className="bg-card rounded-3xl border border-border shadow-lg overflow-hidden group hover:border-primary/50 transition-all duration-300">
                 <div
-                  className="p-4 bg-indigo-50 border-l-4 border-indigo-600 cursor-pointer hover:bg-indigo-100"
+                  className={`p-5 flex items-center justify-between cursor-pointer transition-colors ${expandedQuestion === qIdx ? 'bg-primary/5 border-l-4 border-primary' : 'bg-background hover:bg-muted'}`}
                   onClick={() => setExpandedQuestion(expandedQuestion === qIdx ? null : qIdx)}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="bg-indigo-600 text-white font-bold px-3 py-1 rounded">
-                        Q{qIdx + 1}
-                      </span>
-                      <span className="text-gray-800 font-semibold">
-                        {question.content || 'Untitled Question'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">
-                        {question.answers.length} answers
-                      </span>
-                      {expandedQuestion === qIdx ? (
-                        <ChevronUp className="w-5 h-5 text-gray-600" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-600" />
-                      )}
-                    </div>
+                  <div className="flex items-center gap-4 flex-1 mr-4">
+                    <span className={`w-10 h-10 flex items-center justify-center rounded-xl font-black text-sm transition-all ${expandedQuestion === qIdx ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'bg-muted text-muted-foreground'}`}>
+                      {String(qIdx + 1).padStart(2, '0')}
+                    </span>
+                    <span className={`text-base font-bold transition-colors line-clamp-1 ${expandedQuestion === qIdx ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      {question.content || 'Câu hỏi chưa có tiêu đề'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 bg-muted/50 px-2.5 py-1 rounded-lg">
+                      {question.answers.length} options
+                    </span>
+                    {expandedQuestion === qIdx ? (
+                      <ChevronUp className="w-5 h-5 text-primary" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                    )}
                   </div>
                 </div>
 
                 {expandedQuestion === qIdx && (
-                  <div className="p-6">
-                    <div className="space-y-4 mb-6">
+                  <div className="p-6 border-t border-border/50">
+                    <div className="space-y-6 mb-8">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Question Content *
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                          Nội dung câu hỏi <span className="text-destructive">*</span>
                         </label>
                         <textarea
                           value={question.content}
                           onChange={(e) => updateQuestion(qIdx, 'content', e.target.value)}
-                          placeholder="Enter your question..."
+                          placeholder="Nhập nội dung câu hỏi tại đây..."
                           rows={3}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="w-full px-5 py-3 bg-muted/20 border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-foreground font-bold leading-relaxed"
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Time Limit (seconds)
+                          <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                            Thời gian làm (giây)
                           </label>
                           <input
                             type="number"
                             value={question.timeLimitSeconds}
                             onChange={(e) => updateQuestion(qIdx, 'timeLimitSeconds', parseInt(e.target.value))}
                             min="1"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            className="w-full px-5 py-3 bg-muted/20 border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all font-bold text-foreground"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Points
+                          <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                            Điểm số
                           </label>
                           <input
                             type="number"
@@ -435,57 +491,58 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
                             onChange={(e) => updateQuestion(qIdx, 'points', parseFloat(e.target.value))}
                             min="0"
                             step="0.5"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            className="w-full px-5 py-3 bg-muted/20 border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all font-bold text-foreground"
                           />
                         </div>
                       </div>
                     </div>
 
-                    <div className="mb-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <label className="block text-sm font-semibold text-gray-700">
-                          Answers (click to mark as correct)
+                    <div className="mb-6">
+                      <div className="flex justify-between items-center mb-4">
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-primary ml-1">
+                          Danh sách đáp án (Tick để chọn đúng)
                         </label>
                         <button
                           onClick={() => addAnswer(qIdx)}
-                          className="flex items-center gap-1 text-sm px-3 py-1 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200"
+                          className="flex items-center gap-1.5 text-xs font-black px-4 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-xl hover:bg-primary/20 transition-all"
                         >
                           <Plus className="w-4 h-4" />
-                          Add Answer
+                          Thêm phương án
                         </button>
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {question.answers.map((answer, aIdx) => (
-                          <div key={aIdx} className="flex items-center gap-2">
+                          <div key={aIdx} className="flex items-center gap-3 group/answer transition-all">
                             <button
                               onClick={() => toggleCorrectAnswer(qIdx, aIdx)}
-                              className={`p-2 rounded ${
-                                answer.isCorrect
-                                  ? 'bg-green-100 hover:bg-green-200'
-                                  : 'bg-gray-100 hover:bg-gray-200'
-                              }`}
+                              className={`w-11 h-11 flex items-center justify-center rounded-xl transition-all shadow-sm ${answer.isCorrect
+                                ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                                : 'bg-muted/50 text-muted-foreground/30 hover:text-muted-foreground border border-border'
+                                }`}
                             >
                               {answer.isCorrect ? (
-                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                <CheckCircle className="w-6 h-6" />
                               ) : (
-                                <Circle className="w-5 h-5 text-gray-400" />
+                                <Circle className="w-6 h-6" />
                               )}
                             </button>
-                            <span className="text-sm font-semibold text-gray-600 w-8">
-                              {String.fromCharCode(65 + aIdx)}.
+                            <span className={`text-xs font-black w-8 text-center px-1 py-1 rounded-md transition-colors ${answer.isCorrect ? 'bg-emerald-500/10 text-emerald-500' : 'text-muted-foreground'}`}>
+                              {String.fromCharCode(65 + aIdx)}
                             </span>
-                            <input
-                              type="text"
-                              value={answer.content}
-                              onChange={(e) => updateAnswer(qIdx, aIdx, 'content', e.target.value)}
-                              placeholder={`Answer ${aIdx + 1}...`}
-                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            />
+                            <div className="flex-1 relative">
+                              <input
+                                type="text"
+                                value={answer.content}
+                                onChange={(e) => updateAnswer(qIdx, aIdx, 'content', e.target.value)}
+                                placeholder={`Nhập đáp án ${String.fromCharCode(65 + aIdx)}...`}
+                                className={`w-full px-5 py-3 border rounded-2xl focus:ring-2 outline-none transition-all font-semibold text-foreground ${answer.isCorrect ? 'border-emerald-500/50 bg-emerald-500/5 focus:ring-emerald-500' : 'border-border bg-background focus:ring-primary'}`}
+                              />
+                            </div>
                             {question.answers.length > 2 && (
                               <button
                                 onClick={() => deleteAnswer(qIdx, aIdx)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded"
+                                className="w-10 h-10 flex items-center justify-center text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all opacity-0 group-hover/answer:opacity-100"
                               >
                                 <Trash2 className="w-5 h-5" />
                               </button>
@@ -495,13 +552,13 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex justify-end pt-4 border-t border-gray-200">
+                    <div className="flex justify-end pt-6 border-t border-border mt-6">
                       <button
                         onClick={() => deleteQuestion(qIdx)}
-                        className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg"
+                        className="flex items-center gap-2 px-6 py-2.5 text-destructive font-black text-xs uppercase tracking-widest hover:bg-destructive/10 rounded-xl transition-all"
                       >
-                        <Trash2 className="w-5 h-5" />
-                        Delete Question
+                        <Trash2 className="w-4 h-4" />
+                        Xóa câu hỏi
                       </button>
                     </div>
                   </div>

@@ -13,7 +13,10 @@ import {
   AlertCircle,
   Edit,
   Trash2,
+  Eye,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { PATHS } from '@/constants/paths';
 
 // ────────────────────────────────────────────────
 // Mock data
@@ -66,9 +69,8 @@ const CodingExerciseManager = () => {
   const [filters, setFilters] = useState({ difficulty: '', category: '', language: '' });
   const [quizFilters, setQuizFilters] = useState({ isPublished: '' });
 
-  const [showFilters, setShowFilters] = useState(false);
-  const [showQuizFilters, setShowQuizFilters] = useState(false);
-
+  const navigate = useNavigate();
+  
   const [classes, setClasses] = useState<any[]>([
     {
       classId: '1',
@@ -118,6 +120,13 @@ const CodingExerciseManager = () => {
   alert(`Chỉnh sửa bài tập ${id} (chưa implement)`);
 };
 
+ const handleViewExercise = (id: string) => {
+  console.log(`View exercise: ${id}`);
+  // TODO: mở modal view, hoặc chuyển route, v.v.
+  alert(`Xem bài tập ${id} (chưa implement)`);
+};
+
+
 const handleDeleteExercise = (id: string) => {
   if (!window.confirm(`Bạn chắc chắn muốn xóa bài tập ${id}?`)) return;
   console.log(`Delete exercise: ${id}`);
@@ -127,6 +136,10 @@ const handleDeleteExercise = (id: string) => {
     next.delete(id);
     return next;
   });
+};
+
+const handleViewQuiz = (quizId) => {
+  // navigate(`/quizzes/${quizId}`);
 };
 
 const handleEditQuiz = (id: string) => {
@@ -223,15 +236,12 @@ const toggleSelectAllQuizzes = () => {
   // Trong component CodingExerciseManager
 
   const handleCreateNewExercise = () => {
-    console.log("Mở form tạo bài tập lập trình mới");
-    alert("Chức năng tạo bài tập mới (chưa implement)");
-    // TODO: mở modal hoặc chuyển route đến trang tạo exercise
+    navigate(PATHS.CODING_EXERCISE_LIBRARY);
   };
 
   const handleCreateNewQuiz = () => {
-    console.log("Mở form tạo quiz mới");
-    alert("Chức năng tạo quiz mới (chưa implement)");
-    // TODO: mở modal hoặc chuyển route đến trang tạo quiz
+   
+    navigate(PATHS.QUIZ_LIBRARY); 
   };
 
   // ────────────────────────────────────────────────
@@ -362,6 +372,17 @@ const toggleSelectAllQuizzes = () => {
 
           {/* Nút sửa - xóa */}
           <div className="flex gap-2 mt-3 pt-3 border-t">
+                   <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewExercise(ex.templateId);
+                }}
+                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-sm font-medium
+                          text-green-600 hover:bg-green-50 rounded border border-green-200 transition"
+              >
+                <Eye size={14} />
+                Xem
+              </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -399,7 +420,7 @@ const toggleSelectAllQuizzes = () => {
   <div className="space-y-6">
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-wrap">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Thư viện Quiz</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Thư viện quiz</h1>
         <p className="text-gray-600 mt-1">Chọn các bài kiểm tra trắc nghiệm</p>
       </div>
 
@@ -498,6 +519,17 @@ const toggleSelectAllQuizzes = () => {
 
           {/* Nút sửa - xóa */}
           <div className="flex gap-2 mt-4 pt-3 border-t">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewQuiz(quiz.quizId);
+                }}
+                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-sm font-medium
+                          text-green-600 hover:bg-green-50 rounded border border-green-200 transition"
+              >
+                <Eye size={14} />
+                Xem
+              </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();

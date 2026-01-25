@@ -76,12 +76,12 @@ function classNames(...xs: Array<string | false | undefined>) {
 }
 
 function rowTone(rank: number): string {
-  if (rank <= 10) return "bg-green-200 hover:bg-green-300";
-  if (rank <= 20) return "bg-red-100 hover:bg-red-200";
-  if (rank <= 30) return "bg-red-200 hover:bg-red-300";
-  if (rank <= 40) return "bg-red-300 hover:bg-red-400";
-  if (rank <= 50) return "bg-red-400/60 hover:bg-red-400";
-  return "hover:bg-gray-50";
+  if (rank <= 10) return "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400";
+  if (rank <= 20) return "bg-rose-500/5 hover:bg-rose-500/10";
+  if (rank <= 30) return "bg-rose-500/10 hover:bg-rose-500/15";
+  if (rank <= 40) return "bg-rose-500/15 hover:bg-rose-500/20";
+  if (rank <= 50) return "bg-rose-500/20 hover:bg-rose-500/25";
+  return "hover:bg-muted/50";
 }
 
 // ================= Podium Card =================
@@ -105,7 +105,9 @@ function PodiumCard({
   submitted: number;
 }) {
   const bg =
-    rank === 1 ? "bg-[#F9E97B]" : rank === 2 ? "bg-[#EDEDED]" : "bg-[#F6CFB6]";
+    rank === 1 ? "bg-amber-100 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800" :
+      rank === 2 ? "bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700" :
+        "bg-orange-100 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800";
 
   // số sao theo hạng
   const stars = rank === 1 ? "⭐⭐⭐" : rank === 2 ? "⭐⭐" : "⭐";
@@ -119,8 +121,8 @@ function PodiumCard({
       <div className="-mt-10 mb-2">
         <div className="relative w-20 h-20 mx-auto">
           <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-300 to-blue-300" />
-          <div className="absolute inset-1 rounded-full bg-white/90" />
-          <div className="absolute inset-2 rounded-full bg-white flex items-center justify-center border border-white shadow">
+          <div className="absolute inset-1 rounded-full bg-background" />
+          <div className="absolute inset-2 rounded-full bg-background flex items-center justify-center border border-border shadow">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
@@ -138,27 +140,27 @@ function PodiumCard({
         </div>
       </div>
 
-      <div className="text-[18px] font-semibold leading-tight">{fullName}</div>
-      <div className="text-xs text-gray-600 font-medium tracking-wide">
+      <div className="text-[18px] font-bold leading-tight text-foreground">{fullName}</div>
+      <div className="text-xs text-muted-foreground font-medium tracking-wide">
         {account}
       </div>
-      <div className="text-xs text-gray-600 mt-1">
-        {course} – <span className="underline">{group}</span>
+      <div className="text-xs text-muted-foreground mt-1">
+        {course} – <span className="underline decoration-primary/30">{group}</span>
       </div>
 
       <div className="mt-4 grid grid-cols-3 items-center w-full max-w-[260px]">
-        <div className="text-green-600 text-[22px] font-semibold text-right pr-3">
+        <div className="text-emerald-500 text-[22px] font-bold text-right pr-3">
           {correct}
         </div>
-        <div className="h-10 w-px bg-gray-400 mx-auto" />
-        <div className="text-blue-600 text-[22px] font-semibold text-left pl-3">
+        <div className="h-10 w-px bg-border mx-auto" />
+        <div className="text-primary text-[22px] font-bold text-left pl-3">
           {submitted}
         </div>
       </div>
-      <div className="grid grid-cols-3 w-full max-w-[260px] -mt-1 text-[13px]">
-        <div className="text-green-700 text-right pr-3">Làm đúng</div>
+      <div className="grid grid-cols-3 w-full max-w-[260px] -mt-1 text-[11px] font-bold uppercase tracking-tighter">
+        <div className="text-emerald-600/70 text-right pr-3">Làm đúng</div>
         <div />
-        <div className="text-blue-700 text-left pl-3">Đã nộp</div>
+        <div className="text-primary/70 text-left pl-3">Đã nộp</div>
       </div>
     </div>
   );
@@ -197,9 +199,9 @@ export default function LeaderboardPage() {
   const rawTop3 = ranked.slice(0, 3);
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 py-6">
+    <div className="min-h-screen w-full bg-background py-6">
       <div className="max-w-6xl mx-auto px-4">
-        <h1 className="text-xl sm:text-2xl font-semibold">Bảng xếp hạng</h1>
+        <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Bảng xếp hạng</h1>
 
         {/* Podium: center highest */}
         <div className="mt-6 flex justify-center items-end gap-6">
@@ -248,20 +250,20 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Table */}
-        <div className="mt-8 bg-white rounded-xl border shadow-sm overflow-hidden">
+        <div className="mt-8 bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
           <div id="leaderboard-table-top" />
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-100">
-              <tr className="text-left">
-                <th className="px-3 py-2 w-14 text-center">STT</th>
-                <th className="px-3 py-2">Ảnh đại diện</th>
-                <th className="px-3 py-2">Tài khoản</th>
-                <th className="px-3 py-2">Họ</th>
-                <th className="px-3 py-2">Tên</th>
-                <th className="px-3 py-2">Lớp học</th>
-                <th className="px-3 py-2">Lớp</th>
-                <th className="px-3 py-2 text-center">Làm đúng</th>
-                <th className="px-3 py-2 text-center">Đã nộp</th>
+            <thead className="bg-muted/50 border-b border-border">
+              <tr className="text-left text-muted-foreground font-bold uppercase text-[10px] tracking-wider">
+                <th className="px-4 py-4 text-center">STT</th>
+                <th className="px-4 py-4">Ảnh đại diện</th>
+                <th className="px-4 py-4">Tài khoản</th>
+                <th className="px-4 py-4">Họ</th>
+                <th className="px-4 py-4">Tên</th>
+                <th className="px-4 py-4">Lớp học</th>
+                <th className="px-4 py-4">Lớp</th>
+                <th className="px-4 py-4 text-center">Làm đúng</th>
+                <th className="px-4 py-4 text-center">Đã nộp</th>
               </tr>
             </thead>
             <tbody>
@@ -273,8 +275,8 @@ export default function LeaderboardPage() {
                   <td className="px-3 py-2 text-center font-medium">
                     {(p as any).rank}
                   </td>
-                  <td className="px-3 py-2">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+                  <td className="px-4 py-3">
+                    <div className="w-10 h-10 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center shadow-sm">
                       {p.avatarUrl ? (
                         <img
                           src={p.avatarUrl}
@@ -286,18 +288,18 @@ export default function LeaderboardPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-3 py-2 font-mono">{p.account}</td>
-                  <td className="px-3 py-2">{p.ho}</td>
-                  <td className="px-3 py-2 font-medium">{p.ten}</td>
-                  <td className="px-3 py-2">
-                    <div>{p.courseName}</div>
-                    <div className="text-blue-600 underline">{p.groupName}</div>
+                  <td className="px-4 py-3 font-mono text-xs">{p.account}</td>
+                  <td className="px-4 py-3">{p.ho}</td>
+                  <td className="px-4 py-3 font-bold text-foreground">{p.ten}</td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium">{p.courseName}</div>
+                    <div className="text-[10px] text-primary font-bold uppercase tracking-tight">{p.groupName}</div>
                   </td>
-                  <td className="px-3 py-2">{p.lop}</td>
-                  <td className="px-3 py-2 text-center font-semibold text-green-700">
+                  <td className="px-4 py-3 text-muted-foreground">{p.lop}</td>
+                  <td className="px-4 py-3 text-center font-bold text-emerald-500">
                     {p.correct}
                   </td>
-                  <td className="px-3 py-2 text-center text-blue-700">
+                  <td className="px-4 py-3 text-center text-primary font-medium">
                     {p.submitted}
                   </td>
                 </tr>
@@ -306,13 +308,13 @@ export default function LeaderboardPage() {
           </table>
 
           {/* Pagination */}
-          <div className="flex items-center justify-center gap-2 py-4">
+          <div className="flex items-center justify-center gap-2 py-6 border-t border-border bg-muted/20">
             <button
               onClick={() => goTo(currentPage - 1)}
               disabled={currentPage === 1}
-              className="h-9 px-3 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50"
+              className="h-9 px-4 rounded-xl border border-border bg-background hover:bg-muted disabled:opacity-30 transition-all text-xs font-bold"
             >
-              ◀
+              PREV
             </button>
 
             {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -331,11 +333,10 @@ export default function LeaderboardPage() {
                     {needDots && <span className="px-1">…</span>}
                     <button
                       onClick={() => goTo(p)}
-                      className={`h-9 w-9 rounded-md border text-sm ${
-                        p === currentPage
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white hover:bg-gray-50"
-                      }`}
+                      className={`h-9 w-9 rounded-xl border text-xs font-bold transition-all ${p === currentPage
+                          ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
+                          : "bg-background border-border hover:bg-muted text-muted-foreground"
+                        }`}
                     >
                       {p}
                     </button>
@@ -346,9 +347,9 @@ export default function LeaderboardPage() {
             <button
               onClick={() => goTo(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="h-9 px-3 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50"
+              className="h-9 px-4 rounded-xl border border-border bg-background hover:bg-muted disabled:opacity-30 transition-all text-xs font-bold"
             >
-              ▶
+              NEXT
             </button>
           </div>
         </div>

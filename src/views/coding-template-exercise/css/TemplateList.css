@@ -1,0 +1,23 @@
+/* src/views/coding-template-exercise/TemplateList.css */
+
+.template-card {
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+}
+
+.template-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: #e2e8f0;
+}
+
+.pagination .page-link {
+    border-radius: 8px;
+    margin: 0 2px;
+    color: #475569;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #6366f1;
+    border-color: #6366f1;
+}

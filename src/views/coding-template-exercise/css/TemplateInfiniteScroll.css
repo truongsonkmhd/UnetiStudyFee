@@ -1,0 +1,25 @@
+/* src/views/coding-template-exercise/TemplateInfiniteScroll.css */
+
+.template-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #e5e7eb;
+}
+
+.template-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.15) !important;
+    border-color: #6366f1;
+}
+
+.badge-sm {
+    font-size: 0.7rem;
+    padding: 0.25em 0.5em;
+}
+
+.btn-floating {
+    box-shadow: 0 4px 14px 0 rgba(0, 118, 255, 0.39);
+}
+
+.container-fluid {
+    max-width: 1400px;
+}

@@ -1,8 +1,8 @@
 import apiService from "@/apis/apiService";
 import { Answer } from "@/types/Answer";
-import { Question } from "@/types/Question";
-import { Quiz } from "@/types/Quiz";
-import { QuizSummary } from "@/types/QuizSummary";
+import { Question } from "@/types/quiz/Question";
+import { Quiz } from "@/types/quiz/Quiz";
+import { QuizSummary } from "@/types/quiz/QuizSummary";
 
 const QUIZ_BASE_ENDPOINT = "/admin/quiz";
 
@@ -16,8 +16,8 @@ const quizService = {
   getById: (quizId: string): Promise<Quiz> =>
     apiService.get<Quiz>(`${QUIZ_BASE_ENDPOINT}/${quizId}`),
 
-  create: (payload: Quiz): Promise<Quiz> =>
-    apiService.post<Quiz>(QUIZ_BASE_ENDPOINT, payload),
+  // create: (payload: Quiz): Promise<Quiz> =>
+  //   apiService.post<Quiz>(QUIZ_BASE_ENDPOINT, payload),
 
   update: (quizId: string, payload: Partial<Quiz>): Promise<Quiz> =>
     apiService.put<Quiz>(`${QUIZ_BASE_ENDPOINT}/${quizId}`, payload),
