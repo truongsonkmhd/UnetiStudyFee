@@ -23,7 +23,7 @@ import CodingExerciseView from "@/views/coding-template-exercise/CodingExerciseV
 import CacheManagementPage from "@/views/admin_cache/CacheManagementPage";
 
 import { ThemeProvider } from "@/components/theme-provider";
-import CodingExerciseManager from "@/views/coding-exercise/CodingExerciseManager";
+import CodingExerciseManager from "@/views/contest/ContestManager";
 
 const queryClient = new QueryClient();
 
