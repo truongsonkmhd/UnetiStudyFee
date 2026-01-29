@@ -11,7 +11,7 @@ const CONTEST_BASE_ENDPOINT = "/admin/contest-lesson";
 const contestLessonService = {
   // ===== Contest Template CRUD =====
   create: (payload: ContestLessonRequest): Promise<ContestLesson> =>
-    apiService.post<ContestLesson>(CONTEST_BASE_ENDPOINT, payload),
+    apiService.post<ContestLesson>(`${CONTEST_BASE_ENDPOINT}/add`, payload),
 
   getById: (contestLessonId: string): Promise<ContestLesson> =>
     apiService.get<ContestLesson>(`${CONTEST_BASE_ENDPOINT}/${contestLessonId}`),

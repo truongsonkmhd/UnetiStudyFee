@@ -37,7 +37,7 @@ const codingExerciseTemplateService = {
     });
 
     return apiService.get<PageResponse<TemplateCard>>(
-      `${CODING_EXERCISE_TEMPLATE_ENDPOINT}/templates?${params}`
+      `${CODING_EXERCISE_TEMPLATE_ENDPOINT}?${params}`
     );
   },
 
@@ -54,7 +54,7 @@ const codingExerciseTemplateService = {
     if (params.language) queryParams.append("language", params.language);
 
     return apiService.get<ApiResponse<PageResponse<TemplateCard>>>(
-      `${CODING_EXERCISE_TEMPLATE_ENDPOINT}/templates/search?${queryParams}`
+      `${CODING_EXERCISE_TEMPLATE_ENDPOINT}/search?${queryParams}`
     );
   },
 
@@ -73,7 +73,7 @@ const codingExerciseTemplateService = {
       queryParams.append("published", String(params.published));
 
     return apiService.get<PageResponse<TemplateCard>>(
-      `${CODING_EXERCISE_TEMPLATE_ENDPOINT}/templates/search/all?${queryParams}`
+      `${CODING_EXERCISE_TEMPLATE_ENDPOINT}/search/all?${queryParams}`
     );
   },
 
@@ -86,7 +86,7 @@ const codingExerciseTemplateService = {
     if (cursor) queryParams.append("cursor", cursor);
 
     return apiService.get<CursorResponse<TemplateCard>>(
-      `${CODING_EXERCISE_TEMPLATE_ENDPOINT}/templates/cursor?${queryParams}`
+      `${CODING_EXERCISE_TEMPLATE_ENDPOINT}/cursor?${queryParams}`
     );
   },
 
@@ -103,7 +103,7 @@ const codingExerciseTemplateService = {
     if (params.language) queryParams.append("language", params.language);
 
     return apiService.get<CursorResponse<TemplateCard>>(
-      `${CODING_EXERCISE_TEMPLATE_ENDPOINT}/templates/cursor/search?${queryParams}`
+      `${CODING_EXERCISE_TEMPLATE_ENDPOINT}/cursor/search?${queryParams}`
     );
   },
 

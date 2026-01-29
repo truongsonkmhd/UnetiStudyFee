@@ -6,6 +6,8 @@ export interface ContestLessonSummary {
   description?: string;
   totalPoints: number;
   defaultDurationMinutes?: number;
+  defaultMaxAttempts?: number;
+  passingScore?: number;
   codingExerciseCount: number;
   quizQuestionCount: number;
   status: StatusContest;

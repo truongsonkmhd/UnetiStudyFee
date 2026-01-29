@@ -1,11 +1,12 @@
 export interface ContestLessonRequest {
   title: string;
   description?: string;
-  defaultDurationMinutes?: number;
-  totalPoints: number;
-  defaultMaxAttempts?: number;
+  durationMinutes?: number;
+  totalPoints?: number;
+  maxAttempts?: number;
   passingScore?: number;
-  showLeaderboardDefault?: boolean;
+  showLeaderboard?: boolean;
   instructions?: string;
   exerciseTemplateIds?: string[];
+  quizTemplateIds?: string[];
 }

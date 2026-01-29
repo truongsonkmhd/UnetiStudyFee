@@ -78,7 +78,7 @@ function getUserIdFromJwt(token: string): string | null {
   }
 }
 
-export default function WebSocketSubmission() {
+export default function ClassManagementDashboardWebSocketSubmission() {
   const [submission, setSubmission] = useState<SubmissionDTO | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);

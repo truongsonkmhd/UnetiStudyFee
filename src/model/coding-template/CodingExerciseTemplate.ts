@@ -21,5 +21,5 @@ export interface CodingExerciseTemplate {
   tags?: string;
   createdAt?: string;
   updatedAt?: string;
-  testCases?: ExerciseTestCase[];
+  exerciseTestCases?: ExerciseTestCase[];
 }

@@ -53,7 +53,6 @@ const CodingExerciseLibrary: React.FC = () => {
     });
 
     const difficulties = Object.values(Difficulty);
-    const categories = ['Array', 'String', 'Dynamic Programming', 'Graph', 'Tree', 'Math', 'Sorting', 'Searching'];
     const languages = ['Java', 'Python', 'JavaScript', 'C++', 'Go', 'TypeScript'];
 
     // Load Data
@@ -127,7 +126,7 @@ const CodingExerciseLibrary: React.FC = () => {
     };
 
     const handleToggleStatus = async (templateId: string, currentStatus: boolean) => {
-            
+
         toast.info('Tính năng đang được phát triển');
     };
 

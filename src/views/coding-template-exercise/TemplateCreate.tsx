@@ -44,10 +44,10 @@ const TemplateCreate: React.FC = () => {
     constraintName: '',
     category: '',
     tags: '',
-    testCases: []
+    exerciseTestCases: []
   });
 
-  const [testCases, setTestCases] = useState<ExerciseTestCase[]>([]);
+  const [exerciseTestCases, setExerciseTestCases] = useState<ExerciseTestCase[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -65,10 +65,9 @@ const TemplateCreate: React.FC = () => {
   const loadTemplateData = async (templateId: string) => {
     setLoading(true);
     try {
-      // Note: Assuming there is a getById method or similar in the service
-      // If not, we might need to handle this differently
-      // For now, let's assume it works or we'll add it if needed
-      toast.info('Tính năng tải dữ liệu mẫu đang được cập nhật');
+      const template = await codingExerciseTemplateService.getById(templateId);
+      setFormData(template);
+      setExerciseTestCases(template.exerciseTestCases || []);
     } catch (err) {
       toast.error('Không thể tải dữ liệu bài tập');
     } finally {
@@ -104,26 +103,26 @@ const TemplateCreate: React.FC = () => {
       expectedOutput: '',
       isPublic,
       explanation: '',
-      orderIndex: testCases.length + 1
+      orderIndex: exerciseTestCases.length + 1
     };
-    setTestCases([...testCases, newTestCase]);
+    setExerciseTestCases([...exerciseTestCases, newTestCase]);
     toast.success(`Đã thêm test case ${isPublic ? 'mẫu' : 'ẩn'}`);
   };
 
   const removeTestCase = (index: number) => {
-    const updated = testCases.filter((_, i) => i !== index);
+    const updated = exerciseTestCases.filter((_, i) => i !== index);
     const reordered = updated.map((tc, i) => ({ ...tc, orderIndex: i + 1 }));
-    setTestCases(reordered);
+    setExerciseTestCases(reordered);
   };
 
   const updateTestCase = (index: number, field: keyof ExerciseTestCase, value: any) => {
-    const updated = testCases.map((tc, i) => {
+    const updated = exerciseTestCases.map((tc, i) => {
       if (i === index) {
         return { ...tc, [field]: value };
       }
       return tc;
     });
-    setTestCases(updated);
+    setExerciseTestCases(updated);
   };
 
   const validateForm = (): boolean => {
@@ -134,11 +133,11 @@ const TemplateCreate: React.FC = () => {
     if (!formData.initialCode.trim()) newErrors.initialCode = 'Mã khởi tạo không được để trống';
     if (formData.points <= 0) newErrors.points = 'Điểm phải lớn hơn 0';
 
-    if (testCases.length === 0) {
-      newErrors.testCases = 'Cần ít nhất một test case';
-      toast.error(newErrors.testCases);
+    if (exerciseTestCases.length === 0) {
+      newErrors.exerciseTestCases = 'Cần ít nhất một test case';
+      toast.error(newErrors.exerciseTestCases);
     } else {
-      const invalid = testCases.some(tc => !tc.input.trim() || !tc.expectedOutput.trim());
+      const invalid = exerciseTestCases.some(tc => !tc.input.trim() || !tc.expectedOutput.trim());
       if (invalid) {
         newErrors.testCases = 'Tất cả test case phải có đầu vào và đầu ra mong muốn';
         toast.error(newErrors.testCases);
@@ -157,7 +156,7 @@ const TemplateCreate: React.FC = () => {
     setSubmitting(true);
     const templateData: CodingExerciseTemplate = {
       ...formData,
-      testCases: testCases,
+      exerciseTestCases: exerciseTestCases,
       updatedAt: new Date().toISOString()
     };
 
@@ -394,7 +393,7 @@ const TemplateCreate: React.FC = () => {
                 </div>
               </div>
 
-              {testCases.map((tc, index) => (
+              {exerciseTestCases.map((tc, index) => (
                 <div key={index} className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden group hover:border-primary/50 transition-all">
                   <div className="flex items-center justify-between px-6 py-3 bg-muted/30 border-b border-border">
                     <div className="flex items-center gap-3">
@@ -450,7 +449,7 @@ const TemplateCreate: React.FC = () => {
                 </div>
               ))}
 
-              {testCases.length === 0 && (
+              {exerciseTestCases.length === 0 && (
                 <div className="py-12 border-2 border-dashed border-slate-200 rounded-3xl text-center space-y-4">
                   <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto">
                     <AlertCircle size={32} className="text-slate-300" />

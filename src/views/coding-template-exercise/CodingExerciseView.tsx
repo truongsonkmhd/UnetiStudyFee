@@ -93,7 +93,7 @@ const CodingExerciseView: React.FC = () => {
                 memoryLimitMb: 256,
                 initialCode: "class DynamicArray:\n    \n    def __init__(self, capacity: int):\n        pass\n\n    def get(self, i: int) -> int:\n        pass\n\n    def set(self, i: int, n: int) -> None:\n        pass\n\n    def pushback(self, n: int) -> None:\n        pass\n\n    def popback(self) -> int:\n        pass\n\n    def resize(self) -> None:\n        pass\n\n    def getSize(self) -> int:\n        pass\n\n    def getCapacity(self) -> int:\n        pass",
                 slug: "design-dynamic-array",
-                testCases: [
+                exerciseTestCases: [
                     {
                         input: '["Array", 1, "getSize", "getCapacity"]',
                         expectedOutput: '[null, 0, 1]',
@@ -245,7 +245,7 @@ const CodingExerciseView: React.FC = () => {
                                                     ))}
                                                 </div>
 
-                                                {template.testCases?.filter(tc => tc.isPublic).map((tc, idx) => (
+                                                {template.exerciseTestCases?.filter(tc => tc.isPublic).map((tc, idx) => (
                                                     <div key={idx} className="space-y-3 pt-4">
                                                         <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                                                             <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>

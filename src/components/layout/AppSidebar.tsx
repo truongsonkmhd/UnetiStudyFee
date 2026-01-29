@@ -81,17 +81,6 @@ const navigationItems: {
     },
 
     {
-      title: "Kho bài kiểm tra",
-      url: PATHS.MANAGER_CONTEST,
-      icon: createTestIcon,
-      requiredRoles: [
-        RoleEnum.ROLE_ADMIN,
-        RoleEnum.ROLE_SYS_ADMIN,
-        RoleEnum.ROLE_TEACHER,
-      ],
-    },
-
-    {
       title: "Quản lý lớp thi",
       url: PATHS.MANAGER_CLASS,
       icon: createTestIcon,
@@ -106,6 +95,12 @@ const navigationItems: {
       title: "Quản lý sinh viên và giáo viên",
       url: PATHS.MANAGER_PERSONS,
       icon: managerIcon,
+      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
+    },
+    {
+      title: "Quản lý Cache",
+      url: PATHS.MANAGER_CACHE,
+      icon: smartIcon,
       requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
     },
     {

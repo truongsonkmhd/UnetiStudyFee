@@ -15,14 +15,15 @@ import UnauthorizedPage from "@/components/UnauthorizedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { RoleEnum } from "@/components/enum/RoleEnum";
 import ClassManagementDashboard from "@/views/class_managerment/ClassManagementDashboard";
-import CodingExerciseManager from "@/views/coding-exercise/CodingExerciseManager";
 import QuizTemplateManager from "@/views/quiz_storage/QuizTemplateManager";
 import WebSocketSubmission from "@/views/submission/WebSocketSubmission";
 import CodingExerciseLibrary from "@/views/coding-template-exercise/CodingExerciseLibrary";
 import TemplateCreate from "@/views/coding-template-exercise/TemplateCreate";
 import CodingExerciseView from "@/views/coding-template-exercise/CodingExerciseView";
+import CacheManagementPage from "@/views/admin_cache/CacheManagementPage";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import CodingExerciseManager from "@/views/coding-exercise/CodingExerciseManager";
 
 const queryClient = new QueryClient();
 
@@ -124,7 +125,7 @@ const App = () => (
                     RoleEnum.ROLE_TEACHER,
                   ]}
                 >
-                  <QuizTemplateManager />
+                  <CodingExerciseManager />
                 </ProtectedRoute>
               }
             />
@@ -153,22 +154,8 @@ const App = () => (
                     RoleEnum.ROLE_TEACHER,
                   ]}
                 >
+                  {/* <ClassManagementDashboard /> */}
                   <QuizTemplateManager />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path={PATHS.MANAGER_CONTEST}
-              element={
-                <ProtectedRoute
-                  requiredRoles={[
-                    RoleEnum.ROLE_ADMIN,
-                    RoleEnum.ROLE_SYS_ADMIN,
-                    RoleEnum.ROLE_TEACHER,
-                  ]}
-                >
-                  <CodingExerciseManager />
                 </ProtectedRoute>
               }
             />
@@ -188,9 +175,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-
             <Route
-              path={PATHS.CREATE_TEST}
+              path={PATHS.MANAGER_PERSONS}
               element={
                 <ProtectedRoute
                   requiredRoles={[
@@ -200,17 +186,17 @@ const App = () => (
                   ]}
                 >
 
-                  <WebSocketSubmission />
+                  <CodingExerciseManager />
                 </ProtectedRoute>
               }
             />
             <Route
-              path={PATHS.MANAGER_PERSONS}
+              path={PATHS.MANAGER_CACHE}
               element={
                 <ProtectedRoute
                   requiredRoles={[RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN]}
                 >
-                  <div>Quản lý ... (Sắp Ra Mắt)</div>
+                  <CacheManagementPage />
                 </ProtectedRoute>
               }
             />

@@ -40,7 +40,7 @@ const QuizTemplateManager: React.FC = () => {
   const [showActiveOnly, setShowActiveOnly] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
   const [totalElements, setTotalElements] = useState(0);
   const pageSize = 10;
 
@@ -50,9 +50,13 @@ const QuizTemplateManager: React.FC = () => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   const observerTarget = useRef<HTMLDivElement>(null);
+  const isFetchingCategories = useRef(false);
 
   // Load Data
   const loadTemplates = useCallback(async (reset = false, pageOverride?: number) => {
+    // Sync with CodingExerciseLibrary: Guard against double calls
+    if (loading || (loadingMore && !reset)) return;
+
     if (reset) {
       setLoading(true);
       setCurrentPage(0);
@@ -69,6 +73,7 @@ const QuizTemplateManager: React.FC = () => {
       if (showActiveOnly !== null) params.isActive = showActiveOnly;
 
       const data = await quizTemplateService.searchTemplates(params);
+      console.log("SONNNNNNNNNNNNNNNNNNKKKKKKKKKKKKKKKKKKKKK" + data);
 
       if (reset) {
         setTemplates(data.items);
@@ -99,20 +104,22 @@ const QuizTemplateManager: React.FC = () => {
     }
   }, [loadingMore, hasMore, currentPage, loadTemplates]);
 
-  // Initial load and filter changes
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       loadTemplates(true);
-      loadCategories();
     }, 400);
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, selectedCategory, showActiveOnly]);
+  }, [searchTerm, selectedCategory, showActiveOnly, loadTemplates]);
 
   // Infinite scroll observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
-        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore && templates.length > 0) {
           loadMore();
         }
       },
@@ -125,14 +132,18 @@ const QuizTemplateManager: React.FC = () => {
     return () => {
       if (currentTarget) observer.unobserve(currentTarget);
     };
-  }, [hasMore, loading, loadingMore, loadMore]);
+  }, [hasMore, loading, loadingMore, loadMore, templates.length]);
 
   const loadCategories = async () => {
+    if (categories.length > 0 || isFetchingCategories.current) return;
+    isFetchingCategories.current = true;
     try {
       const data = await quizTemplateService.getAllCategory();
       setCategories(data);
     } catch (error) {
       console.error('Failed to load categories:', error);
+    } finally {
+      isFetchingCategories.current = false;
     }
   };
 
@@ -216,7 +227,6 @@ const QuizTemplateManager: React.FC = () => {
           </button>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: 'Tổng số mẫu', value: totalElements, icon: FileQuestion, color: 'text-blue-600', bg: 'bg-blue-50' },

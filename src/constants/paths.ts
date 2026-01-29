@@ -15,8 +15,9 @@ export const PATHS = {
   CLASS_ATTENDED: "/classattended",
   MANAGER_INTEREST: "/managerinterest",
   MANAGER_PERSONS: "/managerPersons",
-  MANAGER_CONTEST: "/managerContest",
   MANAGER_CLASS: "/managerClass",
+  MANAGER_CACHE: "/managerCache",
+
 
   //other
   PROFILE_PAGE: "/profilePage",
