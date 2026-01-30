@@ -23,7 +23,8 @@ import CodingExerciseView from "@/views/coding-template-exercise/CodingExerciseV
 import CacheManagementPage from "@/views/admin_cache/CacheManagementPage";
 
 import { ThemeProvider } from "@/components/theme-provider";
-import CodingExerciseManager from "@/views/contest/ContestManager";
+import ContestManager from "@/views/contest/ContestManager";
+import CourseManager from "@/views/course_admin/CourseManager";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +93,52 @@ const App = () => (
             }
           />
 
+          <Route
+            path={PATHS.CREATE_COURSE}
+            element={
+              <ProtectedRoute
+                requiredRoles={[
+                  RoleEnum.ROLE_ADMIN,
+                  RoleEnum.ROLE_SYS_ADMIN,
+                  RoleEnum.ROLE_TEACHER,
+                ]}
+              >
+                <CourseManager />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PATHS.EDIT_COURSE}
+            element={
+              <ProtectedRoute
+                requiredRoles={[
+                  RoleEnum.ROLE_ADMIN,
+                  RoleEnum.ROLE_SYS_ADMIN,
+                  RoleEnum.ROLE_TEACHER,
+                ]}
+              >
+                <CourseManager />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PATHS.VIEW_COURSE}
+            element={
+              <ProtectedRoute
+                requiredRoles={[
+                  RoleEnum.ROLE_ADMIN,
+                  RoleEnum.ROLE_SYS_ADMIN,
+                  RoleEnum.ROLE_TEACHER,
+                  RoleEnum.ROLE_STUDENT,
+                ]}
+              >
+                <CourseManager />
+              </ProtectedRoute>
+            }
+          />
+
           <Route element={<AppLayout />}>
             <Route path={PATHS.RANKING} element={<LeaderboardPage />} />
 
@@ -125,7 +172,7 @@ const App = () => (
                     RoleEnum.ROLE_TEACHER,
                   ]}
                 >
-                  <CodingExerciseManager />
+                  <ContestManager />
                 </ProtectedRoute>
               }
             />
@@ -186,10 +233,26 @@ const App = () => (
                   ]}
                 >
 
-                  <CodingExerciseManager />
+                  <ContestManager />
                 </ProtectedRoute>
               }
             />
+            <Route
+              path={PATHS.MANAGER_COURSES}
+              element={
+                <ProtectedRoute
+                  requiredRoles={[
+                    RoleEnum.ROLE_ADMIN,
+                    RoleEnum.ROLE_SYS_ADMIN,
+                    RoleEnum.ROLE_TEACHER,
+                  ]}
+                >
+                  <CourseManager />
+                </ProtectedRoute>
+              }
+            />
+
+
             <Route
               path={PATHS.MANAGER_CACHE}
               element={

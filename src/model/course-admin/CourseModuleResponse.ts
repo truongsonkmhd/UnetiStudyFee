@@ -1,0 +1,9 @@
+import { CourseLessonResponse } from "./CourseLessonResponse";
+
+export interface CourseModuleResponse {
+  moduleId: string;
+  title: string;
+  orderIndex: number;
+  isPublished: boolean;
+  lessons: CourseLessonResponse[];
+}

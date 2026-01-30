@@ -20,8 +20,12 @@ const apiService = {
    * @param body - Dữ liệu cần gửi trong body (tùy chọn)
    * @returns Promise<T> - Dữ liệu đã được bóc tách từ response
    */
-  post<T>(url: string, body?: object): Promise<T> {
-    return axiosClient.post<T>(url, body);
+  post<T>(url: string, body?: any): Promise<T> {
+    const config: AxiosRequestConfig = {};
+    if (body instanceof FormData) {
+      config.headers = { 'Content-Type': undefined };
+    }
+    return axiosClient.post<T>(url, body, config);
   },
 
   /**
@@ -30,16 +34,20 @@ const apiService = {
    * @param body - Dữ liệu cần gửi trong body (tùy chọn)
    * @returns Promise<T> - Dữ liệu đã được bóc tách từ response
    */
-  put<T>(url: string, body?: object): Promise<T> {
-    return axiosClient.put<T>(url, body);
+  put<T>(url: string, body?: any): Promise<T> {
+    const config: AxiosRequestConfig = {};
+    if (body instanceof FormData) {
+      config.headers = { 'Content-Type': undefined };
+    }
+    return axiosClient.put<T>(url, body, config);
   },
 
-    /**
-   * Phương thức PATCH chung
-   * @param url - Đường dẫn tương đối của endpoint
-   * @param body - Dữ liệu cần gửi trong body (tùy chọn)
-   * @returns Promise<T> - Dữ liệu đã được bóc tách từ response
-   */
+  /**
+ * Phương thức PATCH chung
+ * @param url - Đường dẫn tương đối của endpoint
+ * @param body - Dữ liệu cần gửi trong body (tùy chọn)
+ * @returns Promise<T> - Dữ liệu đã được bóc tách từ response
+ */
   patch<T>(url: string, body?: object): Promise<T> {
     return axiosClient.patch<T>(url, body);
   },

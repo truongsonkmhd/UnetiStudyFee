@@ -109,6 +109,16 @@ const navigationItems: {
       icon: quyenIcon,
       requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
     },
+    {
+      title: "Quản lý khóa học",
+      url: PATHS.MANAGER_COURSES,
+      icon: classIcon,
+      requiredRoles: [
+        RoleEnum.ROLE_ADMIN,
+        RoleEnum.ROLE_SYS_ADMIN,
+        RoleEnum.ROLE_TEACHER,
+      ],
+    },
   ];
 
 const history: {

@@ -17,6 +17,10 @@ export const PATHS = {
   MANAGER_PERSONS: "/managerPersons",
   MANAGER_CLASS: "/managerClass",
   MANAGER_CACHE: "/managerCache",
+  MANAGER_COURSES: "/managerCourses",
+  CREATE_COURSE: "/managerCourses/create",
+  EDIT_COURSE: "/managerCourses/edit/:id",
+  VIEW_COURSE: "/managerCourses/view/:id",
 
 
   //other

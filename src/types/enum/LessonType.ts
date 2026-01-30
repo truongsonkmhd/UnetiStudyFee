@@ -1,0 +1,9 @@
+export enum LessonType {
+  CODE = 'CODE',
+  QUIZ = 'QUIZ',
+  VIDEO = 'VIDEO',
+  CODE_AND_QUIZ = 'CODE_AND_QUIZ',
+  QUIZ_AND_VIDEO = 'QUIZ_AND_VIDEO',
+  CODE_AND_VIDEO = 'CODE_AND_VIDEO',
+  ALL = 'ALL'
+}

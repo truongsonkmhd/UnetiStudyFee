@@ -20,7 +20,7 @@ const codingExerciseTemplateService = {
 
   create: (
     payload: CodingExerciseTemplate
-  ): Promise<CodingExerciseTemplate>=>
+  ): Promise<CodingExerciseTemplate> =>
     apiService.post<CodingExerciseTemplate>(
       `${CODING_EXERCISE_TEMPLATE_ENDPOINT}`,
       payload
