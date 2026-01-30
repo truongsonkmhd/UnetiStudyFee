@@ -35,7 +35,7 @@ import { QuizTemplateDetail } from '@/model/quiz-template/QuizTemplateDetail';
 // ────────────────────────────────────────────────
 // Main Component
 // ────────────────────────────────────────────────
-const CodingExerciseManager = () => {
+const ContestManager = () => {
   const [view, setView] = useState<'classes' | 'library_coding' | 'library_quiz' | 'create-class' | 'manage-contest'>('classes');
   const [selectedContest, setSelectedContest] = useState<any>(null);
 
@@ -1151,4 +1151,4 @@ const CodingExerciseManager = () => {
   );
 };
 
-export default CodingExerciseManager;
+export default ContestManager;

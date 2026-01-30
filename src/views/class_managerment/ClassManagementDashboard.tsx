@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Plus, Users, Trophy, Clock, Search, Edit2, Trash2, Eye, AlertCircle, CheckCircle, XCircle, PlayCircle } from 'lucide-react';
-import AddContestModal from '../contest/AddContest';
 import { ClazzResponse } from '@/model/class/ClazzResponse';
 import classService from '@/services/classService';
 import { actionAuth } from '@/components/context/AuthContext';
@@ -380,11 +379,11 @@ const ClassManagementDashboard = () => {
                         </div>
                       ))}
                     </div>
-                    <AddContestModal
+                    {/* <AddContestModal
                       isOpen={isModalOpen}
                       onClose={() => setIsModalOpen(false)}
                       classInfo={mockClassInfo}
-                    />
+                    /> */}
                   </div>
                 )}
               </div>

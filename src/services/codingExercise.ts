@@ -4,91 +4,13 @@
 
 import apiService from "@/apis/apiService";
 import { PageResponse } from "@/model/common/PageResponse";
+import { CodingExerciseDetail } from "@/types/coding/CodingExerciseDetail";
+import { CreateCodingExerciseRequest } from "@/types/coding/CreateCodingExerciseRequest";
+import { SearchExerciseParams } from "@/types/coding/SearchExerciseParams";
+import { TestCase } from "@/types/coding/TestCase";
+import { UpdateCodingExerciseRequest } from "@/types/coding/UpdateCodingExerciseRequest";
 
 const CODING_EXERCISE_BASE_ENDPOINT = "/admin/coding-exercises";
-
-// ===== Interfaces =====
-
-export interface CreateCodingExerciseRequest {
-    title: string;
-    description: string;
-    difficulty: 'EASY' | 'MEDIUM' | 'HARD';
-    category: string;
-    programmingLanguage: string;
-    points: number;
-    timeLimitSeconds?: number;
-    memoryLimitMB?: number;
-    problemStatement: string;
-    inputFormat?: string;
-    outputFormat?: string;
-    constraints?: string;
-    sampleInput?: string;
-    sampleOutput?: string;
-    testCases?: TestCase[];
-}
-
-export interface UpdateCodingExerciseRequest {
-    version: number;
-    title?: string;
-    description?: string;
-    difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
-    category?: string;
-    programmingLanguage?: string;
-    points?: number;
-    timeLimitSeconds?: number;
-    memoryLimitMB?: number;
-    problemStatement?: string;
-    inputFormat?: string;
-    outputFormat?: string;
-    constraints?: string;
-    sampleInput?: string;
-    sampleOutput?: string;
-    isActive?: boolean;
-}
-
-export interface TestCase {
-    input: string;
-    expectedOutput: string;
-    isHidden: boolean;
-    points: number;
-    testCaseOrder: number;
-}
-
-export interface CodingExerciseDetail {
-    templateId: string;
-    title: string;
-    description: string;
-    difficulty: 'EASY' | 'MEDIUM' | 'HARD';
-    category: string;
-    programmingLanguage: string;
-    points: number;
-    timeLimitSeconds: number;
-    memoryLimitMB: number;
-    problemStatement: string;
-    inputFormat?: string;
-    outputFormat?: string;
-    constraints?: string;
-    sampleInput?: string;
-    sampleOutput?: string;
-    isActive: boolean;
-    usageCount: number;
-    createdAt: string;
-    updatedAt: string;
-    testCases?: TestCase[];
-}
-
-interface SearchExerciseParams {
-    page?: number;
-    size?: number;
-    difficulty?: string;
-    category?: string;
-    programmingLanguage?: string;
-    isActive?: boolean;
-    searchTerm?: string;
-}
-
-
-// ===== Service =====
 
 const codingExerciseService = {
     // ===== Exercise CRUD =====
