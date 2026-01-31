@@ -1,7 +1,13 @@
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Crown, Play, Star, Users, Clock } from "lucide-react";
+import { ArrowRight, Crown, Play, Users, Clock } from "lucide-react";
+import { CourseCardResponse } from "@/model/course-admin/CourseCardResponse";
+import courseCatalogService from "@/services/courseCatalogService";
+import { useNavigate } from "react-router-dom";
 
+/* ============================
+   DATA
+============================ */
 const heroSlides = [
   {
     id: "s1",
@@ -36,255 +42,6 @@ export type Major =
   | "ngonnguanh"
   | "chung";
 
-export type Course = {
-  id: string;
-  title: string;
-  color: string;
-  author: string;
-  students: number;
-  duration: string; // "24h15p" | "18p"
-  price?: number;
-  oldPrice?: number;
-  isNew?: boolean;
-  isPro?: boolean;
-  isFree?: boolean;
-
-  // thêm cho lọc/sắp xếp
-  majors?: Major[];
-  createdAt?: string; // ISO date
-};
-
-const freeCourses: Course[] = [
-  {
-    id: "c-fundamental",
-    title: "Kiến Thức Nhập Môn IT",
-    color: "from-rose-500 to-pink-500",
-    author: "F8",
-    students: 100,
-    duration: "3h12p",
-    isFree: true,
-    majors: ["cntt", "chung"],
-    createdAt: "2025-03-02",
-  },
-  {
-    id: "c-cpp",
-    title: "C++ từ cơ bản đến nâng cao",
-    color: "from-cyan-500 to-teal-500",
-    author: "F8",
-    students: 200,
-    duration: "18p",
-    isFree: true,
-    majors: ["cntt"],
-    createdAt: "2025-01-10",
-  },
-  {
-    id: "c-htmlcss-zero",
-    title: "HTML, CSS , JavaScript từ cơ bản đến nâng cao",
-    color: "from-sky-500 to-blue-500",
-    author: "F8",
-    students: 100,
-    duration: "29h5p",
-    isFree: true,
-    majors: ["cntt"],
-    createdAt: "2024-12-25",
-  },
-  {
-    id: "c-responsive",
-    title: "Xác suất thống kê",
-    color: "from-fuchsia-500 to-purple-500",
-    author: "Lan Anh",
-    students: 300,
-    duration: "6h31p",
-    isFree: true,
-    majors: ["ketoan", "qtkd", "chung"],
-    createdAt: "2024-10-05",
-  },
-  {
-    id: "c-js-basic",
-    title: "Lập Trình JavaScript Cơ Bản",
-    color: "from-amber-400 to-yellow-400",
-    author: "Sơn Đặng",
-    students: 400,
-    duration: "24h15p",
-    isFree: true,
-    majors: ["cntt"],
-    createdAt: "2025-04-18",
-  },
-  {
-    id: "c-js-advanced",
-    title: "Lập Trình JavaScript Nâng Cao",
-    color: "from-orange-400 to-amber-500",
-    author: "Sơn Đặng",
-    students: 500,
-    duration: "8h41p",
-    isFree: true,
-    majors: ["cntt"],
-    createdAt: "2024-07-01",
-  },
-  {
-    id: "th-vp",
-    title: "Tin học văn phòng",
-    color: "from-orange-400 to-amber-500",
-    author: "Lan Anh",
-    students: 100,
-    duration: "8h41p",
-    isFree: true,
-    majors: ["chung", "ketoan", "qtkd", "ngonnguanh"],
-    createdAt: "2025-02-05",
-  },
-  // bổ sung thêm vài khóa để test đủ 10 cho mọi ngành
-  {
-    id: "acc-1",
-    title: "Nguyên lý kế toán",
-    color: "from-emerald-400 to-teal-500",
-    author: "Ngọc Minh",
-    students: 90,
-    duration: "12h00p",
-    isFree: true,
-    majors: ["ketoan"],
-    createdAt: "2024-11-11",
-  },
-  {
-    id: "acc-2",
-    title: "Kế toán tài chính",
-    color: "from-teal-500 to-cyan-500",
-    author: "Ngọc Minh",
-    students: 23,
-    duration: "16h30p",
-    isFree: true,
-    majors: ["ketoan"],
-    createdAt: "2024-09-09",
-  },
-  {
-    id: "tour-1",
-    title: "Nghiệp vụ hướng dẫn du lịch",
-    color: "from-purple-500 to-fuchsia-500",
-    author: "Bảo Trân",
-    students: 21,
-    duration: "10h20p",
-    isFree: true,
-    majors: ["dulich"],
-    createdAt: "2025-01-22",
-  },
-  {
-    id: "tour-2",
-    title: "Quản trị lữ hành",
-    color: "from-indigo-500 to-blue-500",
-    author: "Bảo Trân",
-    students: 25,
-    duration: "14h00p",
-    isFree: true,
-    majors: ["dulich"],
-    createdAt: "2024-08-20",
-  },
-  {
-    id: "biz-1",
-    title: "Nguyên lý quản trị",
-    color: "from-rose-500 to-red-500",
-    author: "Hoàng Nam",
-    students: 35,
-    duration: "9h00p",
-    isFree: true,
-    majors: ["qtkd"],
-    createdAt: "2024-12-12",
-  },
-  {
-    id: "eng-1",
-    title: "Tiếng Anh học thuật cơ bản",
-    color: "from-blue-500 to-sky-500",
-    author: "Mỹ Duyên",
-    students: 54,
-    duration: "18h00p",
-    isFree: true,
-    majors: ["ngonnguanh", "chung"],
-    createdAt: "2025-02-28",
-  },
-];
-
-/* ============================
-   UTILS
-============================ */
-const parseDurationToMinutes = (d: string) => {
-  const h = /(\d+)\s*h/.exec(d)?.[1];
-  const p = /(\d+)\s*p/.exec(d)?.[1];
-  return (h ? parseInt(h) * 60 : 0) + (p ? parseInt(p) : 0);
-};
-
-type SortKey = "newest" | "oldest" | "longest" | "shortest";
-
-const sortCourses = (list: Course[], sortKey: SortKey) =>
-  list.slice().sort((a, b) => {
-    switch (sortKey) {
-      case "newest":
-        return (
-          new Date(b.createdAt ?? 0).getTime() -
-          new Date(a.createdAt ?? 0).getTime()
-        );
-      case "oldest":
-        return (
-          new Date(a.createdAt ?? 0).getTime() -
-          new Date(b.createdAt ?? 0).getTime()
-        );
-      case "longest":
-        return (
-          parseDurationToMinutes(b.duration) -
-          parseDurationToMinutes(a.duration)
-        );
-      case "shortest":
-        return (
-          parseDurationToMinutes(a.duration) -
-          parseDurationToMinutes(b.duration)
-        );
-      default:
-        return 0;
-    }
-  });
-
-/** Đảm bảo tối thiểu 10 khóa học cho 1 ngành:
- *  primary(= đúng ngành) -> common("chung") -> others
- *  Sau đó sort theo sortKey trong từng lớp ưu tiên
- */
-// Thay toàn bộ hàm cũ bằng hàm này
-const atLeastTenForMajor = (
-  major: Major,
-  sortKey: SortKey,
-  pool: Course[],
-  target = 10
-): Course[] => {
-  if (major === "all") return sortCourses(pool, sortKey);
-
-  const bag: Course[] = [];
-  const seen = new Set<string>();
-
-  const add = (src: Course[]) => {
-    for (const c of src) {
-      if (seen.has(c.id)) continue;
-      bag.push(c);
-      seen.add(c.id);
-      if (bag.length >= target) break;
-    }
-  };
-
-  const primary = sortCourses(
-    pool.filter((c) => c.majors?.includes(major)),
-    sortKey
-  );
-  const common = sortCourses(
-    pool.filter((c) => c.majors?.includes("chung")),
-    sortKey
-  );
-  const others = sortCourses(pool, sortKey);
-
-  add(primary);
-  if (bag.length < target) add(common);
-  if (bag.length < target) add(others);
-
-  return bag; // đúng 10 (hoặc ít hơn nếu pool < 10)
-};
-
-/* ============================
-   COMPONENTS DÙNG CHUNG
-============================ */
 const PageContainer: React.FC<React.PropsWithChildren> = ({ children }) => (
   <div className="min-h-screen bg-background">
     <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 py-6">
@@ -419,65 +176,72 @@ const Carousel: React.FC<{
   );
 };
 
-/* ============================
-   Course Card + Row
-============================ */
-const CourseCard: React.FC<{ course: Course }> = ({ course }) => (
-  <motion.div
-    whileHover={{ y: -4 }}
-    className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all"
-  >
-    <div
-      className={`relative h-1 w-full bg-gradient-to-r ${course.color}`}
-    />
-    <div className="p-4">
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <h4 className="text-lg font-bold leading-snug text-card-foreground group-hover:text-primary transition-colors line-clamp-2">
-          {course.title}
-        </h4>
-        {course.isPro ? (
-          <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-1 text-[10px] font-bold text-amber-600 border border-amber-500/20">
-            <Crown size={12} /> PRO
-          </span>
-        ) : null}
-      </div>
-      {course.isNew ? (
-        <span className="absolute bottom-3 left-4 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-slate-900">
-          Mới
-        </span>
-      ) : null}
-    </div>
-    <div className="px-4 pb-4">
-      {course.price ? (
-        <div className="mb-2 flex items-center gap-2">
-          {course.oldPrice ? (
-            <span className="text-muted-foreground line-through text-xs italic">
-              {course.oldPrice.toLocaleString("vi-VN")}đ
-            </span>
-          ) : null}
-          <span className="text-rose-500 font-extrabold">
-            {course.price.toLocaleString("vi-VN")}đ
-          </span>
+const CourseCard: React.FC<{ course: CourseCardResponse }> = ({ course }) => {
+  const navigate = useNavigate();
+
+  // Fallback gradients if no image
+  const gradients = [
+    "from-rose-500 to-pink-500", "from-cyan-500 to-teal-500", "from-sky-500 to-blue-500",
+    "from-fuchsia-500 to-purple-500", "from-amber-400 to-yellow-400", "from-orange-400 to-amber-500",
+    "from-emerald-400 to-teal-500", "from-teal-500 to-cyan-500", "from-purple-500 to-fuchsia-500",
+    "from-indigo-500 to-blue-500"
+  ];
+  // Deterministic gradient based on ID length or rough hash
+  const gradIndex = (course.courseId.charCodeAt(0) + course.courseId.charCodeAt(course.courseId.length - 1)) % gradients.length;
+  const gradient = gradients[gradIndex];
+
+  const handleClick = () => {
+    navigate(`/course/${course.slug}`);
+  };
+
+  return (
+    <motion.div
+      whileHover={{ y: -4 }}
+      className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all cursor-pointer"
+      onClick={handleClick}
+    >
+      {course.imageUrl ? (
+        <div className="h-40 w-full overflow-hidden bg-gray-100">
+          <img src={course.imageUrl} alt={course.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
         </div>
       ) : (
-        <div className="mb-2 text-emerald-500 font-extrabold text-sm uppercase tracking-wider">Miễn phí</div>
+        <div
+          className={`relative h-40 w-full bg-gradient-to-r ${gradient}`}
+        />
       )}
-      <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground text-xs font-medium">
-        <span className="inline-flex items-center gap-1">
-          <Users size={14} className="text-primary/60" /> {course.author}
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Clock size={14} className="text-primary/60" /> {course.duration}
-        </span>
-      </div>
-    </div>
-  </motion.div>
-);
 
-const CoursesRow: React.FC<{ courses: Course[] }> = ({ courses }) => (
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <h4 className="text-lg font-bold leading-snug text-card-foreground group-hover:text-primary transition-colors line-clamp-2">
+            {course.title}
+          </h4>
+          {/* Placeholder for PRO badge if needed in future */}
+        </div>
+        {/* NEW badge logic could be restored if backend provides 'isNew' flag */}
+      </div>
+      <div className="px-4 pb-4">
+        <div className="mt-auto flex flex-col gap-1 text-muted-foreground text-xs font-medium">
+          <span className="inline-flex items-center gap-1">
+            GV: {course.instructorName || "Uneti Teacher"}
+          </span>
+          <div className="flex items-center gap-3 mt-1">
+            <span className="inline-flex items-center gap-1">
+              <Users size={14} className="text-primary/60" /> {course.enrolledCount || 0} học viên
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Clock size={14} className="text-primary/60" /> {course.totalModules} phần
+            </span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const CoursesRow: React.FC<{ courses: CourseCardResponse[] }> = ({ courses }) => (
   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
     {courses.map((c) => (
-      <CourseCard key={c.id} course={c} />
+      <CourseCard key={c.courseId} course={c} />
     ))}
   </div>
 );
@@ -517,99 +281,43 @@ const MajorSelect: React.FC<{
   );
 };
 
-const SortSelect: React.FC<{
-  value: SortKey;
-  onChange: (s: SortKey) => void;
-}> = ({ value, onChange }) => {
-  return (
-    <label className="flex items-center gap-2 text-sm">
-      <span className="text-muted-foreground font-medium">Sắp xếp:</span>
-      <select
-        className="rounded-xl border border-border bg-background px-3 py-1.5 text-sm font-semibold text-foreground focus:ring-2 focus:ring-primary outline-none transition-all"
-        value={value}
-        onChange={(e) => onChange(e.target.value as SortKey)}
-      >
-        <option value="newest">Mới nhất</option>
-        <option value="oldest">Cũ nhất</option>
-        <option value="longest">Thời lượng dài nhất</option>
-        <option value="shortest">Thời lượng ngắn nhất</option>
-      </select>
-    </label>
-  );
-};
-
-const TeacherSelect: React.FC<{
-  value: string;
-  options: string[];
-  onChange: (t: string) => void;
-}> = ({ value, options, onChange }) => {
-  return (
-    <label className="flex items-center gap-2 text-sm">
-      <span className="text-muted-foreground font-medium">Giáo viên:</span>
-      <select
-        className="rounded-xl border border-border bg-background px-3 py-1.5 text-sm font-semibold text-foreground focus:ring-2 focus:ring-primary outline-none transition-all"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="all">Tất cả</option>
-        {options.map((t) => (
-          <option key={t} value={t}>
-            {t}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-};
-
-/* ============================
-   HOMEPAGE
-============================ */
 export function HomePage() {
   const [major, setMajor] = useState<Major>("all");
-  const [sortKey, setSortKey] = useState<SortKey>("newest");
-  const [teacher, setTeacher] = useState<string>("all");
+  const [courses, setCourses] = useState<CourseCardResponse[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // danh sách giáo viên từ data
-  const teacherOptions = useMemo(() => {
-    const set = new Set<string>();
-    freeCourses.forEach((c) => set.add(c.author));
-    return Array.from(set).sort();
-  }, []);
+  useEffect(() => {
+    const loadCourses = async () => {
+      setLoading(true);
+      try {
+        // Note: Currently backend doesn't support 'major' filter, effectively returning all published courses
+        // Search query (q) could be used if we mapped major to a search term
+        const q = major === 'all' ? '' : MAJOR_LABEL[major];
+        const response = await courseCatalogService.getPublishedCourses(0, 12, q === 'Tất cả' ? '' : q);
+        if (response.items) {
+          setCourses(response.items);
+        }
+      } catch (e) {
+        console.error("Failed to load courses", e);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const requiredCourses = useMemo(() => {
-    // base pool là freeCourses
-    let pool = freeCourses.slice();
-
-    // nếu chọn giáo viên, lọc theo giáo viên trước
-    if (teacher !== "all") {
-      pool = pool.filter((c) => c.author === teacher);
-      // khi lọc theo giáo viên, không ép tối thiểu 10 (vì có thể GV chỉ có vài khóa)
-      const byMajor =
-        major === "all" ? pool : pool.filter((c) => c.majors?.includes(major));
-      return sortCourses(byMajor, sortKey).slice(0, 12);
-    }
-
-    // không chọn giáo viên -> đảm bảo mỗi ngành tối thiểu 10
-    const ensured = atLeastTenForMajor(major, sortKey, pool);
-    return ensured.slice(0, 12);
-  }, [major, sortKey, teacher]);
+    loadCourses();
+  }, [major]);
 
   return (
     <PageContainer>
       <Carousel slides={heroSlides} />
 
       <SectionHeader
-        title="Khóa học bắt buộc"
+        title="Khóa học "
         rightSlot={
           <div className="flex flex-wrap items-center gap-3">
             <MajorSelect value={major} onChange={setMajor} />
-            <TeacherSelect
-              value={teacher}
-              options={teacherOptions}
-              onChange={setTeacher}
-            />
-            <SortSelect value={sortKey} onChange={setSortKey} />
+
+            {/* Disabled Sort/Teacher for now until backend supports it fully */}
             <a
               href="#"
               className="hidden md:inline-flex items-center gap-2 text-sm text-primary font-bold hover:underline underline-offset-4"
@@ -619,7 +327,17 @@ export function HomePage() {
           </div>
         }
       />
-      <CoursesRow courses={requiredCourses} />
+
+      {loading ? (
+        <div className="flex justify-center p-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+      ) : (
+        courses.length > 0 ? (
+          <CoursesRow courses={courses} />
+        ) : (
+          <div className="text-center p-10 text-muted-foreground">Không tìm thấy khóa học nào.</div>
+        )
+      )}
+
     </PageContainer>
   );
 }

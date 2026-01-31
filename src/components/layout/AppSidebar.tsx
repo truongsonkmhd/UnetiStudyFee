@@ -119,6 +119,17 @@ const navigationItems: {
         RoleEnum.ROLE_TEACHER,
       ],
     },
+
+    {
+      title: "Quản lý đăng ký học",
+      url: PATHS.MY_ENROLLMENTS,
+      icon: classIcon,
+      requiredRoles: [
+        RoleEnum.ROLE_ADMIN,
+        RoleEnum.ROLE_SYS_ADMIN,
+        RoleEnum.ROLE_TEACHER,
+      ],
+    },
   ];
 
 const history: {

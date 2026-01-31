@@ -20,6 +20,11 @@ export const PATHS = {
   MANAGER_COURSES: "/managerCourses",
   CREATE_COURSE: "/managerCourses/create",
   EDIT_COURSE: "/managerCourses/edit/:id",
+  /* Course & Enrollments */
+  MY_ENROLLMENTS: "/my-enrollments",
+  COURSE_DETAIL: "/course/:slug",
+  ENROLLMENT_MANAGER: "/managerCourses/:courseId/enrollments", /* Nested under course manager usually, or separate */
+
   VIEW_COURSE: "/managerCourses/view/:id",
 
 

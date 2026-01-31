@@ -7,4 +7,6 @@ export interface CourseCardResponse {
   isPublished: boolean;
   totalModules: number;
   publishedAt?: string;
+  enrolledCount?: number;
+  instructorName?: string;
 }

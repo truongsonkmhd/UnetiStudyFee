@@ -11,4 +11,8 @@ export interface CourseTreeResponse {
   imageUrl?: string;
   videoUrl?: string;
   modules: CourseModuleResponse[];
+  enrolledCount?: number;
+  rating?: number;
+  ratingCount?: number;
+  updatedAt?: string;
 }

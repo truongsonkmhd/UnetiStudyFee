@@ -25,6 +25,9 @@ import CacheManagementPage from "@/views/admin_cache/CacheManagementPage";
 import { ThemeProvider } from "@/components/theme-provider";
 import ContestManager from "@/views/contest/ContestManager";
 import CourseManager from "@/views/course_admin/CourseManager";
+import EnrollmentManager from "@/views/teacher/enrollment-manager/EnrollmentManager";
+import MyEnrollments from "@/views/student/my-learning/MyEnrollments";
+import CourseDetail from "@/views/student/course-detail/CourseDetail";
 
 const queryClient = new QueryClient();
 
@@ -119,6 +122,7 @@ const App = () => (
                 ]}
               >
                 <CourseManager />
+
               </ProtectedRoute>
             }
           />
@@ -138,6 +142,23 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path={PATHS.ENROLLMENT_MANAGER}
+            element={
+              <ProtectedRoute
+                requiredRoles={[
+                  RoleEnum.ROLE_ADMIN,
+                  RoleEnum.ROLE_TEACHER,
+                ]}
+              >
+                <EnrollmentManager />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path={PATHS.COURSE_DETAIL} element={<CourseDetail />} />
+
 
           <Route element={<AppLayout />}>
             <Route path={PATHS.RANKING} element={<LeaderboardPage />} />
@@ -299,6 +320,19 @@ const App = () => (
               element={<div>Hướng dẫn (Sắp Ra Mắt)</div>}
             />
             <Route path={PATHS.SETTINGS} element={<div>Cài Đặt</div>} />
+
+            <Route
+              path={PATHS.MY_ENROLLMENTS}
+              element={
+                <ProtectedRoute requiredRoles={[
+                  RoleEnum.ROLE_ADMIN,
+                  RoleEnum.ROLE_TEACHER,
+                  RoleEnum.ROLE_STUDENT]}>
+                  <MyEnrollments />
+                </ProtectedRoute>
+              }
+            />
+
           </Route>
 
           {/* catch-all */}
