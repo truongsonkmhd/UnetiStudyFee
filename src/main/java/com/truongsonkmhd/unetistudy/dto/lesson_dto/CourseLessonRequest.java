@@ -1,13 +1,12 @@
 package com.truongsonkmhd.unetistudy.dto.lesson_dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.truongsonkmhd.unetistudy.common.LessonType;
-import com.truongsonkmhd.unetistudy.dto.quiz_dto.QuizDTO;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,7 +31,9 @@ public class CourseLessonRequest {
 
      Integer orderIndex;
 
+     @JsonProperty("isPreview")
      Boolean isPreview;
+     @JsonProperty("isPublished")
      Boolean isPublished;
 
      String slug;

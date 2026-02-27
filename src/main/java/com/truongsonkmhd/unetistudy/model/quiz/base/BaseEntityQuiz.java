@@ -41,12 +41,9 @@ public abstract class BaseEntityQuiz extends BaseEntity {
     @Column(name = "pass_score")
     Double passScore;
 
-    @Column(name = "time_limit_minutes")
-    Integer timeLimitMinutes;
-
     @Column(name = "is_published", nullable = false)
     @Builder.Default
-    Boolean isPublished = false;
+    Boolean isPublished = true;
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default
@@ -55,4 +52,6 @@ public abstract class BaseEntityQuiz extends BaseEntity {
     @Column(name = "category", length = 100)
     String category;
 
+    @Column(name = "max_attempts")
+    Integer maxAttempts;
 }

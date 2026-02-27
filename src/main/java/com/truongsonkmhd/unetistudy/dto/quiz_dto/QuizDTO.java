@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,8 +13,11 @@ import java.util.UUID;
 public class QuizDTO {
     UUID quizId;
     UUID lessonId;
+    UUID templateId;
     String title;
     Integer totalQuestions;
     Double passScore;
     Boolean isPublished;
+    Integer maxAttempts;
+    Double totalPoints;
 }

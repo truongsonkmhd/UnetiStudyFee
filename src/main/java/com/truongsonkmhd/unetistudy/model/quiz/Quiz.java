@@ -40,9 +40,8 @@ public class Quiz extends BaseEntityQuiz {
     @Builder.Default
     List<Question> questions = new ArrayList<>();
 
-    @Column(name = "is_published", nullable = false)
-    @Builder.Default
-    Boolean isPublished = false;
+    @Column(name = "template_id")
+    UUID templateId;
 
     public void addQuestion(Question question) {
         questions.add(question);
@@ -52,13 +51,5 @@ public class Quiz extends BaseEntityQuiz {
     public void removeQuestion(Question question) {
         questions.remove(question);
         question.setQuiz(null);
-    }
-
-    public void publish() {
-        this.isPublished = true;
-    }
-
-    public void unpublish() {
-        this.isPublished = false;
     }
 }

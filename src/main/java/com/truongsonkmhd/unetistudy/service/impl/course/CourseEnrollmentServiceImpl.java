@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.truongsonkmhd.unetistudy.cache.service.CourseCacheService;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -32,6 +33,7 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final CourseCacheService courseCacheService;
 
     @Override
     @Transactional
@@ -107,6 +109,7 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
         Course course = enrollment.getCourse();
         course.setEnrolledCount(course.getEnrolledCount() + 1);
         courseRepository.save(course);
+        courseCacheService.evictCourseCompletely(course.getCourseId(), course.getSlug());
 
         CourseEnrollment saved = enrollmentRepository.save(enrollment);
         EnrollmentResponse response = toDto(saved);
@@ -136,6 +139,7 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
             if (course.getEnrolledCount() > 0) {
                 course.setEnrolledCount(course.getEnrolledCount() - 1);
                 courseRepository.save(course);
+                courseCacheService.evictCourseCompletely(course.getCourseId(), course.getSlug());
             }
         }
 

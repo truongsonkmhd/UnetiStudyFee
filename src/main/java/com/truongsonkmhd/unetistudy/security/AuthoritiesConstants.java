@@ -5,6 +5,7 @@ package com.truongsonkmhd.unetistudy.security;
  */
 public final class AuthoritiesConstants {
     public static final String SYS_ADMIN = "SYS_ADMIN";
+
     public static final String ADMIN = "ROLE_ADMIN";
 
     public static final String STUDENT = "ROLE_STUDENT";

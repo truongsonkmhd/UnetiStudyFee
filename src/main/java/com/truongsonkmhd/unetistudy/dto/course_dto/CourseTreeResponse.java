@@ -4,6 +4,7 @@ import com.truongsonkmhd.unetistudy.common.CourseStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,5 +27,5 @@ public class CourseTreeResponse {
     Integer enrolledCount;
     Double rating;
     Integer ratingCount;
-    java.time.Instant updatedAt;
+    Instant updatedAt;
 }

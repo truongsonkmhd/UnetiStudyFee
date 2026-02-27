@@ -1,6 +1,5 @@
 package com.truongsonkmhd.unetistudy.dto.coding_exercise_dto;
 
-
 import com.truongsonkmhd.unetistudy.common.Difficulty;
 import lombok.*;
 

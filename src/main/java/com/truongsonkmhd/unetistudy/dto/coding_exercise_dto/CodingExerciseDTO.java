@@ -4,7 +4,6 @@ import com.truongsonkmhd.unetistudy.dto.coding_exercise_dto.base.BaseCodingExerc
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-
 import lombok.experimental.SuperBuilder;
 
 import java.util.UUID;
@@ -15,7 +14,7 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CodingExerciseDTO extends BaseCodingExerciseDTO {
 
-    UUID exerciseId;
-
     UUID contestLessonId;
+
+    UUID templateId;
 }

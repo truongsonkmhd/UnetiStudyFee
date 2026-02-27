@@ -8,7 +8,7 @@ import com.truongsonkmhd.unetistudy.dto.coding_exercise_dto.JudgeRunResponseDTO;
 import com.truongsonkmhd.unetistudy.dto.coding_submission.CodingSubmissionResponseDTO;
 import com.truongsonkmhd.unetistudy.dto.contest_exercise_attempt.AttemptInfoDTO;
 import com.truongsonkmhd.unetistudy.dto.exercise_test_cases_dto.ExerciseTestCasesDTO;
-import com.truongsonkmhd.unetistudy.mapper.coding_submission.ExerciseTestCaseMapper;
+import com.truongsonkmhd.unetistudy.mapper.lesson.ExerciseTestCaseMapper;
 import com.truongsonkmhd.unetistudy.model.User;
 import com.truongsonkmhd.unetistudy.model.lesson.CodingSubmission;
 import com.truongsonkmhd.unetistudy.model.lesson.ContestExerciseAttempt;

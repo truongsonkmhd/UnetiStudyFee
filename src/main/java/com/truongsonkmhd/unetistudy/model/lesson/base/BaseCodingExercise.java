@@ -68,7 +68,7 @@ public abstract class BaseCodingExercise {
 
     @Column(name = "is_published", nullable = false)
     @Builder.Default
-    Boolean isPublished = false;
+    Boolean isPublished = true;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

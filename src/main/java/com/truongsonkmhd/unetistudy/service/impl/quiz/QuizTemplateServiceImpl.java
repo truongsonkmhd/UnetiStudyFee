@@ -1,6 +1,5 @@
 package com.truongsonkmhd.unetistudy.service.impl.quiz;
 
-import com.truongsonkmhd.unetistudy.cache.CacheConstants;
 import com.truongsonkmhd.unetistudy.dto.a_common.PageResponse;
 import com.truongsonkmhd.unetistudy.dto.quiz_dto.QuizTemplateDTO;
 import com.truongsonkmhd.unetistudy.exception.custom_exception.ResourceNotFoundException;
@@ -90,8 +89,8 @@ public class QuizTemplateServiceImpl implements QuizTemplateService {
         if (request.getPassScore() != null) {
             template.setPassScore(request.getPassScore());
         }
-        if (request.getTimeLimitMinutes() != null) {
-            template.setTimeLimitMinutes(request.getTimeLimitMinutes());
+        if (request.getMaxAttempts() != null) {
+            template.setMaxAttempts(request.getMaxAttempts());
         }
         if (request.getIsActive() != null) {
             template.setIsActive(request.getIsActive());
@@ -284,7 +283,7 @@ public class QuizTemplateServiceImpl implements QuizTemplateService {
                 .category(original.getCategory())
                 .thumbnailUrl(original.getThumbnailUrl())
                 .passScore(original.getPassScore())
-                .timeLimitMinutes(original.getTimeLimitMinutes())
+                .maxAttempts(original.getMaxAttempts())
                 .createdBy(original.getCreatedBy())
                 .isActive(true)
                 .isDeleted(false)

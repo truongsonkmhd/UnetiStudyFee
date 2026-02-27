@@ -20,10 +20,10 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(name = "token", nullable = false, unique = true)
+    @Column(name = "token", nullable = false, unique = true, columnDefinition = "TEXT")
     String token;
 
-    @Column(name = "refresh_token", nullable = false)
+    @Column(name = "refresh_token", nullable = false, columnDefinition = "TEXT")
     String refreshToken;
 
     @Column(name = "token_type", nullable = false, length = 50)
@@ -36,17 +36,17 @@ public class Token {
     Instant refreshExpirationTime; // thời gian sống của refresh token
 
     @Column(name = "revoked", nullable = false)
-    boolean revoked;//đã bị thu hồi hay chưa (dù chưa quá hạn).
+    boolean revoked;// đã bị thu hồi hay chưa (dù chưa quá hạn).
 
     @Column(name = "expired", nullable = false)
-    boolean expired; //flag kết hợp với expirationTime.
+    boolean expired; // flag kết hợp với expirationTime.
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true)
     User user;
 
     public static Token create(User user, String accessToken, String refreshToken,
-                               Instant accessExp, Instant refreshExp) {
+            Instant accessExp, Instant refreshExp) {
         return Token.builder()
                 .user(user)
                 .token(accessToken)

@@ -1,6 +1,6 @@
 package com.truongsonkmhd.unetistudy.service;
 
-import com.truongsonkmhd.unetistudy.dto.lesson_dto.CourseLessonResponse;
+import com.truongsonkmhd.unetistudy.dto.course_dto.CourseLessonResponse;
 import com.truongsonkmhd.unetistudy.dto.lesson_dto.CourseLessonRequest;
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.CourseLesson;
 

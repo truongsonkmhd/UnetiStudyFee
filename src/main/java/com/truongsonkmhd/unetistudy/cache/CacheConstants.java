@@ -24,7 +24,13 @@ public final class CacheConstants {
     public static final String COURSE_BY_ID = "course_by_id";
     public static final String COURSE_BY_SLUG = "course_by_slug";
     public static final String COURSE_PUBLISHED_TREE = "course_published_tree";
+    /**
+     * Cache cho danh sách khóa học (trang chủ, tìm kiếm, quản trị).
+     * Key bao gồm các tham số phân trang và bộ lọc.
+     * TTL: 5 phút.
+     */
     public static final String COURSE_CATALOG = "course_catalog";
+
     public static final String COURSE_MODULES = "course_modules";
 
     // Quiz caches
@@ -58,6 +64,12 @@ public final class CacheConstants {
     // Class & Contest caches
     public static final String CLASSES = "classes";
     public static final String CONTESTS = "contests";
+
+    // Post (blog) caches
+    public static final String POST_BY_ID = "post_by_id";
+    public static final String POST_BY_SLUG = "post_by_slug";
+    public static final String POST_CATALOG = "post_catalog";
+    public static final String POST_PUBLISHED = "post_published";
 
     // ========================
     // CACHE TTL (seconds)
@@ -96,4 +108,5 @@ public final class CacheConstants {
     public static final String PREFIX_QUIZ = "quiz:";
     public static final String PREFIX_LESSON = "lesson:";
     public static final String PREFIX_STATS = "stats:";
+    public static final String PREFIX_POST = "post:";
 }

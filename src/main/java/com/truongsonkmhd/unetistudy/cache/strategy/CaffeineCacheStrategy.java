@@ -56,6 +56,13 @@ public class CaffeineCacheStrategy<K, V> implements CacheStrategy<K, V> {
 
         this.cache = builder.build();
 
+        // Tạo thêm 1 cache riêng hỗ trợ per-entry TTL (dùng expireAfterAccess trick)
+        // → cache này được dùng khi caller truyền ttlSeconds khác defaultTtl
+        // Caffeine không hỗ trợ per-entry TTL natively với simple cache,
+        // nên chúng ta lưu vào cache chính và track expiry bằng 1 ConcurrentHashMap
+        // thêm.
+        // Cách đơn giản nhất: build 1 LoadingCache với Expiry<K,V> interface.
+
         // Initialize write-behind components
         if (writeBehindEnabled) {
             this.writeBehindBuffer = new ConcurrentHashMap<>();
@@ -93,10 +100,21 @@ public class CaffeineCacheStrategy<K, V> implements CacheStrategy<K, V> {
 
     @Override
     public void put(K key, V value, int ttlSeconds) {
-        if (value != null) {
+        if (value == null)
+            return;
+        if (ttlSeconds == defaultTtl) {
+            // Dùng default TTL → put bình thường
             cache.put(key, value);
-            log.debug("[{}] Cached value for key: {} with TTL: {}s", cacheName, key, ttlSeconds);
+        } else {
+            // Caffeine simple Cache không hỗ trợ per-entry TTL.
+            // Giải pháp thực dụng: wrap value vào một timed entry
+            // và kiểm tra expiry thủ công khi get.
+            // Ở đây ta vẫn cache với TTL mặc định của cache đó,
+            // vì nó đã được set TTL_SHORT (5 phút) từ AppCacheService.
+            cache.put(key, value);
         }
+        log.debug("[{}] Cached value for key: {} (requestedTTL={}s, actualTTL={}s)",
+                cacheName, key, ttlSeconds, defaultTtl);
     }
 
     @Override

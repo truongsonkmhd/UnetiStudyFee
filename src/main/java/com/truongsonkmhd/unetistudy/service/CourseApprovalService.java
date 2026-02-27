@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CourseApprovalService {
+
     Boolean submitForApproval(UUID courseId, String note);
 
     Boolean reject(UUID courseId, String reason);

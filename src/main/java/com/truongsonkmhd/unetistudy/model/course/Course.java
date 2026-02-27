@@ -21,16 +21,13 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(
-        name = "tbl_course",
-        indexes = {
-                @Index(name = "idx_course_instructor", columnList = "instructor_id"),
-                @Index(name = "idx_course_publish", columnList = "is_published,status"),
-                @Index(name = "idx_course_category", columnList = "category,subCategory"),
-                @Index(name = "idx_course_created", columnList = "created_at"),
-                @Index(name = "idx_course_status", columnList = "status,submitted_at")
-        }
-)
+@Table(name = "tbl_course", indexes = {
+        @Index(name = "idx_course_instructor", columnList = "instructor_id"),
+        @Index(name = "idx_course_publish", columnList = "is_published,status"),
+        @Index(name = "idx_course_category", columnList = "category,subCategory"),
+        @Index(name = "idx_course_created", columnList = "created_at"),
+        @Index(name = "idx_course_status", columnList = "status,submitted_at")
+})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Course {
     @Id

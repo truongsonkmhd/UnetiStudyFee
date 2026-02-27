@@ -1,6 +1,5 @@
 package com.truongsonkmhd.unetistudy.model.quiz;
 
-
 import com.truongsonkmhd.unetistudy.common.AttemptStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,12 +20,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "tbl_user_quiz_attempt",
-        indexes = {
-                @Index(name = "idx_attempt_user", columnList = "user_id"),
-                @Index(name = "idx_attempt_quiz", columnList = "quiz_id"),
-                @Index(name = "idx_attempt_user_quiz", columnList = "user_id, quiz_id")
-        })
+@Table(name = "tbl_user_quiz_attempt", indexes = {
+        @Index(name = "idx_attempt_user", columnList = "user_id"),
+        @Index(name = "idx_attempt_quiz", columnList = "quiz_id"),
+        @Index(name = "idx_attempt_user_quiz", columnList = "user_id, quiz_id")
+})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserQuizAttempt {
 

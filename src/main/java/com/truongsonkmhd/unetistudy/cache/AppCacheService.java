@@ -31,8 +31,8 @@ public class AppCacheService {
     private final ConcurrentHashMap<String, CacheStrategy<?, ?>> cacheRegistry = new ConcurrentHashMap<>();
 
     public AppCacheService(CacheConfig cacheConfig,
-                           RedisTemplate<String, Object> redisTemplate,
-                           ObjectMapper objectMapper) {
+            RedisTemplate<String, Object> redisTemplate,
+            ObjectMapper objectMapper) {
         this.cacheConfig = cacheConfig;
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
@@ -56,7 +56,9 @@ public class AppCacheService {
         createCaffeineCache(CacheConstants.COURSE_BY_ID, CacheConstants.SIZE_MEDIUM, CacheConstants.TTL_MEDIUM);
         createCaffeineCache(CacheConstants.COURSE_BY_SLUG, CacheConstants.SIZE_MEDIUM, CacheConstants.TTL_MEDIUM);
         createCaffeineCache(CacheConstants.COURSE_PUBLISHED_TREE, CacheConstants.SIZE_MEDIUM, CacheConstants.TTL_LONG);
-        createCaffeineCache(CacheConstants.COURSE_CATALOG, CacheConstants.SIZE_LARGE, CacheConstants.TTL_MEDIUM);
+        createCaffeineCache(CacheConstants.COURSE_MODULES, CacheConstants.SIZE_LARGE, CacheConstants.TTL_MEDIUM);
+        // Cache danh sách khóa học (Catalog & Admin List)
+        createCaffeineCache(CacheConstants.COURSE_CATALOG, CacheConstants.SIZE_LARGE, CacheConstants.TTL_SHORT);
 
         // Quiz caches
         createCaffeineCache(CacheConstants.QUIZ_BY_ID, CacheConstants.SIZE_MEDIUM, CacheConstants.TTL_MEDIUM);

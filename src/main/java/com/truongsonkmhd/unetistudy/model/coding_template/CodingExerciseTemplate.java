@@ -1,6 +1,7 @@
 package com.truongsonkmhd.unetistudy.model.coding_template;
 
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.CodingExercise;
+import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.ExerciseTestCase;
 import com.truongsonkmhd.unetistudy.model.lesson.base.BaseCodingExercise;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,12 +23,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "tbl_coding_exercise_template",
-        indexes = {
-                @Index(name = "uk_template_slug", columnList = "slug", unique = true),
-                @Index(name = "idx_template_published", columnList = "is_published"),
-                @Index(name = "idx_template_difficulty", columnList = "difficulty")
-        })
+@Table(name = "tbl_coding_exercise_template", indexes = {
+        @Index(name = "uk_template_slug", columnList = "slug", unique = true),
+        @Index(name = "idx_template_published", columnList = "is_published"),
+        @Index(name = "idx_template_difficulty", columnList = "difficulty")
+})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CodingExerciseTemplate extends BaseCodingExercise {
 
@@ -64,7 +64,7 @@ public class CodingExerciseTemplate extends BaseCodingExercise {
      * Create a contest exercise from this template
      */
     public CodingExercise toContestExercise() {
-        return CodingExercise.builder()
+        CodingExercise exercise = CodingExercise.builder()
                 .title(this.getTitle())
                 .description(this.getDescription())
                 .programmingLanguage(this.getProgrammingLanguage())
@@ -78,8 +78,21 @@ public class CodingExerciseTemplate extends BaseCodingExercise {
                 .outputFormat(this.getOutputFormat())
                 .constraintName(this.getConstraintName())
                 .points(this.getPoints())
-                .isPublished(this.getIsPublished())
+                .isPublished(true)
                 .build();
+
+        if (this.testCases != null) {
+            for (ExerciseTemplateTestCase tc : this.testCases) {
+                exercise.addTestCase(ExerciseTestCase.builder()
+                        .input(tc.getInput())
+                        .expectedOutput(tc.getExpectedOutput())
+                        .isSample(tc.getIsSample())
+                        .explanation(tc.getExplanation())
+                        .orderIndex(tc.getOrderIndex())
+                        .build());
+            }
+        }
+        return exercise;
     }
 
     public void incrementUsageCount() {

@@ -28,14 +28,4 @@ public class CourseCatalogController {
         return ResponseEntity.ok()
                 .body(ResponseMessage.LoadedSuccess(courseCatalogService.getPublishedCourses(page, size, q)));
     }
-
-    @GetMapping("/published/scroll")
-    @Transactional
-    public ResponseEntity<IResponseMessage> scrollPublished(@RequestParam(required = false) String cursor,
-            @RequestParam(defaultValue = "12") int size,
-            @RequestParam(required = false) String q) {
-        return ResponseEntity.ok().body(
-                ResponseMessage.LoadedSuccess(courseCatalogService.getPublishedCoursesCursor(cursor, size, q)));
-    }
-
 }

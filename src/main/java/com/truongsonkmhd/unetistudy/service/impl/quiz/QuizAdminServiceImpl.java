@@ -11,6 +11,8 @@ import com.truongsonkmhd.unetistudy.repository.quiz.AnswerRepository;
 import com.truongsonkmhd.unetistudy.repository.quiz.QuestionRepository;
 import com.truongsonkmhd.unetistudy.repository.quiz.QuizQuestionRepository;
 import com.truongsonkmhd.unetistudy.service.QuizAdminService;
+import com.truongsonkmhd.unetistudy.repository.quiz.UserAnswerRepository;
+import com.truongsonkmhd.unetistudy.repository.quiz.UserQuizAttemptRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,8 @@ public class QuizAdminServiceImpl implements QuizAdminService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final ContestLessonRepository contestLessonRepository;
+    private final UserAnswerRepository userAnswerRepository;
+    private final UserQuizAttemptRepository userQuizAttemptRepository;
     private final QuizCacheService quizCacheService;
 
     /**
@@ -62,6 +66,8 @@ public class QuizAdminServiceImpl implements QuizAdminService {
                 }
                 quiz.setIsPublished(request.getIsPublished());
             }
+            if (request.getMaxAttempts() != null)
+                quiz.setMaxAttempts(request.getMaxAttempts());
             return quizRepository.save(quiz);
         });
 
@@ -85,6 +91,11 @@ public class QuizAdminServiceImpl implements QuizAdminService {
         }
 
         UUID contestLessonId = quiz.getContestLesson() != null ? quiz.getContestLesson().getContestLessonId() : null;
+
+        // Clean up student data for the entire quiz
+        userAnswerRepository.deleteSelectedAnswerReferencesByQuizId(quizId);
+        userAnswerRepository.deleteByQuizId(quizId);
+        userQuizAttemptRepository.deleteByQuizId(quizId);
 
         quizRepository.delete(quiz);
 
@@ -222,6 +233,11 @@ public class QuizAdminServiceImpl implements QuizAdminService {
         }
 
         Quiz quiz = question.getQuiz();
+
+        // Clean up student results for this question
+        userAnswerRepository.deleteSelectedAnswerReferencesByQuestionId(questionId);
+        userAnswerRepository.deleteByQuestionId(questionId);
+
         questionRepository.delete(question);
 
         quiz.setTotalQuestions(quiz.getTotalQuestions() - 1);
@@ -311,6 +327,9 @@ public class QuizAdminServiceImpl implements QuizAdminService {
             throw new RuntimeException("Question must have at least 2 answers");
         }
 
+        // Clean up selected answer references first
+        userAnswerRepository.deleteSelectedAnswerReferences(answerId);
+
         answerRepository.delete(answer);
 
         List<Answer> remainingAnswers = answerRepository.findByQuestionOrderByAnswerOrderAsc(question);
@@ -352,6 +371,7 @@ public class QuizAdminServiceImpl implements QuizAdminService {
                 .totalQuestions(quiz.getTotalQuestions())
                 .passScore(quiz.getPassScore())
                 .isPublished(quiz.getIsPublished())
+                .maxAttempts(quiz.getMaxAttempts())
                 .contestLessonId(quiz.getContestLesson() != null ? quiz.getContestLesson().getContestLessonId() : null)
                 .createdAt(quiz.getCreatedAt())
                 .updatedAt(quiz.getUpdatedAt())
@@ -392,6 +412,7 @@ public class QuizAdminServiceImpl implements QuizAdminService {
                 .totalQuestions(quiz.getTotalQuestions())
                 .passScore(quiz.getPassScore())
                 .isPublished(quiz.getIsPublished())
+                .maxAttempts(quiz.getMaxAttempts())
                 .createdAt(quiz.getCreatedAt())
                 .updatedAt(quiz.getUpdatedAt())
                 .build();

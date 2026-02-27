@@ -1,6 +1,5 @@
 package com.truongsonkmhd.unetistudy.mapper.quiz;
 
-
 import com.truongsonkmhd.unetistudy.dto.quiz_dto.AnswerTemplateDTO;
 import com.truongsonkmhd.unetistudy.dto.quiz_dto.QuestionTemplateDTO;
 import com.truongsonkmhd.unetistudy.dto.quiz_dto.QuizTemplateDTO;
@@ -16,7 +15,8 @@ import java.util.stream.Collectors;
 public class QuizTemplateMapper {
 
     public QuizTemplateDTO.Response toResponse(QuizTemplate template) {
-        if (template == null) return null;
+        if (template == null)
+            return null;
 
         return QuizTemplateDTO.Response.builder()
                 .templateId(template.getId())
@@ -25,19 +25,21 @@ public class QuizTemplateMapper {
                 .category(template.getCategory())
                 .thumbnailUrl(template.getThumbnailUrl())
                 .passScore(template.getPassScore())
-                .timeLimitMinutes(template.getTimeLimitMinutes())
+
                 .isActive(template.getIsActive())
                 .usageCount(template.getUsageCount())
                 .totalQuestions(template.getQuestionTemplates() != null ? template.getQuestionTemplates().size() : 0)
                 .createdBy(template.getCreatedBy())
                 .version(template.getVersion())
+                .maxAttempts(template.getMaxAttempts())
                 .createdAt(template.getCreatedAt())
                 .updatedAt(template.getUpdatedAt())
                 .build();
     }
 
     public QuizTemplateDTO.DetailResponse toDetailResponse(QuizTemplate template) {
-        if (template == null) return null;
+        if (template == null)
+            return null;
 
         return QuizTemplateDTO.DetailResponse.builder()
                 .templateId(template.getId())
@@ -46,15 +48,15 @@ public class QuizTemplateMapper {
                 .category(template.getCategory())
                 .thumbnailUrl(template.getThumbnailUrl())
                 .passScore(template.getPassScore())
-                .timeLimitMinutes(template.getTimeLimitMinutes())
+
                 .isActive(template.getIsActive())
                 .usageCount(template.getUsageCount())
                 .createdBy(template.getCreatedBy())
                 .version(template.getVersion())
-                .questions(template.getQuestionTemplates() != null ?
-                        template.getQuestionTemplates().stream()
-                                .map(this::toQuestionResponse)
-                                .collect(Collectors.toList()) : null)
+                .maxAttempts(template.getMaxAttempts())
+                .questions(template.getQuestionTemplates() != null ? template.getQuestionTemplates().stream()
+                        .map(this::toQuestionResponse)
+                        .collect(Collectors.toList()) : null)
                 .createdAt(template.getCreatedAt())
                 .updatedAt(template.getUpdatedAt())
                 .build();
@@ -67,10 +69,9 @@ public class QuizTemplateMapper {
                 .questionOrder(question.getQuestionOrder())
                 .timeLimitSeconds(question.getTimeLimitSeconds())
                 .points(question.getPoints())
-                .answers(question.getAnswerTemplates() != null ?
-                        question.getAnswerTemplates().stream()
-                                .map(this::toAnswerResponse)
-                                .collect(Collectors.toList()) : null)
+                .answers(question.getAnswerTemplates() != null ? question.getAnswerTemplates().stream()
+                        .map(this::toAnswerResponse)
+                        .collect(Collectors.toList()) : null)
                 .build();
     }
 
@@ -90,7 +91,7 @@ public class QuizTemplateMapper {
                 .category(request.getCategory())
                 .thumbnailUrl(request.getThumbnailUrl())
                 .passScore(request.getPassScore())
-                .timeLimitMinutes(request.getTimeLimitMinutes())
+                .maxAttempts(request.getMaxAttempts())
                 .createdBy(createdBy)
                 .build();
 
@@ -135,7 +136,12 @@ public class QuizTemplateMapper {
                 .description(template.getDescription())
                 .totalQuestions(template.getQuestionTemplates().size())
                 .passScore(template.getPassScore())
-                .isPublished(false)
+
+                .maxAttempts(template.getMaxAttempts())
+                .category(template.getCategory())
+                .thumbnailUrl(template.getThumbnailUrl())
+                .templateId(template.getId())
+                .isPublished(true)
                 .build();
 
         template.getQuestionTemplates().forEach(qt -> {

@@ -8,6 +8,10 @@ import com.truongsonkmhd.unetistudy.model.quiz.Answer;
 import com.truongsonkmhd.unetistudy.model.quiz.Question;
 import com.truongsonkmhd.unetistudy.model.quiz.UserAnswer;
 import com.truongsonkmhd.unetistudy.model.quiz.UserQuizAttempt;
+import com.truongsonkmhd.unetistudy.dto.quiz_dto.QuizDTO;
+import com.truongsonkmhd.unetistudy.dto.quiz_dto.QuizResultResponse;
+import com.truongsonkmhd.unetistudy.dto.quiz_dto.QuestionResult;
+import com.truongsonkmhd.unetistudy.dto.quiz_dto.AnswerDetail;
 import com.truongsonkmhd.unetistudy.repository.quiz.*;
 import com.truongsonkmhd.unetistudy.service.QuizService;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +53,14 @@ public class QuizServiceImpl implements QuizService {
                         throw new RuntimeException("Quiz is not published");
                 }
 
+                if (quiz.getMaxAttempts() != null && quiz.getMaxAttempts() > 0) {
+                        long attemptCount = attemptRepository.countByUserIdAndQuiz(userId, quiz);
+                        if (attemptCount >= quiz.getMaxAttempts()) {
+                                throw new RuntimeException("Maximum attempts reached for this quiz ("
+                                                + quiz.getMaxAttempts() + ")");
+                        }
+                }
+
                 UserQuizAttempt attempt = UserQuizAttempt.builder()
                                 .userId(userId)
                                 .quiz(quiz)
@@ -74,7 +86,6 @@ public class QuizServiceImpl implements QuizService {
          */
         @Override
         @Transactional(readOnly = true)
-        @Cacheable(cacheNames = CacheConstants.QUIZ_QUESTIONS, key = "#attemptId", unless = "#result == null")
         public Question getNextQuestion(UUID attemptId) {
                 log.debug("Getting next question for attempt: {}", attemptId);
 
@@ -115,7 +126,8 @@ public class QuizServiceImpl implements QuizService {
                 Question question = questionRepository.findById(questionId)
                                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
-                boolean isTimeout = timeSpentSeconds > question.getTimeLimitSeconds();
+                boolean isTimeout = question.getTimeLimitSeconds() != null && question.getTimeLimitSeconds() > 0
+                                && timeSpentSeconds > question.getTimeLimitSeconds();
 
                 Set<Answer> selectedAnswers = new HashSet<>();
                 if (selectedAnswerIds != null && !selectedAnswerIds.isEmpty()) {
@@ -197,6 +209,77 @@ public class QuizServiceImpl implements QuizService {
         @Override
         @Transactional(readOnly = true)
         public List<UserQuizAttempt> getUserAttempts(UUID userId, UUID quizId) {
-                return attemptRepository.findByUserIdAndQuizOrderByCreatedAtDesc(userId, quizId);
+                Quiz quiz = getQuizCached(quizId);
+                return attemptRepository.findByUserIdAndQuizOrderByCreatedAtDesc(userId, quiz);
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public QuizDTO getQuizById(UUID quizId) {
+                Quiz quiz = getQuizCached(quizId);
+                List<Question> questions = getQuestionsCached(quiz.getId());
+                double totalPoints = questions.stream().mapToDouble(Question::getPoints).sum();
+
+                return QuizDTO.builder()
+                                .quizId(quiz.getId())
+                                .title(quiz.getTitle())
+                                .totalQuestions(quiz.getTotalQuestions())
+                                .passScore(quiz.getPassScore())
+                                .isPublished(quiz.getIsPublished())
+                                .maxAttempts(quiz.getMaxAttempts())
+                                .totalPoints(totalPoints)
+                                .build();
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public QuizResultResponse getQuizResult(UUID attemptId) {
+                UserQuizAttempt attempt = attemptRepository.findById(attemptId)
+                                .orElseThrow(() -> new RuntimeException("Attempt not found"));
+
+                List<QuestionResult> questionResults = attempt.getUserAnswers().stream()
+                                .map(userAnswer -> {
+                                        List<AnswerDetail> answerDetails = userAnswer.getQuestion()
+                                                        .getAnswers().stream()
+                                                        .map(answer -> AnswerDetail.builder()
+                                                                        .answerId(answer.getId())
+                                                                        .content(answer.getContent())
+                                                                        .isCorrect(answer.getIsCorrect())
+                                                                        .isSelected(userAnswer.getSelectedAnswers()
+                                                                                        .contains(answer))
+                                                                        .build())
+                                                        .collect(Collectors.toList());
+
+                                        return QuestionResult.builder()
+                                                        .questionId(userAnswer.getQuestion().getId())
+                                                        .questionContent(userAnswer.getQuestion().getContent())
+                                                        .isCorrect(userAnswer.getIsCorrect())
+                                                        .pointsEarned(userAnswer.getPointsEarned())
+                                                        .maxPoints(userAnswer.getQuestion().getPoints())
+                                                        .timeSpentSeconds(userAnswer.getTimeSpentSeconds())
+                                                        .isTimeout(userAnswer.getIsTimeout())
+                                                        .answers(answerDetails)
+                                                        .build();
+                                })
+                                .collect(Collectors.toList());
+
+                int totalQuestionsCount = attempt.getQuiz().getTotalQuestions();
+                int correctlyAnsweredCount = (int) attempt.getUserAnswers().stream().filter(UserAnswer::getIsCorrect)
+                                .count();
+                int incorrectlyAnsweredCount = attempt.getUserAnswers().size() - correctlyAnsweredCount;
+
+                return QuizResultResponse.builder()
+                                .attemptId(attempt.getAttemptId())
+                                .score(attempt.getScore())
+                                .totalPoints(attempt.getTotalPoints())
+                                .percentage(attempt.getPercentage())
+                                .isPassed(attempt.getIsPassed())
+                                .startedAt(attempt.getStartedAt())
+                                .completedAt(attempt.getCompletedAt())
+                                .totalQuestions(totalQuestionsCount)
+                                .correctAnswers(correctlyAnsweredCount)
+                                .incorrectAnswers(incorrectlyAnsweredCount)
+                                .questionResults(questionResults)
+                                .build();
         }
 }

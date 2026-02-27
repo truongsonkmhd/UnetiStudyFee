@@ -27,7 +27,7 @@ public class QuizAdminDTO {
         private Double passScore;
 
         @Builder.Default
-        private Boolean isPublished = false;
+        private Boolean isPublished = true;
 
         @NotEmpty(message = "Quiz must have at least one question")
         private List<CreateQuestionRequest> questions;
@@ -82,6 +82,7 @@ public class QuizAdminDTO {
         private String title;
         private Double passScore;
         private Boolean isPublished;
+        private Integer maxAttempts;
     }
 
     @Data
@@ -116,6 +117,7 @@ public class QuizAdminDTO {
         private Integer totalQuestions;
         private Double passScore;
         private Boolean isPublished;
+        private Integer maxAttempts;
         private UUID contestLessonId;
         private Instant createdAt;
         private Instant updatedAt;
@@ -156,6 +158,7 @@ public class QuizAdminDTO {
         private Integer totalQuestions;
         private Double passScore;
         private Boolean isPublished;
+        private Integer maxAttempts;
         private Instant createdAt;
         private Instant updatedAt;
     }

@@ -2,11 +2,10 @@ package com.truongsonkmhd.unetistudy.service.impl.lesson;
 
 import com.github.slugify.Slugify;
 import com.truongsonkmhd.unetistudy.cache.CacheConstants;
-import com.truongsonkmhd.unetistudy.dto.lesson_dto.CourseLessonResponse;
+import com.truongsonkmhd.unetistudy.dto.course_dto.CourseLessonResponse;
 import com.truongsonkmhd.unetistudy.dto.lesson_dto.CourseLessonRequest;
 import com.truongsonkmhd.unetistudy.exception.custom_exception.ResourceNotFoundException;
 import com.truongsonkmhd.unetistudy.exception.payload.DataNotFoundException;
-import com.truongsonkmhd.unetistudy.mapper.coding_submission.QuizExerciseMapper;
 import com.truongsonkmhd.unetistudy.mapper.lesson.CourseLessonRequestMapper;
 import com.truongsonkmhd.unetistudy.mapper.lesson.CourseLessonResponseMapper;
 import com.truongsonkmhd.unetistudy.model.User;
@@ -126,6 +125,7 @@ public class CourseLessonServiceImpl implements CourseLessonService {
 
         templates.forEach(template -> {
             Quiz quiz = template.toQuiz();
+            quiz.setTemplateId(template.getId());
             courseLesson.addQuizQuestion(quiz);
             template.incrementUsageCount();
         });
@@ -140,6 +140,7 @@ public class CourseLessonServiceImpl implements CourseLessonService {
 
             for (CodingExerciseTemplate template : templates) {
                 CodingExercise contestExercise = template.toContestExercise();
+                contestExercise.setTemplateId(template.getTemplateId());
 
                 for (var templateTestCase : template.getTestCases()) {
                     ExerciseTestCase testCase = ExerciseTestCase.builder()

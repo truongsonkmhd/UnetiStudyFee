@@ -17,11 +17,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "tbl_coding_exercise",
-        indexes = {
-                @Index(name = "idx_exercise_contest", columnList = "contest_lesson_id"),
-                @Index(name = "idx_exercise_slug", columnList = "slug")
-        })
+@Table(name = "tbl_coding_exercise", indexes = {
+        @Index(name = "idx_exercise_contest", columnList = "contest_lesson_id"),
+        @Index(name = "idx_exercise_slug", columnList = "slug")
+})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CodingExercise extends BaseCodingExercise {
 
@@ -29,6 +28,9 @@ public class CodingExercise extends BaseCodingExercise {
     @UuidGenerator
     @Column(name = "exercise_id", nullable = false, updatable = false)
     UUID exerciseId;
+
+    @Column(name = "template_id")
+    UUID templateId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contest_lesson_id", nullable = true)
@@ -44,13 +46,15 @@ public class CodingExercise extends BaseCodingExercise {
 
     // Helper methods (đúng bidirectional)
     public void addTestCase(ExerciseTestCase testCase) {
-        if (testCase == null) return;
+        if (testCase == null)
+            return;
         exerciseTestCases.add(testCase);
         testCase.setCodingExercise(this);
     }
 
     public void removeTestCase(ExerciseTestCase testCase) {
-        if (testCase == null) return;
+        if (testCase == null)
+            return;
         exerciseTestCases.remove(testCase);
         testCase.setCodingExercise(null);
     }

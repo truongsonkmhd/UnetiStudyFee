@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 @Getter
 @Setter
 @Entity
@@ -27,12 +28,11 @@ public class CourseModule {
     @Column(name = "module_id", updatable = false, nullable = false)
     UUID moduleId;
 
-    @ManyToOne(fetch = FetchType.LAZY ,optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "course_id", nullable = false)
     Course course;
 
-    @OneToMany(mappedBy = "module", fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "module", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     List<CourseLesson> lessons = new ArrayList<>();
 
     @Column(name = "title", nullable = false, length = 255)
@@ -60,8 +60,5 @@ public class CourseModule {
 
     @Column(name = "slug", nullable = true)
     String slug;
-
-
-
 
 }

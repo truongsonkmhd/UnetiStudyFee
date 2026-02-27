@@ -45,14 +45,14 @@ public class CodingExerciseTemplateController {
                                 ResponseMessage.CreatedSuccess(codingExerciseTemplateService.getById(id)));
         }
 
-//    @PatchMapping("/{id}")
-//    @Operation(summary = )
-//    public ResponseEntity<IResponseMessage> updateStatus(
-//            @PathVariable UUID id){
-//           return ResponseEntity.ok().body(
-//                   ResponseMessage.UpdatedSuccess()
-//           );
-//    }
+        // @PatchMapping("/{id}")
+        // @Operation(summary = )
+        // public ResponseEntity<IResponseMessage> updateStatus(
+        // @PathVariable UUID id){
+        // return ResponseEntity.ok().body(
+        // ResponseMessage.UpdatedSuccess()
+        // );
+        // }
 
         // ========== OFFSET PAGINATION ==========
 

@@ -1,6 +1,5 @@
 package com.truongsonkmhd.unetistudy.model.quiz.template;
 
-import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.CodingExercise;
 import com.truongsonkmhd.unetistudy.model.quiz.Quiz;
 import com.truongsonkmhd.unetistudy.model.quiz.base.BaseEntityQuiz;
 import jakarta.persistence.*;
@@ -40,9 +39,9 @@ public class QuizTemplate extends BaseEntityQuiz {
                 .description(this.getDescription())
                 .thumbnailUrl(this.getThumbnailUrl())
                 .passScore(this.getPassScore())
-                .timeLimitMinutes(this.getTimeLimitMinutes())
                 .category(this.getCategory())
-                .isPublished(false)
+                .maxAttempts(this.getMaxAttempts())
+                .isPublished(true)
                 .isActive(true)
                 .build();
 

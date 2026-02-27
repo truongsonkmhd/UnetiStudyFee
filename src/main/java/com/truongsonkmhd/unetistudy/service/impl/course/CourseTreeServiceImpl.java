@@ -2,6 +2,7 @@ package com.truongsonkmhd.unetistudy.service.impl.course;
 
 import com.github.slugify.Slugify;
 import com.truongsonkmhd.unetistudy.cache.CacheConstants;
+import com.truongsonkmhd.unetistudy.cache.service.CourseCacheService;
 import com.truongsonkmhd.unetistudy.common.CourseStatus;
 import com.truongsonkmhd.unetistudy.context.UserContext;
 import com.truongsonkmhd.unetistudy.dto.a_common.PageResponse;
@@ -14,6 +15,10 @@ import com.truongsonkmhd.unetistudy.mapper.course.CourseModuleRequestMapper;
 import com.truongsonkmhd.unetistudy.mapper.course.CourseModuleResponseMapper;
 import com.truongsonkmhd.unetistudy.mapper.course.CourseRequestMapper;
 import com.truongsonkmhd.unetistudy.mapper.course.CourseResponseMapper;
+import com.truongsonkmhd.unetistudy.repository.coding.CodingSubmissionRepository;
+import com.truongsonkmhd.unetistudy.repository.quiz.UserAnswerRepository;
+import com.truongsonkmhd.unetistudy.repository.quiz.UserQuizAttemptRepository;
+import com.truongsonkmhd.unetistudy.repository.quiz.QuizTemplateRepository;
 import com.truongsonkmhd.unetistudy.model.Role;
 import com.truongsonkmhd.unetistudy.model.User;
 import com.truongsonkmhd.unetistudy.model.course.Course;
@@ -23,18 +28,22 @@ import com.truongsonkmhd.unetistudy.model.course.CourseModule;
 import com.truongsonkmhd.unetistudy.model.quiz.Quiz;
 import com.truongsonkmhd.unetistudy.repository.UserRepository;
 import com.truongsonkmhd.unetistudy.repository.coding.CodingExerciseRepository;
+import com.truongsonkmhd.unetistudy.repository.coding.CodingExerciseTemplateRepository;
 import com.truongsonkmhd.unetistudy.repository.course.CourseRepository;
 import com.truongsonkmhd.unetistudy.repository.course.CourseModuleRepository;
 import com.truongsonkmhd.unetistudy.repository.course.LessonRepository;
 import com.truongsonkmhd.unetistudy.repository.course.QuizRepository;
+import com.truongsonkmhd.unetistudy.repository.quiz.QuizTemplateRepository;
 import com.truongsonkmhd.unetistudy.service.CourseTreeService;
 import com.truongsonkmhd.unetistudy.service.infrastructure.PocketBaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -53,7 +62,12 @@ public class CourseTreeServiceImpl implements CourseTreeService {
     private final LessonRepository lessonRepository;
     private final CourseModuleRepository courseModuleRepository;
     private final CodingExerciseRepository codingExerciseRepository;
+    private final CodingSubmissionRepository codingSubmissionRepository;
     private final QuizRepository quizRepository;
+    private final CodingExerciseTemplateRepository codingExerciseTemplateRepository;
+    private final QuizTemplateRepository quizTemplateRepository;
+    private final UserAnswerRepository userAnswerRepository;
+    private final UserQuizAttemptRepository userQuizAttemptRepository;
     private final UserRepository userRepository;
     private final CourseResponseMapper courseResponseMapper;
     private final CourseRequestMapper courseRequestMapper;
@@ -61,6 +75,7 @@ public class CourseTreeServiceImpl implements CourseTreeService {
     private final CourseModuleResponseMapper courseModuleResponseMapper;
     private final Slugify slugify;
     private final PocketBaseService pocketBaseService;
+    private final CourseCacheService courseCacheService;
 
     private static final Comparator<Integer> NULL_SAFE_INT = Comparator.nullsLast(Integer::compareTo);
 
@@ -71,11 +86,15 @@ public class CourseTreeServiceImpl implements CourseTreeService {
      * Cache-Aside: Lấy course by ID
      */
     @Override
-    @Cacheable(cacheNames = CacheConstants.COURSE_BY_ID, key = "#theId", unless = "#result == null")
+    @Transactional(readOnly = true)
     public CourseTreeResponse findById(UUID theId) {
-        log.debug("Cache MISS - Loading course from DB: {}", theId);
-        Course course = courseRepository.findById(theId)
-                .orElseThrow(() -> new RuntimeException("Course not found with id =" + theId));
+        log.debug("findById - ID: {}", theId);
+        // Sử dụng programmatic cache thay cho annotation
+        Course course = courseCacheService.getCourseById(theId, () -> {
+            log.debug("Cache MISS - Loading course from DB: {}", theId);
+            return courseRepository.findById(theId)
+                    .orElseThrow(() -> new RuntimeException("Course not found with id =" + theId));
+        });
         return courseResponseMapper.toDto(course);
     }
 
@@ -121,7 +140,6 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         if (course.getIsPublished() == null)
             course.setIsPublished(req.getIsPublished() != null ? req.getIsPublished() : false);
 
-        // publishedAt chỉ set khi publish
         if (Boolean.TRUE.equals(course.getIsPublished())) {
             if (course.getPublishedAt() == null) {
                 course.setPublishedAt(
@@ -137,6 +155,8 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         }
 
         Course saved = courseRepository.save(course);
+        // Evict toàn bộ related caches một cách tập trung
+        courseCacheService.evictCourseCompletely(saved.getCourseId(), saved.getSlug());
         return getCourseTree(saved.getSlug(), userRepository.findRolesByUserId(instructor.getId()));
     }
 
@@ -145,14 +165,8 @@ public class CourseTreeServiceImpl implements CourseTreeService {
      */
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = CacheConstants.COURSE_PUBLISHED_TREE, allEntries = true),
-            @CacheEvict(cacheNames = CacheConstants.COURSE_BY_ID, key = "#courseId"),
-            @CacheEvict(cacheNames = CacheConstants.COURSE_BY_SLUG, allEntries = true),
-            @CacheEvict(cacheNames = CacheConstants.COURSE_MODULES, allEntries = true)
-    })
     public CourseTreeResponse update(UUID courseId, CourseShowRequest req) {
-        log.info("Updating course: {} - Evicting cache", courseId);
+        log.info("Updating course: {}", courseId);
         UUID userID = UserContext.getUserID();
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new DataNotFoundException("Course not found: " + courseId));
@@ -206,6 +220,8 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         syncModules(course, req.getModules(), course.getInstructor());
 
         Course saved = courseRepository.save(course);
+        // Evict toàn bộ related caches
+        courseCacheService.evictCourseCompletely(saved.getCourseId(), saved.getSlug());
         return getCourseTree(saved.getSlug(), userRepository.findRolesByUserId(course.getInstructor().getId()));
     }
 
@@ -214,18 +230,19 @@ public class CourseTreeServiceImpl implements CourseTreeService {
      */
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = CacheConstants.COURSE_PUBLISHED_TREE, allEntries = true),
-            @CacheEvict(cacheNames = CacheConstants.COURSE_BY_ID, key = "#theId"),
-            @CacheEvict(cacheNames = CacheConstants.COURSE_BY_SLUG, allEntries = true),
-            @CacheEvict(cacheNames = CacheConstants.COURSE_MODULES, allEntries = true)
-    })
     public UUID deleteById(UUID theId) {
-        log.info("Deleting course: {} - Evicting cache", theId);
+        log.info("Deleting course: {}", theId);
         Course course = courseRepository.findById(theId)
                 .orElseThrow(() -> new DataNotFoundException("course not found: " + theId));
 
+        // Cleanup student data for all modules in this course to avoid FK violations
+        for (CourseModule module : course.getModules()) {
+            cleanupStudentDataForModule(module);
+        }
+
         courseRepository.deleteById(course.getCourseId());
+        // Evict toàn bộ related caches
+        courseCacheService.evictCourseCompletely(course.getCourseId(), course.getSlug());
         return theId;
     }
 
@@ -233,16 +250,30 @@ public class CourseTreeServiceImpl implements CourseTreeService {
      * Cache-Aside: Lấy modules by course slug
      */
     @Override
-    @Cacheable(cacheNames = CacheConstants.COURSE_MODULES, key = "#theSlug", unless = "#result.isEmpty()")
     public List<CourseModuleResponse> getCourseModuleByCourseSlug(String theSlug) {
-        log.debug("Cache MISS - Loading course modules for slug: {}", theSlug);
+        log.debug("getCourseModuleByCourseSlug - Slug: {}", theSlug);
+        // TODO: Có thể chuyển việc cache Module lẻ tẻ này vào CourseCacheService nếu
+        // cần tối ưu sâu hơn
+        // Hiện tại chỉ xóa annotation để đồng nhất programmatic approach
         return courseModuleResponseMapper.toDto(courseModuleRepository.getCourseModuleByCourseSlug(theSlug));
     }
 
     @Override
-    @Transactional(readOnly = true)
     public PageResponse<CourseCardResponse> getAllCourses(Integer page, Integer size, String q, String status,
             String category) {
+        log.debug("getAllCourses - page={}, size={}, q={}, status={}, category={}", page, size, q, status, category);
+        return courseCacheService.getCourseCatalog(page, size, q, status, category,
+                () -> this.queryCourseCatalog(page, size, q, status, category));
+    }
+
+    /**
+     * Thực hiện query thực sự từ DB — chỉ được gọi khi cache MISS.
+     * Tách riêng thành method có @Transactional để Spring proxy hoạt động đúng.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<CourseCardResponse> queryCourseCatalog(Integer page, Integer size, String q, String status,
+            String category) {
+        log.debug("Cache MISS - Loading course catalog from DB");
         int safePage = (page != null) ? Math.max(page, 0) : 0;
         int safeSize = (size != null) ? Math.min(Math.max(size, 1), 50) : 10;
 
@@ -268,15 +299,13 @@ public class CourseTreeServiceImpl implements CourseTreeService {
     }
 
     @Override
-    @Cacheable(cacheNames = "course_published_tree", key = "#slug")
     @Transactional(readOnly = true)
     public CourseTreeResponse getCourseTreeDetailPublished(String slug) {
-        if (slug == null || slug.isBlank()) {
-            throw new DataNotFoundException("Course slug must not be null or empty");
-        }
-        UUID userId = UserContext.getUserID();
-        Set<Role> roles = (userId != null) ? userRepository.findRolesByUserId(userId) : Collections.emptySet();
-        return getCourseTree(slug, roles);
+        return courseCacheService.getCoursePublishedTree(slug, () -> {
+            UUID userId = UserContext.getUserID();
+            Set<Role> roles = (userId != null) ? userRepository.findRolesByUserId(userId) : Collections.emptySet();
+            return getCourseTree(slug, roles);
+        });
     }
 
     private CourseTreeResponse getCourseTree(String slug, Set<Role> roles) {
@@ -292,9 +321,11 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         List<UUID> moduleIds = courseModule.stream().map(CourseModule::getModuleId).toList();
 
         List<CourseLesson> lessons = lessonRepository.findLessonsByModuleIds(moduleIds);
+
         List<UUID> lessonIds = lessons.stream().map(CourseLesson::getLessonId).toList();
 
         List<CodingExercise> exercises = codingExerciseRepository.findExercisesByLessonIds(lessonIds);
+
         List<Quiz> quizzes = quizRepository.findQuizzesByLessonIds(lessonIds);
 
         Map<UUID, List<CodingExercise>> exByLesson = exercises.stream()
@@ -344,9 +375,10 @@ public class CourseTreeServiceImpl implements CourseTreeService {
             Map<UUID, List<CodingExercise>> exByLesson, Map<UUID, List<Quiz>> quizByLesson) {
 
         List<CourseLessonResponse> lessons = courseLessons.stream()
+                .filter(l -> l.getModule() != null && l.getModule().getModuleId().equals(m.getModuleId()))
                 .sorted(Comparator.comparing(CourseLesson::getOrderIndex, NULL_SAFE_INT))
                 .filter(l -> !isOnlyStudent(roles) || allowLessonForStudent(l))
-                .map(l -> mapLesson(l, roles, exByLesson, quizByLesson))
+                .map(l -> mapLesson(l, exByLesson, quizByLesson))
                 .toList();
 
         return new CourseModuleResponse(
@@ -357,7 +389,7 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 lessons);
     }
 
-    private CourseLessonResponse mapLesson(CourseLesson courseLesson, Set<Role> roles,
+    private CourseLessonResponse mapLesson(CourseLesson courseLesson,
             Map<UUID, List<CodingExercise>> exByLesson, Map<UUID, List<Quiz>> quizByLesson) {
 
         List<CodingExerciseDTO> coding = exByLesson.getOrDefault(courseLesson.getLessonId(), List.of()).stream()
@@ -390,6 +422,7 @@ public class CourseTreeServiceImpl implements CourseTreeService {
             return null;
 
         return CodingExerciseDTO.builder()
+                .templateId(e.getTemplateId())
                 .contestLessonId(e.getContestLesson() != null ? e.getContestLesson().getContestLessonId() : null)
                 .title(e.getTitle())
                 .description(e.getDescription())
@@ -405,6 +438,7 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 .constraintName(e.getConstraintName())
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())
+                .templateId(e.getTemplateId())
                 .build();
     }
 
@@ -414,11 +448,13 @@ public class CourseTreeServiceImpl implements CourseTreeService {
 
         return QuizDTO.builder()
                 .quizId(q.getId())
-                .lessonId(q.getContestLesson() != null ? q.getContestLesson().getContestLessonId() : null)
+                .templateId(q.getTemplateId())
                 .title(q.getTitle())
                 .totalQuestions(q.getTotalQuestions())
                 .passScore(q.getPassScore())
                 .isPublished(Boolean.TRUE.equals(q.getIsPublished()))
+                .maxAttempts(q.getMaxAttempts())
+                .templateId(q.getTemplateId())
                 .build();
     }
 
@@ -443,6 +479,7 @@ public class CourseTreeServiceImpl implements CourseTreeService {
 
             if (moduleId != null && existing.containsKey(moduleId)) {
                 module = existing.get(moduleId);
+                existing.remove(moduleId); // Mark as kept
                 module.setTitle(mr.getTitle());
                 module.setDescription(mr.getDescription());
                 module.setOrderIndex(mr.getOrderIndex());
@@ -458,8 +495,25 @@ public class CourseTreeServiceImpl implements CourseTreeService {
             newList.add(module);
         }
 
+        // Cleanup student data for removed modules
+        for (CourseModule removedModule : existing.values()) {
+            cleanupStudentDataForModule(removedModule);
+        }
+
         course.getModules().clear();
         course.getModules().addAll(newList);
+    }
+
+    private void cleanupStudentDataForModule(CourseModule module) {
+        userAnswerRepository.deleteSelectedAnswerReferencesByModuleId(module.getModuleId());
+        userAnswerRepository.deleteByModuleId(module.getModuleId());
+        userQuizAttemptRepository.deleteByModuleId(module.getModuleId());
+
+        for (CourseLesson lesson : module.getLessons()) {
+            for (CodingExercise ex : lesson.getCodingExercises()) {
+                codingSubmissionRepository.deleteByExerciseId(ex.getExerciseId());
+            }
+        }
     }
 
     private void syncLessons(CourseModule module, List<CourseLessonRequest> courseLessonRequests, User instructor) {
@@ -483,16 +537,13 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 lesson = new CourseLesson();
                 lesson.setLessonId(null);
                 lesson.setModule(module);
-                lesson.setCreator(instructor); // Set creator for new lesson
+                lesson.setCreator(instructor);
             }
 
-            // Always ensure creator is set if it was somehow missing (though it shouldn't
-            // be for existing ones)
             if (lesson.getCreator() == null) {
                 lesson.setCreator(instructor);
             }
 
-            // set/update fields
             lesson.setTitle(lr.getTitle());
             lesson.setDescription(lr.getDescription());
             lesson.setLessonType(lr.getLessonType());
@@ -510,7 +561,6 @@ public class CourseTreeServiceImpl implements CourseTreeService {
             }
             lesson.setSlug(lessonSlug);
 
-            // Upload lesson video if exists
             if (lr.getVideoFile() != null && !lr.getVideoFile().isEmpty()) {
                 String pbUrl = pocketBaseService.uploadFile("lesson_videos", lr.getVideoFile());
                 if (pbUrl != null) {
@@ -520,11 +570,61 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 lesson.setVideoUrl(lr.getVideoUrl());
             }
 
+            syncLessonExercises(lesson, lr.getExerciseTemplateIds());
+            syncLessonQuizzes(lesson, lr.getQuizTemplateIds());
+
             newList.add(lesson);
         }
 
         module.getLessons().clear();
         module.getLessons().addAll(newList);
+    }
+
+    private void syncLessonExercises(CourseLesson lesson, List<UUID> exerciseTemplateIds) {
+        if (exerciseTemplateIds == null)
+            return;
+
+        // Clean up student submissions for the exercises being removed to avoid FK
+        // violations
+        for (CodingExercise exercise : lesson.getCodingExercises()) {
+            codingSubmissionRepository.deleteByExerciseId(exercise.getExerciseId());
+        }
+
+        lesson.getCodingExercises().clear();
+
+        for (UUID templateId : exerciseTemplateIds) {
+            codingExerciseTemplateRepository.findById(templateId).ifPresent(template -> {
+                CodingExercise exercise = template.toContestExercise();
+                exercise.setTemplateId(template.getTemplateId());
+                lesson.addCodingExercise(exercise);
+                template.incrementUsageCount();
+                codingExerciseTemplateRepository.save(template);
+            });
+        }
+    }
+
+    private void syncLessonQuizzes(CourseLesson lesson, List<UUID> quizTemplateIds) {
+        if (quizTemplateIds == null)
+            return;
+
+        // Clean up student data for the quizzes being removed to avoid FK violations
+        for (Quiz quiz : lesson.getQuizzes()) {
+            userAnswerRepository.deleteSelectedAnswerReferencesByQuizId(quiz.getId());
+            userAnswerRepository.deleteByQuizId(quiz.getId());
+            userQuizAttemptRepository.deleteByQuizId(quiz.getId());
+        }
+
+        lesson.getQuizzes().clear();
+
+        for (UUID templateId : quizTemplateIds) {
+            quizTemplateRepository.findById(templateId).ifPresent(template -> {
+                Quiz quiz = template.toQuiz();
+                quiz.setTemplateId(template.getId());
+                lesson.addQuizQuestion(quiz);
+                template.incrementUsageCount();
+                quizTemplateRepository.save(template);
+            });
+        }
     }
 
     // =========================

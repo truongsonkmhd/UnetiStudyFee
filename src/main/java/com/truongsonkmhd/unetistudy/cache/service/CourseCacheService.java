@@ -3,6 +3,8 @@ package com.truongsonkmhd.unetistudy.cache.service;
 import com.truongsonkmhd.unetistudy.cache.CacheConstants;
 import com.truongsonkmhd.unetistudy.cache.AppCacheService;
 import com.truongsonkmhd.unetistudy.cache.strategy.CacheStrategy;
+import com.truongsonkmhd.unetistudy.dto.a_common.PageResponse;
+import com.truongsonkmhd.unetistudy.dto.course_dto.CourseCardResponse;
 import com.truongsonkmhd.unetistudy.dto.course_dto.CourseTreeResponse;
 import com.truongsonkmhd.unetistudy.model.course.Course;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +46,8 @@ public class CourseCacheService {
      * Cache lâu hơn vì dữ liệu published ít thay đổi
      */
     public CourseTreeResponse getCoursePublishedTree(String slug, Supplier<CourseTreeResponse> loader) {
-        CacheStrategy<String, CourseTreeResponse> cache = appCacheService.getCache(CacheConstants.COURSE_PUBLISHED_TREE);
+        CacheStrategy<String, CourseTreeResponse> cache = appCacheService
+                .getCache(CacheConstants.COURSE_PUBLISHED_TREE);
         return cache.getOrLoad(slug, loader, CacheConstants.TTL_LONG); // 1 hour
     }
 
@@ -98,25 +101,44 @@ public class CourseCacheService {
      * Put course tree vào cache
      */
     public void cacheCourseTree(String slug, CourseTreeResponse courseTree) {
-        CacheStrategy<String, CourseTreeResponse> cache = appCacheService.getCache(CacheConstants.COURSE_PUBLISHED_TREE);
+        CacheStrategy<String, CourseTreeResponse> cache = appCacheService
+                .getCache(CacheConstants.COURSE_PUBLISHED_TREE);
         cache.put(slug, courseTree);
     }
 
     /**
-     * Evict course từ tất cả related caches
+     * Evict course từ tất cả related caches (ID, Slug, Tree, Modules, Catalog)
      */
-    public void evictCourse(UUID courseId, String slug) {
-        CacheStrategy<UUID, Course> idCache = appCacheService.getCache(CacheConstants.COURSE_BY_ID);
-        idCache.evict(courseId);
+    public void evictCourseCompletely(UUID courseId, String slug) {
+        log.info("Starting complete eviction for course: {} (slug: {})", courseId, slug);
 
-        if (slug != null) {
-            CacheStrategy<String, Course> slugCache = appCacheService.getCache(CacheConstants.COURSE_BY_SLUG);
-            slugCache.evict(slug);
-
-            invalidatePublishedTree(slug);
+        // 1. Evict by ID
+        if (courseId != null) {
+            CacheStrategy<UUID, Object> idCache = appCacheService.getCache(CacheConstants.COURSE_BY_ID);
+            if (idCache != null) {
+                idCache.evict(courseId);
+            }
         }
 
-        log.info("Evicted course from cache: {}", courseId);
+        // 2. Evict by Slug & Published Tree
+        if (slug != null) {
+            CacheStrategy<String, Object> slugCache = appCacheService.getCache(CacheConstants.COURSE_BY_SLUG);
+            if (slugCache != null) {
+                slugCache.evict(slug);
+            }
+            invalidatePublishedTree(slug);
+
+            // 3. Evict Modules
+            CacheStrategy<String, Object> moduleCache = appCacheService.getCache(CacheConstants.COURSE_MODULES);
+            if (moduleCache != null) {
+                moduleCache.evict(slug);
+            }
+        }
+
+        // 4. Invalidate Catalog Listing
+        invalidateAllCourseCatalog();
+
+        log.info("Finished complete eviction for course: {}", courseId);
     }
 
     /**
@@ -180,5 +202,75 @@ public class CourseCacheService {
         }
 
         log.info("Warmed up course cache with {} courses", count);
+    }
+
+    // ========================
+    // COURSE CATALOG (getAllCourses)
+    // ========================
+
+    /**
+     * Cache-Aside cho getAllCourses (phân trang, filter).
+     * Key được tạo từ tất cả tham số: "page:size:q:status:category"
+     * TTL ngắn (TTL_SHORT = 5 phút) vì danh sách hay thay đổi.
+     *
+     * @param page     số trang (null → 0)
+     * @param size     kích thước trang (null → 10)
+     * @param q        từ khóa tìm kiếm
+     * @param status   trạng thái khóa học
+     * @param category danh mục
+     * @param loader   Supplier để load từ DB khi cache miss
+     * @return PageResponse chứa danh sách CourseCardResponse
+     */
+    public PageResponse<CourseCardResponse> getCourseCatalog(
+            Integer page, Integer size, String q, String status, String category,
+            Supplier<PageResponse<CourseCardResponse>> loader) {
+
+        String cacheKey = buildCatalogKey(page, size, q, status, category);
+        CacheStrategy<String, PageResponse<CourseCardResponse>> cache = appCacheService
+                .getCache(CacheConstants.COURSE_CATALOG);
+
+        if (cache == null) {
+            log.warn("Cache '{}' not initialized, loading from DB directly", CacheConstants.COURSE_CATALOG);
+            return loader.get();
+        }
+
+        return cache.getOrLoad(cacheKey, loader, CacheConstants.TTL_SHORT);
+    }
+
+    /**
+     * Xóa toàn bộ course_all_list cache.
+     * Gọi khi có course mới được tạo, cập nhật hoặc xóa.
+     */
+    public void invalidateAllCourseCatalog() {
+        CacheStrategy<?, ?> cache = appCacheService.getCache(CacheConstants.COURSE_CATALOG);
+        if (cache != null) {
+            cache.evictAll();
+            log.info("Invalidated all course catalog cache entries");
+        }
+    }
+
+    /**
+     * Xóa 1 entry cụ thể trong course_all_list cache (ít dùng).
+     */
+    public void invalidateCourseCatalog(Integer page, Integer size, String q, String status, String category) {
+        String cacheKey = buildCatalogKey(page, size, q, status, category);
+        CacheStrategy<String, ?> cache = appCacheService.getCache(CacheConstants.COURSE_CATALOG);
+        if (cache != null) {
+            cache.evict(cacheKey);
+            log.debug("Invalidated course catalog cache key: {}", cacheKey);
+        }
+    }
+
+    /**
+     * Tạo cache key từ các tham số filter/pagination.
+     * Null/blank được chuẩn hóa thành "_" để tránh key trùng.
+     */
+    private String buildCatalogKey(Integer page, Integer size, String q, String status, String category) {
+        return String.join(":",
+                page != null ? page.toString() : "0",
+                size != null ? size.toString() : "10",
+                (q != null && !q.isBlank()) ? q.toLowerCase().trim() : "_",
+                (status != null && !status.isBlank()) ? status.toUpperCase() : "_",
+                (category != null && !category.isBlank()) ? category.toLowerCase() : "_");
     }
 }

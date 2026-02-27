@@ -20,7 +20,7 @@ public record MyUserDetail(User user) implements UserDetails {
         }
         return user.getRoles().stream()
 //                .map(Role::getCode)
-                .map(ele -> "ROLE_" + ele.getCode())
+                .map(Role::getCode)
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
     }

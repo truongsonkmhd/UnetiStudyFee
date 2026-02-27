@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -23,10 +24,9 @@ public class CourseLessonResponse {
     String videoUrl;
     String description;
     String content;
-
-    public String getFileUrl() {
-        return videoUrl;
-    }
+    String slug;
+    Integer totalPoints;
+    Integer duration;
 
     List<CodingExerciseDTO> codingExercises;
     List<QuizDTO> quizzes;

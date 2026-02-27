@@ -33,9 +33,9 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
           from Course c
           where c.isPublished = true
           order by
-              case when c.publishedAt is null then 1 else 0 end,
+              case when c.publishedAt is null then 1 else 0 end asc,
               c.publishedAt desc,
-              c.createdAt desc
+              c.courseId desc
       """, countQuery = """
           select count(c)
           from Course c
@@ -54,9 +54,9 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
               or lower(c.slug)  like lower(concat('%', cast(:q as string), '%'))
             )
           order by
-              case when c.publishedAt is null then 1 else 0 end,
+              case when c.publishedAt is null then 1 else 0 end asc,
               c.publishedAt desc,
-              c.createdAt desc
+              c.courseId desc
       """, countQuery = """
           select count(c)
           from Course c
@@ -77,14 +77,19 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
           from Course c
           where c.isPublished = true
             and (
-                 c.publishedAt < :publishedAt
-              or (c.publishedAt = :publishedAt and c.courseId < :lastId)
-              or c.publishedAt is null
+              (:publishedAt is not null and (
+                c.publishedAt < :publishedAt
+                or (c.publishedAt = :publishedAt and c.courseId < :lastId)
+                or c.publishedAt is null
+              ))
+              or (:publishedAt is null and (
+                c.publishedAt is null and c.courseId < :lastId
+              ))
             )
           order by
-              case when c.publishedAt is null then 1 else 0 end,
+              case when c.publishedAt is null then 1 else 0 end asc,
               c.publishedAt desc,
-              c.createdAt desc
+              c.courseId desc
       """)
   Page<CourseCardResponse> findPublishedCourseCardsAfterCursor(
       @Param("publishedAt") LocalDateTime publishedAt,
@@ -128,14 +133,19 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
               or lower(c.slug)  like lower(concat('%', cast(:q as string), '%'))
             )
             and (
-                 c.publishedAt < :publishedAt
-              or (c.publishedAt = :publishedAt and c.courseId < :lastId)
-              or c.publishedAt is null
+              (:publishedAt is not null and (
+                c.publishedAt < :publishedAt
+                or (c.publishedAt = :publishedAt and c.courseId < :lastId)
+                or c.publishedAt is null
+              ))
+              or (:publishedAt is null and (
+                c.publishedAt is null and c.courseId < :lastId
+              ))
             )
           order by
-              case when c.publishedAt is null then 1 else 0 end,
+              case when c.publishedAt is null then 1 else 0 end asc,
               c.publishedAt desc,
-              c.createdAt desc
+              c.courseId desc
       """)
   Page<CourseCardResponse> searchPublishedCourseCardsAfterCursor(
       @Param("q") String q,

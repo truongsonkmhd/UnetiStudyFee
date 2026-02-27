@@ -22,12 +22,13 @@ public class QuizTemplateDTO {
         String category;
         String thumbnailUrl;
         Double passScore;
-        Integer timeLimitMinutes;
+
         Boolean isActive;
         Integer usageCount;
         Integer totalQuestions;
         String createdBy;
         Long version;
+        Integer maxAttempts;
         Instant createdAt;
         Instant updatedAt;
     }
@@ -45,11 +46,12 @@ public class QuizTemplateDTO {
         String category;
         String thumbnailUrl;
         Double passScore;
-        Integer timeLimitMinutes;
+
         Boolean isActive;
         Integer usageCount;
         String createdBy;
         Long version;
+        Integer maxAttempts;
         List<QuestionTemplateDTO.Response> questions;
         Instant createdAt;
         Instant updatedAt;
@@ -67,7 +69,8 @@ public class QuizTemplateDTO {
         String category;
         String thumbnailUrl;
         Double passScore;
-        Integer timeLimitMinutes;
+
+        Integer maxAttempts;
         List<QuestionTemplateDTO.CreateRequest> questions;
     }
 
@@ -84,7 +87,7 @@ public class QuizTemplateDTO {
         String category;
         String thumbnailUrl;
         Double passScore;
-        Integer timeLimitMinutes;
+        Integer maxAttempts;
         Boolean isActive;
     }
 }
