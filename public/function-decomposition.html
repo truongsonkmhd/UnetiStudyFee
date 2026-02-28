@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sơ Đồ Phân Rã Chức Năng – UnetiStudy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --border: #2a2d3a;
+            --text: #e8eaf0;
+            --muted: #8b8fa8;
+
+            /* Level 0 – root */
+            --l0-bg: linear-gradient(135deg, #6c63ff, #4f46e5);
+            --l0-shadow: 0 0 40px rgba(108, 99, 255, 0.5);
+
+            /* Level 1 – major modules */
+            --c1: #22d3ee;
+            /* Auth */
+            --c2: #f59e0b;
+            /* Course */
+            --c3: #10b981;
+            /* Coding */
+            --c4: #8b5cf6;
+            /* Quiz */
+            --c5: #f43f5e;
+            /* Chat */
+            --c6: #3b82f6;
+            /* AI */
+            --c7: #a78bfa;
+            /* Contest */
+            --c8: #fb923c;
+            /* Admin */
+
+            --l1-radius: 12px;
+            --l2-radius: 8px;
+            --l3-radius: 6px;
+        }
+
+        html,
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ─── TOOLBAR ─────────────────────────────────────────────── */
+        .toolbar {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(26, 29, 39, 0.92);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 8px 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .toolbar h1 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: .5px;
+            margin-right: 12px;
+        }
+
+        .toolbar span {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .btn {
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all .2s;
+        }
+
+        .btn:hover {
+            background: #2d3247;
+            border-color: #4f46e5;
+        }
+
+        /* ─── LEGEND ──────────────────────────────────────────────── */
+        .legend {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            z-index: 100;
+            background: rgba(26, 29, 39, 0.92);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            backdrop-filter: blur(12px);
+        }
+
+        .legend-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        /* ─── CANVAS WRAPPER ──────────────────────────────────────── */
+        #canvas-wrapper {
+            width: 100vw;
+            height: 100vh;
+            cursor: grab;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #canvas-wrapper:active {
+            cursor: grabbing;
+        }
+
+        #canvas {
+            position: absolute;
+            transform-origin: 0 0;
+        }
+
+        /* ─── SVG LINES ───────────────────────────────────────────── */
+        #svg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        .conn {
+            stroke-width: 1.5;
+            fill: none;
+            opacity: .35;
+        }
+
+        /* ─── NODE BASE ───────────────────────────────────────────── */
+        .node {
+            position: absolute;
+            text-align: center;
+            user-select: none;
+            transition: transform .15s, box-shadow .15s;
+        }
+
+        .node:hover {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .node-label {
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .node-sub {
+            font-size: 10px;
+            opacity: .7;
+            margin-top: 3px;
+            font-weight: 400;
+        }
+
+        /* ─── LEVEL 0 – ROOT ──────────────────────────────────────── */
+        .node-l0 {
+            width: 200px;
+            background: var(--l0-bg);
+            border-radius: 16px;
+            padding: 18px 12px;
+            box-shadow: var(--l0-shadow);
+        }
+
+        .node-l0 .node-label {
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .node-l0 .node-sub {
+            font-size: 11px;
+        }
+
+        /* ─── LEVEL 1 – MODULES ───────────────────────────────────── */
+        .node-l1 {
+            width: 160px;
+            border-radius: var(--l1-radius);
+            padding: 12px 8px;
+            color: #fff;
+        }
+
+        .node-l1 .node-label {
+            font-size: 13px;
+        }
+
+        .node-l1 .node-sub {
+            font-size: 9px;
+        }
+
+        /* ─── LEVEL 2 – FEATURES ──────────────────────────────────── */
+        .node-l2 {
+            width: 140px;
+            border-radius: var(--l2-radius);
+            padding: 9px 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+
+        .node-l2 .node-label {
+            font-size: 11px;
+            color: var(--text);
+        }
+
+        /* ─── LEVEL 3 – SUB-FEATURES ──────────────────────────────── */
+        .node-l3 {
+            width: 126px;
+            border-radius: var(--l3-radius);
+            padding: 6px 6px;
+            background: #13151f;
+            border: 1px solid #252839;
+        }
+
+        .node-l3 .node-label {
+            font-size: 10px;
+            color: #c5c8dc;
+            font-weight: 500;
+        }
+
+        /* Badge "future" */
+        .badge-future {
+            display: inline-block;
+            font-size: 8px;
+            font-weight: 700;
+            background: #4f46e5;
+            color: #fff;
+            border-radius: 30px;
+            padding: 1px 6px;
+            margin-top: 3px;
+            letter-spacing: .5px;
+        }
+
+        .badge-ai {
+            background: linear-gradient(90deg, #a855f7, #3b82f6);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+        <h1>📐 Sơ Đồ Phân Rã Chức Năng – UnetiStudy</h1>
+        <button class="btn" onclick="resetView()">⟳ Reset</button>
+        <button class="btn" onclick="zoom(1.2)">＋ Zoom</button>
+        <button class="btn" onclick="zoom(0.8)">－ Zoom</button>
+        <span id="zoom-label">100%</span>
+    </div>
+
+    <!-- CANVAS -->
+    <div id="canvas-wrapper">
+        <svg id="svg-layer"></svg>
+        <div id="canvas"></div>
+    </div>
+
+    <script>
+        const NODES = [
+
+            {
+                id: 'root', label: 'UnetiStudy', sub: 'Hệ thống học tập trực tuyến UNETI',
+                level: 0, x: 1700, y: 30
+            },
+
+            /* ────────── LEVEL 1 ────────────────────────────────────────── */
+            {
+                id: 'auth', label: '1. Xác Thực & Phân Quyền', sub: 'Authentication & Authorization',
+                level: 1, color: '#06b6d4', parent: 'root', x: 60, y: 200
+            },
+            {
+                id: 'course', label: '2. Quản Lý Khóa Học', sub: 'Course Management',
+                level: 1, color: '#06b6d4', parent: 'root', x: 360, y: 200
+            },
+            {
+                id: 'coding', label: '3. Lập Trình ', sub: 'Coding Exercise',
+                level: 1, color: '#06b6d4', parent: 'root', x: 740, y: 200
+            },
+            {
+                id: 'quiz', label: '4. Hệ Thống Quiz', sub: 'Quiz System',
+                level: 1, color: '#06b6d4', parent: 'root', x: 1100, y: 200
+            },
+            {
+                id: 'progress', label: '5. Tiến Độ Học Tập', sub: 'Learning Progress',
+                level: 1, color: '#06b6d4', parent: 'root', x: 1420, y: 200
+            },
+            {
+                id: 'contest', label: '6. Thi Đấu / Bài kiểm tra', sub: 'Contest & Leaderboard',
+                level: 1, color: '#06b6d4', parent: 'root', x: 1720, y: 200
+            },
+            {
+                id: 'chat', label: '7. Nhắn Tin', sub: 'Chat 1-1 & Nhóm',
+                level: 1, color: '#06b6d4', parent: 'root', x: 2060, y: 200, future: true
+            },
+            {
+                id: 'ai', label: '8. Phân Tích AI', sub: 'At-Risk Prediction',
+                level: 1, color: '#06b6d4', parent: 'root', x: 2360, y: 200, future: true
+            },
+            {
+                id: 'admin', label: '9. Quản Trị Hệ Thống', sub: 'Admin & Approval',
+                level: 1, color: '#06b6d4', parent: 'root', x: 2680, y: 200
+            },
+
+            /* ────────── LEVEL 2 : AUTH ──────────────────────────────────── */
+               { id: 'auth-login', label: 'Đăng Nhập', level: 2, color: 'var(--c1)', parent: 'auth', x: 20, y: 390 },
+            { id: 'auth-register', label: 'Đăng Ký', level: 2, color: 'var(--c1)', parent: 'auth', x: 170, y: 390 },
+            { id: 'auth-oauth', label: 'OAuth2 Google', level: 2, color: 'var(--c1)', parent: 'auth', x: 20, y: 480 },
+            { id: 'auth-jwt', label: 'JWT Token', level: 2, color: 'var(--c1)', parent: 'auth', x: 170, y: 480 },
+            { id: 'auth-role', label: 'Quản Lý Phân Quyền', level: 2, color: 'var(--c1)', parent: 'auth', x: 90, y: 570 },
+
+            /* ────────── LEVEL 2 : COURSE ────────────────────────────────── */
+            { id: 'c-create', label: 'Tạo Khóa Học', level: 2, color: 'var(--c2)', parent: 'course', x: 280, y: 390 },
+            { id: 'c-module', label: 'Quản Lý Module', level: 2, color: 'var(--c2)', parent: 'course', x: 430, y: 390 },
+            { id: 'c-lesson', label: 'Quản Lý Bài Học', level: 2, color: 'var(--c2)', parent: 'course', x: 280, y: 480 },
+            { id: 'c-enroll', label: 'Đăng Ký Học', level: 2, color: 'var(--c2)', parent: 'course', x: 430, y: 480 },
+            { id: 'c-catalog', label: 'Duyệt & Tìm Kiếm', level: 2, color: 'var(--c2)', parent: 'course', x: 355, y: 570 },
+
+            /* ────────── LEVEL 2 : CODING ───────────────────────────────── */
+            { id: 'cod-tmpl', label: 'Template Bài Tập', level: 2, color: 'var(--c3)', parent: 'coding', x: 640, y: 390 },
+            { id: 'cod-judge', label: 'Chấm Tự Động (Judge)', level: 2, color: 'var(--c3)', parent: 'coding', x: 790, y: 390 },
+            { id: 'cod-submit', label: 'Nộp Bài', level: 2, color: 'var(--c3)', parent: 'coding', x: 640, y: 480 },
+            { id: 'cod-result', label: 'Kết Quả & Verdict', level: 2, color: 'var(--c3)', parent: 'coding', x: 790, y: 480 },
+            { id: 'cod-history', label: 'Lịch Sử Nộp Bài', level: 2, color: 'var(--c3)', parent: 'coding', x: 715, y: 570 },
+
+            /* ────────── LEVEL 2 : QUIZ ─────────────────────────────────── */
+            { id: 'q-tmpl', label: 'Template Quiz', level: 2, color: 'var(--c4)', parent: 'quiz', x: 1000, y: 390 },
+            { id: 'q-play', label: 'Làm Quiz', level: 2, color: 'var(--c4)', parent: 'quiz', x: 1150, y: 390 },
+            { id: 'q-result', label: 'Kết Quả & Điểm', level: 2, color: 'var(--c4)', parent: 'quiz', x: 1000, y: 480 },
+            { id: 'q-attempt', label: 'Lịch Sử Lần Làm', level: 2, color: 'var(--c4)', parent: 'quiz', x: 1150, y: 480 },
+            { id: 'q-admin', label: 'Quản Trị Quiz', level: 2, color: 'var(--c4)', parent: 'quiz', x: 1075, y: 570 },
+
+            /* ────────── LEVEL 2 : PROGRESS ─────────────────────────────── */
+            { id: 'prg-track', label: 'Tracking Video', level: 2, color: '#06b6d4', parent: 'progress', x: 1340, y: 390 },
+            { id: 'prg-resume', label: 'Auto-Resume', level: 2, color: '#06b6d4', parent: 'progress', x: 1490, y: 390 },
+            { id: 'prg-pct', label: '% Hoàn Thành', level: 2, color: '#06b6d4', parent: 'progress', x: 1340, y: 480 },
+            { id: 'prg-time', label: 'Thời Gian Học', level: 2, color: '#06b6d4', parent: 'progress', x: 1490, y: 480 },
+            { id: 'prg-last', label: 'Bài Học Cuối', level: 2, color: '#06b6d4', parent: 'progress', x: 1415, y: 570 },
+
+            /* ────────── LEVEL 2 : CONTEST ───────────────────────────────── */
+            { id: 'con-create', label: 'Tạo Contest', level: 2, color: 'var(--c7)', parent: 'contest', x: 1640, y: 390 },
+            { id: 'con-class', label: 'Gán Lớp / Lịch', level: 2, color: 'var(--c7)', parent: 'contest', x: 1790, y: 390 },
+            { id: 'con-play', label: 'Thi Theo Lớp', level: 2, color: 'var(--c7)', parent: 'contest', x: 1640, y: 480 },
+            { id: 'con-board', label: 'Bảng Xếp Hạng', level: 2, color: 'var(--c7)', parent: 'contest', x: 1790, y: 480 },
+            { id: 'con-status', label: 'Trạng Thái Contest', level: 2, color: 'var(--c7)', parent: 'contest', x: 1715, y: 570 },
+
+            /* ────────── LEVEL 2 : CHAT (future) ─────────────────────────── */
+            { id: 'chat-direct', label: 'Chat 1-1', level: 2, color: '#06b6d4', parent: 'chat', x: 1980, y: 390, future: true },
+            { id: 'chat-group', label: 'Chat Nhóm', level: 2, color: '#06b6d4', parent: 'chat', x: 2130, y: 390, future: true },
+            { id: 'chat-notif', label: 'Thông Báo Real-time', level: 2, color: '#06b6d4', parent: 'chat', x: 2130, y: 480, future: true },
+                { id: 'chat-history', label: 'Lịch Sử Tin Nhắn', level: 2, color: '#06b6d4', parent: 'chat', x: 1980, y: 480, future: true },
+                { id: 'chat-moderate', label: 'Quản Lý Nội Dung', level: 2, color: '#06b6d4', parent: 'chat', x: 2055, y: 570, future: true },
+            /* ────────── LEVEL 2 : AI (future) ───────────────────────────── */
+            { id: 'ai-feature', label: 'Phân nhóm sinh viên', level: 2, color: '#06b6d4', parent: 'ai', x: 2280, y: 390, future: true, ai: true },
+            { id: 'ai-model', label: 'Mô Hình Dự Đoán', level: 2, color: '#06b6d4', parent: 'ai', x: 2440, y: 390, future: true, ai: true },
+            { id: 'ai-dash', label: 'Quản Lý Kết Quả', level: 2, color: '#06b6d4', parent: 'ai', x: 2280, y: 480, future: true, ai: true },
+            { id: 'ai-alert', label: 'Cảnh Báo Nguy Cơ Trượt Môn', level: 2, color: '#06b6d4', parent: 'ai', x: 2360, y: 570, future: true, ai: true },
+
+            /* ────────── LEVEL 2 : ADMIN ─────────────────────────────────── */
+            { id: 'adm-user', label: 'Quản Lý Người Dùng', level: 2, color: '#06b6d4', parent: 'admin', x: 2580, y: 390 },
+            { id: 'adm-approve', label: 'Duyệt Khóa Học', level: 2, color: '#06b6d4', parent: 'admin', x: 2730, y: 390 },
+            { id: 'adm-class', label: 'Quản Lý Lớp', level: 2, color: '#06b6d4', parent: 'admin', x: 2580, y: 480 },
+            { id: 'adm-perm', label: 'Phân Quyền Chi Tiết', level: 2, color: '#06b6d4', parent: 'admin', x: 2655, y: 570 },
+        ];
+        const canvas = document.getElementById('canvas');
+        const svg = document.getElementById('svg-layer');
+
+        const nodeMap = {};
+        NODES.forEach(n => { nodeMap[n.id] = n; });
+
+        NODES.forEach(n => {
+            const el = document.createElement('div');
+            el.className = `node node-l${n.level}`;
+            el.id = 'node-' + n.id;
+            el.style.left = n.x + 'px';
+            el.style.top = n.y + 'px';
+
+            if (n.level === 1) {
+                el.style.background = `linear-gradient(135deg, ${n.color}dd, ${n.color}99)`;
+                el.style.boxShadow = `0 4px 20px ${n.color}55`;
+                el.style.border = `1px solid ${n.color}80`;
+            }
+            if (n.level === 2) {
+                el.style.borderTopColor = n.color || 'var(--border)';
+                el.style.borderTopWidth = '3px';
+            }
+
+            let html = `<div class="node-label">${n.label}</div>`;
+            if (n.sub) html += `<div class="node-sub">${n.sub}</div>`;
+
+            el.innerHTML = html;
+            canvas.appendChild(el);
+        });
+
+        function getCenter(n) {
+            const w = n.level === 0 ? 200 : n.level === 1 ? 160 : n.level === 2 ? 140 : 126;
+            const h = n.level === 0 ? 80 : n.level === 1 ? 75 : n.level === 2 ? 60 : 40;
+            return { x: n.x + w / 2, y: n.y + h / 2, bx: n.x + w / 2, by: n.y + h };
+        }
+
+        function drawConn(p, c, color) {
+            const from = getCenter(p);
+            const to = getCenter(c);
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const dy = (to.y - from.by) * 0.5;
+            const d = `M${from.bx} ${from.by} C${from.bx} ${from.by + dy}, ${to.x} ${to.y - dy}, ${to.x} ${to.y}`;
+            path.setAttribute('d', d);
+            path.setAttribute('class', 'conn');
+            path.setAttribute('stroke', color || '#ffffff');
+            svg.appendChild(path);
+        }
+
+        NODES.forEach(n => {
+            if (!n.parent) return;
+            const p = nodeMap[n.parent];
+            let col = '#ffffff';
+            if (n.level === 1) col = '#ffffff';
+            else {
+                // find ancestor l1
+                let ancestor = nodeMap[n.parent];
+                while (ancestor && ancestor.level > 1) ancestor = nodeMap[ancestor.parent];
+                col = ancestor ? ancestor.color : '#ffffff';
+            }
+            // resolve CSS var
+            if (col && col.startsWith('var(')) {
+                const map = {
+                    'var(--c1)': '#22d3ee', 'var(--c2)': '#f59e0b', 'var(--c3)': '#10b981',
+                    'var(--c4)': '#8b5cf6', 'var(--c5)': '#f43f5e', 'var(--c6)': '#3b82f6',
+                    'var(--c7)': '#a78bfa', 'var(--c8)': '#fb923c',
+                };
+                col = map[col] || '#ffffff';
+            }
+            drawConn(p, n, col);
+        });
+
+    
+        let tx = -220, ty = -10, scale = 0.42;
+        const wrapper = document.getElementById('canvas-wrapper');
+        const zoomLabel = document.getElementById('zoom-label');
+
+        function applyTransform() {
+            canvas.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
+            svg.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
+            zoomLabel.textContent = Math.round(scale * 100) + '%';
+        }
+        applyTransform();
+
+        function zoom(factor) {
+            scale = Math.min(3, Math.max(0.15, scale * factor));
+            applyTransform();
+        }
+        function resetView() { tx = -400; ty = -10; scale = 0.32; applyTransform(); }
+
+        /* Drag */
+        let dragging = false, startX, startY;
+        wrapper.addEventListener('mousedown', e => {
+            dragging = true; startX = e.clientX - tx; startY = e.clientY - ty;
+        });
+        window.addEventListener('mousemove', e => {
+            if (!dragging) return;
+            tx = e.clientX - startX; ty = e.clientY - startY;
+            applyTransform();
+        });
+        window.addEventListener('mouseup', () => dragging = false);
+
+        wrapper.addEventListener('wheel', e => {
+            e.preventDefault();
+            const f = e.deltaY < 0 ? 1.1 : 0.9;
+            const rect = wrapper.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const oldScale = scale;
+            scale = Math.min(3, Math.max(0.15, scale * f));
+            tx = mx - (mx - tx) * (scale / oldScale);
+            ty = my - (my - ty) * (scale / oldScale);
+            applyTransform();
+        }, { passive: false });
+
+        /* Touch */
+        let lastDist = null;
+        wrapper.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+                dragging = true;
+                startX = e.touches[0].clientX - tx;
+                startY = e.touches[0].clientY - ty;
+            }
+        });
+        wrapper.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.hypot(dx, dy);
+                if (lastDist) zoom(dist / lastDist);
+                lastDist = dist;
+            } else if (e.touches.length === 1 && dragging) {
+                tx = e.touches[0].clientX - startX;
+                ty = e.touches[0].clientY - startY;
+                applyTransform();
+            }
+        }, { passive: false });
+        wrapper.addEventListener('touchend', () => { dragging = false; lastDist = null; });
+    </script>
+</body>
+
+</html>

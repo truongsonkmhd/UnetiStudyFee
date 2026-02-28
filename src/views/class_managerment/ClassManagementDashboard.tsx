@@ -154,10 +154,10 @@ const ClassManagementDashboard = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      SCHEDULED: { color: 'bg-blue-100 text-blue-700 border-blue-200', icon: Clock },
-      ONGOING: { color: 'bg-green-100 text-green-700 border-green-200', icon: PlayCircle },
-      COMPLETED: { color: 'bg-gray-100 text-gray-700 border-gray-200', icon: CheckCircle },
-      CANCELLED: { color: 'bg-red-100 text-red-700 border-red-200', icon: XCircle }
+      SCHEDULED: { color: 'bg-primary/10 text-primary border-primary/20', icon: Clock },
+      ONGOING: { color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', icon: PlayCircle },
+      COMPLETED: { color: 'bg-muted text-muted-foreground border-border', icon: CheckCircle },
+      CANCELLED: { color: 'bg-destructive/10 text-destructive border-destructive/20', icon: XCircle }
     };
 
     const config = statusConfig[status] || statusConfig.SCHEDULED;
@@ -206,7 +206,7 @@ const ClassManagementDashboard = () => {
         <div className="bg-card rounded-xl shadow-sm border border-border p-4 mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Tìm lớp học bởi tên hoặc mã..."
@@ -219,8 +219,8 @@ const ClassManagementDashboard = () => {
               <button
                 onClick={() => setFilterActive('all')}
                 className={`px-4 py-2.5 rounded-lg font-medium transition-colors ${filterActive === 'all'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
                 All
@@ -228,8 +228,8 @@ const ClassManagementDashboard = () => {
               <button
                 onClick={() => setFilterActive('active')}
                 className={`px-4 py-2.5 rounded-lg font-medium transition-colors ${filterActive === 'active'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
                 Active
@@ -237,8 +237,8 @@ const ClassManagementDashboard = () => {
               <button
                 onClick={() => setFilterActive('inactive')}
                 className={`px-4 py-2.5 rounded-lg font-medium transition-colors ${filterActive === 'inactive'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
                 Inactive

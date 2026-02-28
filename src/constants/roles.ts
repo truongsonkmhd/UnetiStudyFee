@@ -1,6 +1,0 @@
-export const ROLES = {
-  PROJECT_MANAGER: "ROLE_PROJECT_MANAGEMENT",
-  USER: "ROLE_USER",
-  ADMIN: "ROLE_ADMIN",
-  VIEWER: "ROLE_VIEWER",
-} as const;

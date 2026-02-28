@@ -11,4 +11,5 @@ export interface EnrollmentResponse {
     approvedAt?: string;
     requestMessage?: string;
     rejectionReason?: string;
+    slug: string;
 }

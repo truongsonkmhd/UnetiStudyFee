@@ -7,5 +7,5 @@ export interface CacheStats {
     estimatedSize: number;
     hitRate: number;
     missRate: number;
-    averageLoadPenalty: number;
+    averageLoadPenalty: number; 
 }

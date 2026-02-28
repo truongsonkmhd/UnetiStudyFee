@@ -7,11 +7,11 @@ export interface QuizTemplate {
   category: string;
   thumbnailUrl?: string;
   passScore: number;
-  timeLimitMinutes: number;
   isActive: boolean;
   usageCount: number;
   totalQuestions: number;
   version: number;
+  maxAttempts?: number;
 
   questions: QuestionTemplate[];
-  }
+}

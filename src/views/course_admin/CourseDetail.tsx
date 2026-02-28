@@ -135,23 +135,23 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courseId, slug, onBack, onE
   if (loading) {
     return (
       <div className="flex min-h-[500px] flex-col items-center justify-center gap-4">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-        <p className="font-bold text-slate-500 italic uppercase tracking-widest text-[10px]">Đang trích xuất dữ liệu...</p>
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="font-bold text-muted-foreground italic uppercase tracking-widest text-[10px]">Đang trích xuất dữ liệu...</p>
       </div>
     );
   }
 
   if (error || !course) {
     return (
-      <div className="flex min-h-[500px] flex-col items-center justify-center gap-6 rounded-3xl border-2 border-dashed border-slate-200 bg-white p-12 text-center">
-        <div className="rounded-full bg-red-50 p-6 text-red-500">
+      <div className="flex min-h-[500px] flex-col items-center justify-center gap-6 rounded-3xl border-2 border-dashed border-border bg-card p-12 text-center">
+        <div className="rounded-full bg-destructive/10 p-6 text-destructive">
           <Globe className="h-12 w-12" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-2xl font-black text-slate-900">Oops! Có gì đó không đúng</h3>
-          <p className="max-w-md text-slate-500">{error || 'Không tìm thấy thông tin khóa học yêu cầu.'}</p>
+          <h3 className="text-2xl font-black text-foreground">Oops! Có gì đó không đúng</h3>
+          <p className="max-w-md text-muted-foreground">{error || 'Không tìm thấy thông tin khóa học yêu cầu.'}</p>
         </div>
-        <button onClick={onBack} className="rounded-xl bg-slate-900 px-8 py-3 font-bold text-white shadow-lg transition-transform active:scale-95">
+        <button onClick={onBack} className="rounded-xl bg-primary px-8 py-3 font-bold text-primary-foreground shadow-lg transition-transform active:scale-95">
           Trở lại an toàn
         </button>
       </div>
@@ -161,9 +161,9 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courseId, slug, onBack, onE
   return (
     <div className="w-full space-y-10 pb-20 px-4 sm:px-10">
       {/* Detail Header Section */}
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 p-8 shadow-2xl md:p-12">
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-foreground p-8 shadow-2xl md:p-12">
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
 
         <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
           <div className="space-y-6">
@@ -178,26 +178,26 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courseId, slug, onBack, onE
                 <div className="flex gap-2 ml-4">
                   <button
                     onClick={() => setActiveTab('overview')}
-                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${activeTab === 'overview' ? 'bg-white text-slate-900' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${activeTab === 'overview' ? 'bg-background text-foreground' : 'bg-background/10 text-background hover:bg-background/20'}`}
                   >
                     Tổng quan
                   </button>
                   <button
                     onClick={() => setActiveTab('enrollments')}
-                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${activeTab === 'enrollments' ? 'bg-white text-slate-900' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${activeTab === 'enrollments' ? 'bg-background text-foreground' : 'bg-background/10 text-background hover:bg-background/20'}`}
                   >
                     Xét duyệt đăng ký
                   </button>
                 </div>
               </div>
-              <h1 className="text-4xl font-black tracking-tighter text-white md:text-5xl lg:text-6xl">{course.title}</h1>
+              <h1 className="text-4xl font-black tracking-tighter text-background md:text-5xl lg:text-6xl">{course.title}</h1>
             </div>
           </div>
 
           {onEdit && (
             <button
               onClick={() => onEdit(course.courseId)}
-              className="flex items-center gap-2 rounded-2xl bg-white px-6 py-4 font-bold text-slate-900 shadow-xl transition-all hover:bg-blue-50 hover:scale-105 active:scale-95 shrink-0"
+              className="flex items-center gap-2 rounded-2xl bg-background px-6 py-4 font-bold text-foreground shadow-xl transition-all hover:bg-muted hover:scale-105 active:scale-95 shrink-0"
             >
               <Edit3 className="h-5 w-5" />
               Hiệu chỉnh khóa học
@@ -206,18 +206,18 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courseId, slug, onBack, onE
         </div>
 
         {/* Floating Stats Area */}
-        <div className="relative z-10 mt-12 grid grid-cols-2 gap-4 rounded-3xl bg-white/5 p-6 backdrop-blur-sm md:grid-cols-3">
+        <div className="relative z-10 mt-12 grid grid-cols-2 gap-4 rounded-3xl bg-background/5 p-6 backdrop-blur-sm md:grid-cols-3">
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Mô-đun</span>
-            <span className="text-2xl font-black text-white">{course.modules.length} <span className="text-xs font-normal text-slate-400">Chương</span></span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Mô-đun</span>
+            <span className="text-2xl font-black text-background">{course.modules.length} <span className="text-xs font-normal text-background/60">Chương</span></span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Chương trình học</span>
-            <span className="text-2xl font-black text-white">{calculateTotalLessons()} <span className="text-xs font-normal text-slate-400">Buổi học</span></span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Chương trình học</span>
+            <span className="text-2xl font-black text-background">{calculateTotalLessons()} <span className="text-xs font-normal text-background/60">Buổi học</span></span>
           </div>
           <div className="col-span-2 flex flex-col gap-1 md:col-span-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Nhận diện</span>
-            <span className="truncate text-lg font-black text-white/70 italic">/{course.slug}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Nhận diện</span>
+            <span className="truncate text-lg font-black text-background/70 italic">/{course.slug}</span>
           </div>
         </div>
       </div>
@@ -229,11 +229,11 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courseId, slug, onBack, onE
           <div className="lg:col-span-8 space-y-10">
             {course.videoUrl && (
               <section className="space-y-4">
-                <h2 className="flex items-center gap-3 text-xl font-black tracking-tight text-slate-900">
-                  <PlayCircle className="h-6 w-6 text-blue-600" />
+                <h2 className="flex items-center gap-3 text-xl font-black tracking-tight text-foreground">
+                  <PlayCircle className="h-6 w-6 text-primary" />
                   Video giới thiệu
                 </h2>
-                <div className="aspect-video overflow-hidden rounded-[2rem] border-4 border-white bg-slate-900 shadow-2xl ring-1 ring-slate-200">
+                <div className="aspect-video overflow-hidden rounded-[2rem] border-4 border-card bg-foreground shadow-2xl ring-1 ring-border">
                   <video controls src={course.videoUrl} className="h-full w-full object-contain">
                     Your browser does not support the video tag.
                   </video>
@@ -242,11 +242,11 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courseId, slug, onBack, onE
             )}
 
             <section className="space-y-4">
-              <h2 className="flex items-center gap-3 text-xl font-black tracking-tight text-slate-900 italic">
-                <BookOpen className="h-6 w-6 text-indigo-600" />
+              <h2 className="flex items-center gap-3 text-xl font-black tracking-tight text-foreground italic">
+                <BookOpen className="h-6 w-6 text-primary" />
                 Mô tả khóa học
               </h2>
-              <div className="prose prose-slate max-w-none rounded-[2rem] bg-white p-8 border border-slate-100 shadow-sm leading-relaxed text-slate-600">
+              <div className="prose prose-slate dark:prose-invert max-w-none rounded-[2rem] bg-card p-8 border border-border shadow-sm leading-relaxed text-muted-foreground">
                 {course.description || 'Chưa cung cấp thông tin mô tả chi tiết cho khóa học này.'}
               </div>
             </section>
@@ -255,8 +255,8 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courseId, slug, onBack, onE
           {/* Right Column: Syllabus/Timeline */}
           <div className="lg:col-span-4 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-black tracking-tight text-slate-900 uppercase tracking-wider text-sm">Lộ trình học tập</h2>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-500">{calculateTotalLessons()} Bài học</span>
+              <h2 className="text-xl font-black tracking-tight text-foreground uppercase tracking-wider text-sm">Lộ trình học tập</h2>
+              <span className="rounded-full bg-muted px-3 py-1 text-[10px] font-bold text-muted-foreground">{calculateTotalLessons()} Bài học</span>
             </div>
 
             <div className="space-y-4">
@@ -275,34 +275,34 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courseId, slug, onBack, onE
                         className="flex w-full items-center justify-between p-5 text-left transition-colors"
                       >
                         <div className="flex items-center gap-4">
-                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-black text-xs transition-colors ${isExpanded ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-black text-xs transition-colors ${isExpanded ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                             {index + 1}
                           </div>
                           <div className="space-y-0.5">
-                            <h3 className={`font-bold transition-colors ${isExpanded ? 'text-blue-600' : 'text-slate-900'}`}>{module.title}</h3>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{module.lessons.length} Bài giảng</p>
+                            <h3 className={`font-bold transition-colors ${isExpanded ? 'text-primary' : 'text-foreground'}`}>{module.title}</h3>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">{module.lessons.length} Bài giảng</p>
                           </div>
                         </div>
-                        {isExpanded ? <ChevronUp className="h-5 w-5 text-blue-500" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
+                        {isExpanded ? <ChevronUp className="h-5 w-5 text-primary" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
                       </button>
 
                       {isExpanded && (
-                        <div className="border-t border-blue-50 p-2 animate-in slide-in-from-top-2 duration-300">
+                        <div className="border-t border-border p-2 animate-in slide-in-from-top-2 duration-300">
                           {module.lessons.length === 0 ? (
-                            <p className="p-4 text-center text-xs font-semibold text-slate-400 italic">Dữ liệu trống</p>
+                            <p className="p-4 text-center text-xs font-semibold text-muted-foreground italic">Dữ liệu trống</p>
                           ) : (
                             <div className="space-y-1">
                               {module.lessons.map((lesson, lIdx) => (
-                                <div key={lesson.lessonId} className="group flex items-center justify-between rounded-xl px-4 py-3 transition-all hover:bg-blue-50/50">
+                                <div key={lesson.lessonId} className="group flex items-center justify-between rounded-xl px-4 py-3 transition-all hover:bg-primary/5">
                                   <div className="flex items-center gap-3">
-                                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-white border border-slate-100 shadow-sm text-[10px] font-bold text-slate-400 group-hover:text-blue-500">
+                                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-card border border-border shadow-sm text-[10px] font-bold text-muted-foreground group-hover:text-primary">
                                       {lIdx + 1}
                                     </div>
                                     <div className="shrink-0">{getLessonTypeIcon(lesson.lessonType)}</div>
-                                    <span className="text-sm font-semibold text-slate-700">{lesson.title}</span>
+                                    <span className="text-sm font-semibold text-foreground">{lesson.title}</span>
                                   </div>
                                   {lesson.isPreview && (
-                                    <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-700">Free</span>
+                                    <span className="rounded-md bg-accent/20 px-2 py-0.5 text-[9px] font-black uppercase text-accent">Free</span>
                                   )}
                                 </div>
                               ))}
@@ -319,10 +319,10 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courseId, slug, onBack, onE
         </div>
       ) : (
         /* Enrollment Tab Content */
-        <div className="rounded-[2rem] bg-white p-8 border border-slate-100 shadow-sm">
+        <div className="rounded-[2rem] bg-card p-8 border border-border shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <h2 className="text-xl font-black flex items-center gap-2">
-              <UserCheck className="text-blue-600" />
+              <UserCheck className="text-primary" />
               Danh sách chờ duyệt
             </h2>
             <div className="relative">
@@ -331,20 +331,20 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courseId, slug, onBack, onE
                 placeholder="Tìm kiếm tên, email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64 text-sm font-medium"
+                className="pl-10 pr-4 py-2 border border-border bg-background rounded-xl focus:outline-none focus:ring-2 focus:ring-primary w-full sm:w-64 text-sm font-medium text-foreground"
               />
-              <Search className="absolute left-3 top-2.5 text-slate-400 h-4 w-4" />
+              <Search className="absolute left-3 top-2.5 text-muted-foreground h-4 w-4" />
             </div>
           </div>
 
           {enrollmentLoading ? (
-            <div className="text-center py-10">Đang tải...</div>
+            <div className="text-center py-10 text-muted-foreground">Đang tải...</div>
           ) : enrollments.length === 0 ? (
-            <div className="text-center py-10 text-slate-500 italic">Không có yêu cầu đăng ký nào đang chờ.</div>
+            <div className="text-center py-10 text-muted-foreground italic font-medium">Không có yêu cầu đăng ký nào đang chờ.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="text-xs text-slate-500 uppercase bg-slate-50/50">
+                <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
                   <tr>
                     <th className="px-6 py-3 rounded-l-lg">Học viên</th>
                     <th className="px-6 py-3">Ngày yêu cầu</th>
@@ -352,13 +352,13 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courseId, slug, onBack, onE
                     <th className="px-6 py-3 rounded-r-lg text-right">Thao tác</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border">
                   {enrollments.map((enroll) => (
-                    <tr key={enroll.enrollmentId} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-slate-900">
+                    <tr key={enroll.enrollmentId} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4 font-bold text-foreground">
                         {enroll.studentName || "Unknown"}
                       </td>
-                      <td className="px-6 py-4 text-slate-500">
+                      <td className="px-6 py-4 text-muted-foreground">
                         {new Date(enroll.requestedAt).toLocaleDateString('vi-VN')}
                       </td>
                       <td className="px-6 py-4">

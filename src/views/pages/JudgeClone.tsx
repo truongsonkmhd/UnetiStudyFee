@@ -42,10 +42,10 @@ const JudgeClone: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-full bg-zinc-950 text-zinc-100">
+    <div className="flex h-screen w-full bg-background text-foreground">
       {/* Left Panel: Question */}
       {!showConsole && (
-        <div className="w-1/2 border-r border-zinc-800 p-4 overflow-y-auto">
+        <div className="w-1/2 border-r border-border p-4 overflow-y-auto">
           <h2 className="text-lg font-bold mb-2">Contains Duplicate</h2>
           <p className="text-sm mb-4">
             Given an integer array <code>nums</code>, return <code>true</code>{" "}
@@ -54,13 +54,13 @@ const JudgeClone: React.FC = () => {
           </p>
           <div className="mb-4">
             <p className="font-semibold">Example 1:</p>
-            <pre className="bg-zinc-900 p-2 rounded">
+            <pre className="bg-muted p-2 rounded">
               Input: [1,2,3,3]\nOutput: true
             </pre>
           </div>
           <div className="mb-4">
             <p className="font-semibold">Example 2:</p>
-            <pre className="bg-zinc-900 p-2 rounded">
+            <pre className="bg-muted p-2 rounded">
               Input: [1,2,3,4]\nOutput: false
             </pre>
           </div>
@@ -70,7 +70,7 @@ const JudgeClone: React.FC = () => {
       {/* Right Panel: Code + Testcases */}
       <div className="flex-1 flex flex-col">
         {/* Language + Editor */}
-        <div className="flex items-center justify-between border-b border-zinc-800 p-2">
+        <div className="flex items-center justify-between border-b border-border p-2">
           <Select value={language} onValueChange={setLanguage}>
             <SelectTrigger className="w-40">
               <SelectValue />
@@ -98,12 +98,12 @@ const JudgeClone: React.FC = () => {
             <Textarea
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="flex-1 font-mono bg-zinc-900 border-0 rounded-none"
+              className="flex-1 font-mono bg-muted/30 border-0 rounded-none focus-visible:ring-0"
               placeholder={`Write your ${language} code here...`}
             />
 
             {/* Testcases */}
-            <div className="border-t border-zinc-800 p-2">
+            <div className="border-t border-border p-2">
               <Tabs defaultValue={`case-${activeCase}`}>
                 <TabsList>
                   {testCases.map((_, idx) => (
@@ -131,7 +131,7 @@ const JudgeClone: React.FC = () => {
                         updated[idx] = e.target.value;
                         setTestCases(updated);
                       }}
-                      className="font-mono bg-zinc-900 border mt-2"
+                      className="font-mono bg-muted/50 border mt-2 border-border"
                     />
                   </TabsContent>
                 ))}
@@ -143,7 +143,7 @@ const JudgeClone: React.FC = () => {
         {/* Console */}
         {showConsole && (
           <div className="flex-1 flex flex-col">
-            <div className="flex items-center justify-between border-b border-zinc-800 p-2">
+            <div className="flex items-center justify-between border-b border-border p-2">
               <h3 className="font-semibold">Console</h3>
               <Button
                 size="sm"

@@ -14,6 +14,7 @@ import ProfilePage from "@/views/profile/ProfilePage";
 import UnauthorizedPage from "@/components/UnauthorizedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { RoleEnum } from "@/components/enum/RoleEnum";
+import { PermissionEnum } from "@/components/enum/PermissionEnum";
 import ClassManagementDashboard from "@/views/class_managerment/ClassManagementDashboard";
 import QuizTemplateManager from "@/views/quiz_storage/QuizTemplateManager";
 import WebSocketSubmission from "@/views/submission/WebSocketSubmission";
@@ -28,6 +29,8 @@ import CourseManager from "@/views/course_admin/CourseManager";
 import EnrollmentManager from "@/views/teacher/enrollment-manager/EnrollmentManager";
 import MyEnrollments from "@/views/student/my-learning/MyEnrollments";
 import CourseDetail from "@/views/student/course-detail/CourseDetail";
+import CourseLearn from "@/views/student/course-learn/CourseLearn";
+import PostCreate from "@/views/teacher/post/PostCreate";
 
 const queryClient = new QueryClient();
 
@@ -122,7 +125,6 @@ const App = () => (
                 ]}
               >
                 <CourseManager />
-
               </ProtectedRoute>
             }
           />
@@ -157,7 +159,23 @@ const App = () => (
             }
           />
 
+          <Route
+            path={PATHS.CREATE_POST}
+            element={
+              <ProtectedRoute
+                requiredRoles={[
+                  RoleEnum.ROLE_ADMIN,
+                  RoleEnum.ROLE_SYS_ADMIN,
+                  RoleEnum.ROLE_TEACHER,
+                ]}
+              >
+                <PostCreate />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path={PATHS.COURSE_DETAIL} element={<CourseDetail />} />
+          <Route path={PATHS.COURSE_LEARN} element={<CourseLearn />} />
 
 
           <Route element={<AppLayout />}>
@@ -247,11 +265,7 @@ const App = () => (
               path={PATHS.MANAGER_PERSONS}
               element={
                 <ProtectedRoute
-                  requiredRoles={[
-                    RoleEnum.ROLE_ADMIN,
-                    RoleEnum.ROLE_SYS_ADMIN,
-                    RoleEnum.ROLE_TEACHER,
-                  ]}
+                  requiredPermissions={[PermissionEnum.USER_MANAGE]}
                 >
 
                   <ContestManager />
@@ -278,7 +292,7 @@ const App = () => (
               path={PATHS.MANAGER_CACHE}
               element={
                 <ProtectedRoute
-                  requiredRoles={[RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN]}
+                  requiredPermissions={[PermissionEnum.CACHE_MANAGE]}
                 >
                   <CacheManagementPage />
                 </ProtectedRoute>
@@ -288,11 +302,7 @@ const App = () => (
               path={PATHS.MANAGER_INTEREST}
               element={
                 <ProtectedRoute
-                  requiredRoles={[
-                    RoleEnum.ROLE_ADMIN,
-                    RoleEnum.ROLE_SYS_ADMIN,
-                    RoleEnum.ROLE_TEACHER,
-                  ]}
+                  requiredPermissions={[PermissionEnum.SYSTEM_CONFIG]}
                 >
 
                   <WebSocketSubmission />
@@ -335,7 +345,6 @@ const App = () => (
 
           </Route>
 
-          {/* catch-all */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>

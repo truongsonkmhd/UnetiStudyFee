@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Search, X, Loader2, CheckSquare, Square, Trophy, Calendar } from 'lucide-react';
 import codingExerciseTemplateService from '@/services/codingExerciseTemplateService';
 import quizTemplateService from '@/services/quizTemplateService';
+import { TemplateSelection } from '@/model/course-admin/TemplateSelection';
 import { toast } from 'sonner';
 
 interface TemplateItem {
@@ -15,7 +16,7 @@ interface TemplateItem {
 interface TemplateSelectorProps {
     type: 'CODE' | 'QUIZ';
     selectedIds: string[];
-    onSelect: (ids: string[]) => void;
+    onSelect: (ids: string[], selections: TemplateSelection[]) => void;
     onClose: () => void;
 }
 
@@ -66,36 +67,43 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ type, selectedIds, 
     };
 
     const handleConfirm = () => {
-        onSelect(tempSelected);
+        const selections: TemplateSelection[] = tempSelected.map(id => {
+            const template = templates.find(t => t.id === id);
+            return {
+                id,
+                title: template?.title || 'Unknown'
+            };
+        });
+        onSelect(tempSelected, selections);
         onClose();
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="w-full max-w-2xl bg-card rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] border border-border">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="p-6 border-b border-border flex items-center justify-between bg-muted/30">
                     <div>
-                        <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-xl font-black text-foreground tracking-tight">
                             Chọn {type === 'CODE' ? 'Bài tập Lập trình' : 'Kho Trắc nghiệm'}
                         </h3>
-                        <p className="text-xs text-slate-500 font-medium italic">Sử dụng thanh tìm kiếm để lọc nội dung mong muốn.</p>
+                        <p className="text-xs text-muted-foreground font-medium italic">Sử dụng thanh tìm kiếm để lọc nội dung mong muốn.</p>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200 transition-colors">
-                        <X className="h-5 w-5 text-slate-500" />
+                    <button onClick={onClose} className="p-2 rounded-full hover:bg-muted transition-colors">
+                        <X className="h-5 w-5 text-muted-foreground" />
                     </button>
                 </div>
 
                 {/* Search */}
                 <div className="p-6">
                     <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                         <input
                             type="text"
                             placeholder={`Tìm kiếm ${type === 'CODE' ? 'tiêu đề bài tập...' : 'tên trắc nghiệm...'}`}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/5 transition-all transition-all"
+                            className="w-full pl-11 pr-4 py-3 bg-muted/50 border border-border rounded-2xl text-sm font-bold text-foreground focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all"
                         />
                     </div>
                 </div>
@@ -104,32 +112,32 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ type, selectedIds, 
                 <div className="flex-1 overflow-y-auto p-6 pt-0 space-y-3">
                     {loading && templates.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-3">
-                            <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
-                            <span className="text-xs font-black uppercase text-slate-400 tracking-widest italic font-medium">Đang truy xuất dữ liệu...</span>
+                            <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                            <span className="text-xs font-black uppercase text-muted-foreground tracking-widest italic font-medium">Đang truy xuất dữ liệu...</span>
                         </div>
                     ) : templates.length === 0 ? (
-                        <div className="text-center py-20 text-slate-400 italic font-medium">Không tìm thấy nội dung phù hợp.</div>
+                        <div className="text-center py-20 text-muted-foreground italic font-medium">Không tìm thấy nội dung phù hợp.</div>
                     ) : (
                         templates.map((item) => (
                             <div
                                 key={item.id}
                                 onClick={() => toggleSelect(item.id)}
                                 className={`flex items-center gap-4 p-4 rounded-3xl border-2 transition-all cursor-pointer group hover:scale-[1.01] active:scale-[0.99] ${tempSelected.includes(item.id)
-                                        ? 'border-blue-600 bg-blue-50/30'
-                                        : 'border-slate-100 bg-white hover:border-slate-200'
+                                    ? 'border-primary bg-primary/10'
+                                    : 'border-border bg-card hover:border-accent'
                                     }`}
                             >
-                                <div className={`h-6 w-6 rounded-lg flex items-center justify-center transition-colors ${tempSelected.includes(item.id) ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-300 group-hover:bg-slate-200'
+                                <div className={`h-6 w-6 rounded-lg flex items-center justify-center transition-colors ${tempSelected.includes(item.id) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground group-hover:bg-accent'
                                     }`}>
                                     {tempSelected.includes(item.id) ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="font-black text-slate-900 truncate leading-tight group-hover:text-blue-600 transition-colors uppercase tracking-widest text-[10px] sm:text-xs">
+                                    <h4 className="font-black text-foreground truncate leading-tight group-hover:text-primary transition-colors uppercase tracking-widest text-[10px] sm:text-xs">
                                         {item.title}
                                     </h4>
                                     <div className="flex items-center gap-3 mt-1">
                                         {item.category && (
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">
                                                 {item.category}
                                             </span>
                                         )}
@@ -138,8 +146,8 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ type, selectedIds, 
                                             {item.points} pts
                                         </div>
                                         {item.difficulty && (
-                                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${item.difficulty === 'Easy' ? 'bg-emerald-100 text-emerald-700' :
-                                                    item.difficulty === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
+                                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${item.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-500' :
+                                                item.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-500' : 'bg-destructive/10 text-destructive'
                                                 }`}>
                                                 {item.difficulty}
                                             </span>
@@ -152,20 +160,20 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ type, selectedIds, 
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                    <div className="text-xs font-black uppercase tracking-widest text-slate-400">
-                        Đã chọn <span className="text-blue-600 underline underline-offset-4">{tempSelected.length}</span> mục
+                <div className="p-6 border-t border-border bg-muted/30 flex items-center justify-between">
+                    <div className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                        Đã chọn <span className="text-primary underline underline-offset-4">{tempSelected.length}</span> mục
                     </div>
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}
-                            className="px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest text-slate-500 transition-all hover:bg-slate-200"
+                            className="px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
                         >
                             Hủy
                         </button>
                         <button
                             onClick={handleConfirm}
-                            className="px-8 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-black uppercase tracking-widest transition-all hover:bg-blue-600 hover:scale-105 active:scale-95 shadow-xl shadow-slate-200"
+                            className="px-8 py-2.5 bg-foreground text-background rounded-xl text-sm font-black uppercase tracking-widest transition-all hover:bg-primary hover:text-primary-foreground hover:scale-105 active:scale-95 shadow-xl shadow-foreground/5"
                         >
                             Xác nhận
                         </button>

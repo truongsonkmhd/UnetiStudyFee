@@ -1,7 +1,3 @@
-// ============================================
-// 📁 services/quizTemplateService.ts
-// ============================================
-
 import apiService from "@/apis/apiService";
 import { PageResponse } from "@/model/common/PageResponse";
 import { CreateQuizTemplateRequest } from "@/model/quiz-template/CreateQuizTemplateRequest";
@@ -19,8 +15,7 @@ interface SearchTemplateParams {
 }
 
 const quizTemplateService = {
-  // ===== Template CRUD =====
-  
+
   /**
    * Create a new quiz template
    */
@@ -107,7 +102,7 @@ const quizTemplateService = {
         ['Description', template.description],
         ['Category', template.category],
         ['Pass Score', template.passScore.toString()],
-        ['Time Limit (minutes)', template.timeLimitMinutes.toString()],
+        ['Max Attempts', (template.maxAttempts || 3).toString()],
         [],
         ['Questions'],
         [
@@ -172,7 +167,7 @@ const quizTemplateService = {
       const description = rows[2]?.[1] || '';
       const category = rows[3]?.[1] || 'General';
       const passScore = parseFloat(rows[4]?.[1] || '70');
-      const timeLimitMinutes = parseInt(rows[5]?.[1] || '30');
+      const maxAttempts = parseInt(rows[5]?.[1] || '3');
 
       const questions: any[] = [];
 
@@ -209,7 +204,7 @@ const quizTemplateService = {
         description,
         category,
         passScore,
-        timeLimitMinutes,
+        maxAttempts,
         questions,
       };
 
@@ -230,7 +225,7 @@ const quizTemplateService = {
       ['Description', 'This is a sample template for importing'],
       ['Category', 'Mathematics'],
       ['Pass Score', '70'],
-      ['Time Limit (minutes)', '30'],
+      ['Max Attempts', '3'],
       [],
       ['Questions'],
       [

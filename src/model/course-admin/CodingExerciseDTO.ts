@@ -2,6 +2,7 @@ import { Difficulty } from "../coding-template/Difficulty";
 
 export interface CodingExerciseDTO {
   contestLessonId: string | null;
+  templateId?: string;
   title: string;
   description: string;
   programmingLanguage: string;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   Plus,
   Search,
@@ -21,12 +21,32 @@ import {
   Loader2,
   CheckCircle2,
   FileQuestion,
-  Target
+  Target,
+  RotateCcw
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { QuizTemplateDetail } from '@/model/quiz-template/QuizTemplateDetail';
 import quizTemplateService from '@/services/quizTemplateService';
 import QuizEditorModal from './QuizEditorModal';
 import { toast } from 'sonner';
+import { useMotionValue, useTransform, animate } from 'framer-motion';
+
+const Counter: React.FC<{ value: number }> = ({ value }) => {
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (latest) => Math.round(latest));
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    const controls = animate(count, value, { duration: 1.5, ease: "easeOut" });
+    const unsubscribe = rounded.on("change", (latest) => setDisplayValue(latest));
+    return () => {
+      controls.stop();
+      unsubscribe();
+    };
+  }, [value, count, rounded]);
+
+  return <span>{displayValue}</span>;
+};
 
 const QuizTemplateManager: React.FC = () => {
   const [templates, setTemplates] = useState<QuizTemplateDetail[]>([]);
@@ -51,17 +71,30 @@ const QuizTemplateManager: React.FC = () => {
 
   const observerTarget = useRef<HTMLDivElement>(null);
   const isFetchingCategories = useRef(false);
+  const loadingRef = useRef(false);
+  const loadingMoreRef = useRef(false);
+
+  const stats = useMemo(() => {
+    return {
+      total: totalElements,
+      active: templates.filter(t => t.isActive).length,
+      questions: templates.reduce((acc, curr) => acc + (curr.totalQuestions || 0), 0),
+      usage: templates.reduce((acc, curr) => acc + (curr.usageCount || 0), 0)
+    };
+  }, [templates, totalElements]);
 
   // Load Data
   const loadTemplates = useCallback(async (reset = false, pageOverride?: number) => {
-    // Sync with CodingExerciseLibrary: Guard against double calls
-    if (loading || (loadingMore && !reset)) return;
+    // Guard against double calls using refs
+    if (loadingRef.current || (loadingMoreRef.current && !reset)) return;
 
     if (reset) {
       setLoading(true);
+      loadingRef.current = true;
       setCurrentPage(0);
     } else {
       setLoadingMore(true);
+      loadingMoreRef.current = true;
     }
     setError(null);
 
@@ -73,17 +106,13 @@ const QuizTemplateManager: React.FC = () => {
       if (showActiveOnly !== null) params.isActive = showActiveOnly;
 
       const data = await quizTemplateService.searchTemplates(params);
-      console.log("SONNNNNNNNNNNNNNNNNNKKKKKKKKKKKKKKKKKKKKK" + data);
 
-      if (reset) {
-        setTemplates(data.items);
-      } else {
-        setTemplates(prev => {
-          const existingIds = new Set(prev.map(t => t.templateId));
-          const newItems = data.items.filter(item => !existingIds.has(item.templateId));
-          return [...prev, ...newItems];
-        });
-      }
+      setTemplates(prev => {
+        if (reset) return data.items;
+        const existingIds = new Set(prev.map(t => t.templateId));
+        const newItems = data.items.filter(item => !existingIds.has(item.templateId));
+        return [...prev, ...newItems];
+      });
 
       setTotalElements(data.totalElements);
       setHasMore(data.hasNext);
@@ -93,9 +122,10 @@ const QuizTemplateManager: React.FC = () => {
     } finally {
       setLoading(false);
       setLoadingMore(false);
+      loadingRef.current = false;
+      loadingMoreRef.current = false;
     }
   }, [searchTerm, selectedCategory, showActiveOnly, currentPage]);
-
   const loadMore = useCallback(() => {
     if (!loadingMore && hasMore) {
       const nextPage = currentPage + 1;
@@ -108,12 +138,25 @@ const QuizTemplateManager: React.FC = () => {
     loadCategories();
   }, []);
 
+  const isFirstRun = useRef(true);
+
+  // Search and Filter Reset Effect
   useEffect(() => {
+    if (isFirstRun.current) {
+      isFirstRun.current = false;
+      setCurrentPage(0);
+      loadTemplates(true, 0);
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
-      loadTemplates(true);
+      // Khi filter thay đổi, reset về trang 0 và reload  
+      setCurrentPage(0);
+      loadTemplates(true, 0);
     }, 400);
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, selectedCategory, showActiveOnly, loadTemplates]);
+
+  }, [searchTerm, selectedCategory, showActiveOnly]); // Không phụ thuộc vào loadTemplates để tránh loop
 
   // Infinite scroll observer
   useEffect(() => {
@@ -227,24 +270,37 @@ const QuizTemplateManager: React.FC = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        >
           {[
-            { label: 'Tổng số mẫu', value: totalElements, icon: FileQuestion, color: 'text-blue-600', bg: 'bg-blue-50' },
-            { label: 'Đang hoạt động', value: templates.filter(t => t.isActive).length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-            { label: 'Tổng câu hỏi', value: templates.reduce((acc, curr) => acc + (curr.totalQuestions || 0), 0), icon: Database, color: 'text-purple-600', bg: 'bg-purple-50' },
-            { label: 'Tổng lượt dùng', value: templates.reduce((acc, curr) => acc + (curr.usageCount || 0), 0), icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
+            { label: 'Tổng số mẫu', value: stats.total, icon: FileQuestion, color: 'text-blue-600', bg: 'bg-blue-50' },
+            { label: 'Đang hoạt động (tải)', value: stats.active, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+            { label: 'Tổng câu hỏi (tải)', value: stats.questions, icon: Database, color: 'text-purple-600', bg: 'bg-purple-50' },
+            { label: 'Tổng lượt dùng', value: stats.usage, icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
           ].map((stat, i) => (
-            <div key={i} className="bg-card p-5 rounded-2xl border border-border shadow-sm flex items-center gap-4">
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.1 }}
+              className="bg-card p-5 rounded-2xl border border-border shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow"
+            >
               <div className={`${stat.bg} p-3 rounded-xl`}>
                 <stat.icon size={24} className={stat.color} />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {stat.label === 'Tổng lượt dùng' ? <Counter value={stat.value} /> : stat.value}
+                </p>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Filters Section */}
         <div className="bg-card p-6 rounded-2xl border border-border shadow-sm space-y-4">
@@ -286,112 +342,137 @@ const QuizTemplateManager: React.FC = () => {
         </div>
 
         {/* Content Section */}
-        {loading && templates.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 size={48} className="text-indigo-600 animate-spin" />
-            <p className="mt-4 text-slate-500 font-medium tracking-wide">Đang tải dữ liệu...</p>
-          </div>
-        ) : templates.length === 0 ? (
-          <div className="bg-card border border-dashed border-border rounded-3xl p-12 text-center space-y-4">
-            <div className="bg-background w-20 h-20 rounded-full flex items-center justify-center mx-auto">
-              <FileQuestion size={40} className="text-muted-foreground/50" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-foreground">Không tìm thấy mẫu quiz nào</h3>
-              <p className="text-muted-foreground max-w-sm mx-auto">Thử thay đổi bộ lọc hoặc tạo một mẫu mới để bắt đầu.</p>
-            </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-colors"
+        <AnimatePresence mode="wait">
+          {loading && templates.length === 0 ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-20"
             >
-              Tạo mẫu quiz đầu tiên
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-            {templates.map((template) => (
-              <div
-                key={template.templateId}
-                className="group bg-card rounded-3xl border border-border shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300 overflow-hidden flex flex-col"
-              >
-                <div className="p-6 flex-1 space-y-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex gap-2">
-                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${template.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
-                        }`}>
-                        {template.isActive ? 'Hoạt động' : 'Tạm dừng'}
-                      </span>
-                      <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                        {template.category}
-                      </span>
-                    </div>
-                    <div className={`w-3 h-3 rounded-full ${template.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-muted'}`} />
-                  </div>
-
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 leading-tight">
-                      {template.templateName}
-                    </h3>
-                    <p className="text-muted-foreground text-xs line-clamp-2 min-h-[32px]">
-                      {template.description || "Không có mô tả"}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3 pt-2">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
-                      <Zap size={14} className="text-amber-500" />
-                      {template.usageCount || 0} lượt dùng
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
-                      <BookOpen size={14} className="text-indigo-500" />
-                      {template.totalQuestions || 0} câu hỏi
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
-                      <Clock size={14} className="text-blue-500" />
-                      {template.timeLimitMinutes} phút
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
-                      <Target size={14} className="text-rose-500" />
-                      {template.passScore}% đạt
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-muted/30 border-t border-border grid grid-cols-4 gap-2">
-                  <button
-                    onClick={() => handleEditTemplate(template.templateId)}
-                    className="flex items-center justify-center gap-2 py-2 px-3 bg-card border border-border text-foreground rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
-                    title="Chỉnh sửa"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={() => openDuplicateModal(template)}
-                    className="flex items-center justify-center gap-2 py-2 px-3 bg-card border border-border text-primary rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
-                    title="Nhân bản"
-                  >
-                    <Copy size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleToggleStatus(template.templateId, template.isActive)}
-                    className={`flex items-center justify-center gap-2 py-2 px-3 border rounded-xl text-sm font-semibold transition-colors ${template.isActive ? 'bg-card border-amber-500/20 text-amber-500 hover:bg-amber-500/10' : 'bg-card border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10'
-                      }`}
-                    title={template.isActive ? 'Tạm dừng' : 'Kích hoạt'}
-                  >
-                    {template.isActive ? <XCircle size={16} /> : <CheckCircle size={16} />}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(template.templateId)}
-                    className="flex items-center justify-center gap-2 py-2 px-3 bg-card border border-destructive/20 text-destructive rounded-xl text-sm font-semibold hover:bg-destructive/10 transition-colors"
-                    title="Xóa"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+              <Loader2 size={48} className="text-indigo-600 animate-spin" />
+              <p className="mt-4 text-slate-500 font-medium tracking-wide">Đang tải dữ liệu...</p>
+            </motion.div>
+          ) : templates.length === 0 ? (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-card border border-dashed border-border rounded-3xl p-12 text-center space-y-4"
+            >
+              <div className="bg-background w-20 h-20 rounded-full flex items-center justify-center mx-auto">
+                <FileQuestion size={40} className="text-muted-foreground/50" />
               </div>
-            ))}
-          </div>
-        )}
+              <div>
+                <h3 className="text-xl font-bold text-foreground">Không tìm thấy mẫu quiz nào</h3>
+                <p className="text-muted-foreground max-w-sm mx-auto">Thử thay đổi bộ lọc hoặc tạo một mẫu mới để bắt đầu.</p>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-colors"
+              >
+                Tạo mẫu quiz đầu tiên
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6"
+            >
+              {templates.map((template, index) => (
+                <motion.div
+                  key={template.templateId}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.3,
+                    delay: Math.min(index * 0.05, 0.5) // Cap stagger delay for large lists
+                  }}
+                  className="group bg-card rounded-3xl border border-border shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300 overflow-hidden flex flex-col"
+                >
+                  <div className="p-6 flex-1 space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex gap-2">
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${template.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                          }`}>
+                          {template.isActive ? 'Hoạt động' : 'Tạm dừng'}
+                        </span>
+                        <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                          {template.category}
+                        </span>
+                      </div>
+                      <div className={`w-3 h-3 rounded-full ${template.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-muted'}`} />
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 leading-tight">
+                        {template.templateName}
+                      </h3>
+                      <p className="text-muted-foreground text-xs line-clamp-2 min-h-[32px]">
+                        {template.description || "Không có mô tả"}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3 pt-2">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
+                        <Zap size={14} className="text-amber-500" />
+                        {template.usageCount || 0} lượt dùng
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
+                        <BookOpen size={14} className="text-indigo-500" />
+                        {template.totalQuestions || 0} câu hỏi
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
+                        <Target size={14} className="text-rose-500" />
+                        {template.passScore}% đạt
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
+                        <RotateCcw size={14} className="text-orange-500" />
+                        {template.maxAttempts || 3} lượt
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-muted/30 border-t border-border grid grid-cols-4 gap-2">
+                    <button
+                      onClick={() => handleEditTemplate(template.templateId)}
+                      className="flex items-center justify-center gap-2 py-2 px-3 bg-card border border-border text-foreground rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
+                      title="Chỉnh sửa"
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      onClick={() => openDuplicateModal(template)}
+                      className="flex items-center justify-center gap-2 py-2 px-3 bg-card border border-border text-primary rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
+                      title="Nhân bản"
+                    >
+                      <Copy size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleToggleStatus(template.templateId, template.isActive)}
+                      className={`flex items-center justify-center gap-2 py-2 px-3 border rounded-xl text-sm font-semibold transition-colors ${template.isActive ? 'bg-card border-amber-500/20 text-amber-500 hover:bg-amber-500/10' : 'bg-card border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10'
+                        }`}
+                      title={template.isActive ? 'Tạm dừng' : 'Kích hoạt'}
+                    >
+                      {template.isActive ? <XCircle size={16} /> : <CheckCircle size={16} />}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(template.templateId)}
+                      className="flex items-center justify-center gap-2 py-2 px-3 bg-card border border-destructive/20 text-destructive rounded-xl text-sm font-semibold hover:bg-destructive/10 transition-colors"
+                      title="Xóa"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Infinite Scroll Indicator */}
         <div ref={observerTarget} className="h-20 flex items-center justify-center">

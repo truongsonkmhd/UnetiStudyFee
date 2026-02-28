@@ -7,7 +7,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { getRolesFromClaims } from "../common/getRolesAndPermissionFromClaims";
+import { getRolesFromClaims, getPermissionsFromClaims } from "../common/getRolesAndPermissionFromClaims";
 import { RegisterPayload } from "@/model/payload/RegisterPayload";
 import { LoginPayload } from "@/types/auth";
 
@@ -20,6 +20,7 @@ interface AuthContextType {
   signUp: (payload: RegisterPayload) => Promise<void>;
   isLoading: boolean;
   hasRole: (allowedRoles: string[]) => boolean;
+  hasPermission: (allowedPermissions: string[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -73,6 +74,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return allowedRoles.some((role) => roleContain.includes(role));
   };
 
+  const hasPermission = (allowedPermissions: string[]): boolean => {
+    if (!jwtClaims?.scope?.length) return false;
+
+    const permissions = getPermissionsFromClaims(jwtClaims);
+    return allowedPermissions.some((perm) => permissions.includes(perm));
+  };
+
   const value = {
     jwtClaims,
     isAuthenticated: !!jwtClaims,
@@ -82,6 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signUp,
     isLoading,
     hasRole,
+    hasPermission,
   };
 
   return (

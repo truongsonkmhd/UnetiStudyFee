@@ -10,6 +10,7 @@ import { ArrowLeft, BookOpen } from 'lucide-react';
 import CourseList from './CourseList';
 import CourseDetail from './CourseDetail';
 import CourseForm from './CourseForm';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const CourseManager: React.FC = () => {
     const navigate = useNavigate();
@@ -81,20 +82,20 @@ const CourseManager: React.FC = () => {
     };
 
     return (
-        <div className={`min-height-screen w-full bg-slate-50 transition-colors duration-300 ${(isCreate || isEdit || isView) ? '' : 'p-6'}`}>
+        <div className={`min-height-screen w-full bg-background transition-colors duration-300 ${(isCreate || isEdit || isView) ? '' : 'p-6'}`}>
             {(isCreate || isEdit || isView) && (
-                <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
+                <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
                     <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={handleBack}
-                                className="group flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 active:scale-95"
+                                className="group flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:border-accent hover:bg-muted hover:text-foreground active:scale-95"
                             >
                                 <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
                                 Quay lại danh sách
                             </button>
-                            <div className="h-6 w-px bg-slate-200" />
-                            <h1 className="text-lg font-bold tracking-tight text-slate-900">
+                            <div className="h-6 w-px bg-border" />
+                            <h1 className="text-lg font-bold tracking-tight text-foreground">
                                 {isCreate ? 'Tạo khóa học mới' : isEdit ? 'Thiết lập khóa học' : 'Chi tiết khóa học'}
                             </h1>
                         </div>
@@ -105,33 +106,54 @@ const CourseManager: React.FC = () => {
             )}
 
             <main className={`w-full ${(isCreate || isEdit || isView) ? 'py-8 px-4 sm:px-10' : ''}`}>
-                {!isCreate && !isEdit && !isView && !selectedCourseId && (
-                    <CourseList
-                        onView={handleView}
-                        onEdit={handleEdit}
-                        onCreate={handleCreate}
-                    />
-                )}
+                <AnimatePresence mode="wait">
+                    {!isCreate && !isEdit && !isView && !selectedCourseId && (
+                        <motion.div
+                            key="list"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            <CourseList
+                                onView={handleView}
+                                onEdit={handleEdit}
+                                onCreate={handleCreate}
+                            />
+                        </motion.div>
+                    )}
 
-                {isView && selectedCourseId && (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <CourseDetail
-                            courseId={selectedCourseId}
-                            onBack={handleBack}
-                            onEdit={handleEdit}
-                        />
-                    </div>
-                )}
+                    {isView && selectedCourseId && (
+                        <motion.div
+                            key="view"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <CourseDetail
+                                courseId={selectedCourseId}
+                                onBack={handleBack}
+                                onEdit={handleEdit}
+                            />
+                        </motion.div>
+                    )}
 
-                {(isCreate || isEdit) && (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <CourseForm
-                            course={editingCourse}
-                            onSubmit={handleSubmit}
-                            onCancel={handleBack}
-                        />
-                    </div>
-                )}
+                    {(isCreate || isEdit) && (
+                        <motion.div
+                            key="form"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <CourseForm
+                                course={editingCourse}
+                                onSubmit={handleSubmit}
+                                onCancel={handleBack}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </main>
         </div>
     );

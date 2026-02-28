@@ -302,7 +302,7 @@ function RegisterCard({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
       studentId: formData.studentId,
       classId: formData.classId,
 
-      roleCodes: ["STUDENT"],
+      roleCodes: ["ROLE_STUDENT"],
     };
 
     toast.promise(signUp(payload), {

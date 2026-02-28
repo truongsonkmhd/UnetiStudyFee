@@ -5,6 +5,8 @@ import courseService from '@/services/courseService';
 import courseEnrollmentService from '@/services/courseEnrollmentService';
 import { toast } from 'sonner';
 import { CourseTreeResponse } from '@/model/course-admin/CourseTreeResponse';
+import webSocketService from '@/services/webSocketService';
+import { EnrollmentResponse } from '@/model/enrollment/EnrollmentResponse';
 
 const CourseDetail: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
@@ -13,12 +15,18 @@ const CourseDetail: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
     const [enrollmentStatus, setEnrollmentStatus] = useState<'PENDING' | 'APPROVED' | 'REJECTED' | null>(null);
+    const [isPlayingPreview, setIsPlayingPreview] = useState(false);
 
     useEffect(() => {
         if (slug) {
             fetchCourse(slug);
         }
-    }, [slug]);
+        return () => {
+            if (course?.courseId) {
+                webSocketService.unsubscribe(`/topic/course/${course.courseId}/enrollments`);
+            }
+        };
+    }, [slug, course?.courseId]);
 
     const fetchCourse = async (courseSlug: string) => {
         try {
@@ -29,6 +37,7 @@ const CourseDetail: React.FC = () => {
             // Fetch enrollment status if course is loaded
             if (data && data.courseId) {
                 checkEnrollmentStatus(data.courseId);
+                subscribeToEnrollments(data.courseId);
             }
 
             // Auto open first module
@@ -53,6 +62,25 @@ const CourseDetail: React.FC = () => {
         } catch (error) {
             console.error("Failed to check enrollment status", error);
         }
+    };
+
+    const subscribeToEnrollments = (courseId: string) => {
+        webSocketService.subscribe(`/topic/course/${courseId}/enrollments`, (data: EnrollmentResponse) => {
+            // Check if the update is for the current student
+            // Note: In a real app we should compare with current student ID
+            // For now, since it's a topic for this course, any approval/rejection will trigger it
+            // Backend should ideally send only to the student, or we filter here
+            console.log("WebSocket enrollment update:", data);
+
+            // Re-fetch status to be sure and update UI
+            checkEnrollmentStatus(courseId);
+
+            if (data.status === 'APPROVED') {
+                toast.success(`Đăng ký khóa học "${data.courseName}" của bạn đã được phê duyệt!`);
+            } else if (data.status === 'REJECTED') {
+                toast.error(`Đăng ký khóa học "${data.courseName}" của bạn đã bị từ chối.`);
+            }
+        });
     };
 
     const toggleModule = (moduleId: string) => {
@@ -107,7 +135,7 @@ const CourseDetail: React.FC = () => {
     return (
         <div className="min-h-screen bg-background pb-20">
             {/* --- HERO HEADER SECTION --- */}
-            <div className="bg-slate-900 text-white pt-8 pb-12 lg:pt-12 lg:pb-24 px-6 relative overflow-hidden">
+            <div className="bg-foreground text-background pt-8 pb-12 lg:pt-12 lg:pb-24 px-6 relative overflow-hidden">
                 {/* Background decorative elements */}
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-600/20 to-transparent pointer-events-none" />
 
@@ -115,12 +143,12 @@ const CourseDetail: React.FC = () => {
                     {/* Left Content of Header */}
                     <div className="flex-1 lg:max-w-[65%]">
                         {/* BreadCrumb / Back */}
-                        <div className="flex items-center gap-2 mb-6 text-slate-300 font-medium text-sm">
-                            <button onClick={() => navigate(-1)} className="hover:text-white flex items-center gap-1 transition-colors">
+                        <div className="flex items-center gap-2 mb-6 text-background/80 font-medium text-sm">
+                            <button onClick={() => navigate(-1)} className="hover:text-background flex items-center gap-1 transition-colors">
                                 <ChevronLeft size={16} /> Quay lại
                             </button>
                             <span className="opacity-50">/</span>
-                            <span className="text-orange-400 font-semibold uppercase tracking-wider text-xs">Phát triển Web</span>
+                            <span className="text-primary font-semibold uppercase tracking-wider text-xs">Phát triển Web</span>
                         </div>
 
                         <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 leading-tight tracking-tight">
@@ -128,16 +156,16 @@ const CourseDetail: React.FC = () => {
                         </h1>
 
                         <div
-                            className="text-lg text-slate-300 mb-6 leading-relaxed max-w-3xl line-clamp-3"
+                            className="text-lg text-background/90 mb-6 leading-relaxed max-w-3xl line-clamp-3"
                             dangerouslySetInnerHTML={{ __html: course.description || course.title }}
                         />
 
                         {/* Meta Stats */}
-                        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-slate-300">
-                            <div className="flex items-center gap-1.5 text-orange-400">
-                                <span className="text-white font-bold text-base">{rating}</span>
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-background/80">
+                            <div className="flex items-center gap-1.5 text-primary">
+                                <span className="text-background font-bold text-base">{rating}</span>
                                 <div className="flex">
-                                    {[1, 2, 3, 4, 5].map(i => <Star key={i} size={14} fill={i <= Math.round(rating) ? "currentColor" : "none"} className={i <= Math.round(rating) ? "" : "text-slate-600"} />)}
+                                    {[1, 2, 3, 4, 5].map(i => <Star key={i} size={14} fill={i <= Math.round(rating) ? "currentColor" : "none"} className={i <= Math.round(rating) ? "" : "text-background/40"} />)}
                                 </div>
                             </div>
                             <div className="flex items-center gap-1.5">
@@ -170,7 +198,7 @@ const CourseDetail: React.FC = () => {
                                 "Kỹ năng làm việc với Git, Terminal và Deploy",
                             ].map((item, idx) => (
                                 <div key={idx} className="flex items-start gap-3 text-sm lg:text-base text-card-foreground">
-                                    <Check size={20} className="text-orange-500 shrink-0 mt-0.5" />
+                                    <Check size={20} className="text-primary shrink-0 mt-0.5" />
                                     <span>{item}</span>
                                 </div>
                             ))}
@@ -188,7 +216,7 @@ const CourseDetail: React.FC = () => {
                                 <span>Thời lượng <span className="text-foreground font-bold">{formattedDuration}</span></span>
                             </div>
                             <button
-                                className="text-orange-600 font-bold hover:text-orange-700 hover:bg-orange-50 px-3 py-1.5 rounded-lg transition-all text-sm"
+                                className="text-primary font-bold hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-all text-sm"
                                 onClick={handleExpandAll}
                             >
                                 Mở rộng tất cả
@@ -203,7 +231,7 @@ const CourseDetail: React.FC = () => {
                                         onClick={() => toggleModule(module.moduleId)}
                                     >
                                         <div className="flex items-center gap-4 font-semibold text-foreground text-base lg:text-lg">
-                                            <div className={`transition-transform duration-300 ${openModules[module.moduleId] ? 'rotate-180' : ''} text-orange-500 bg-orange-100 p-1 rounded-full group-hover:bg-orange-200`}>
+                                            <div className={`transition-transform duration-300 ${openModules[module.moduleId] ? 'rotate-180' : ''} text-primary bg-primary/10 p-1 rounded-full group-hover:bg-primary/20`}>
                                                 {openModules[module.moduleId] ? <Minus size={14} strokeWidth={3} /> : <Plus size={14} strokeWidth={3} />}
                                             </div>
                                             <span>{module.orderIndex}. {module.title}</span>
@@ -216,11 +244,11 @@ const CourseDetail: React.FC = () => {
                                             {module.lessons && module.lessons.map((lesson) => (
                                                 <li
                                                     key={lesson.lessonId}
-                                                    className="flex justify-between items-center py-3.5 px-4 pl-6 lg:pl-14 border-b border-border/50 last:border-0 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-colors group cursor-pointer"
+                                                    className="flex justify-between items-center py-3.5 px-4 pl-6 lg:pl-14 border-b border-border/50 last:border-0 hover:bg-muted transition-colors group cursor-pointer"
                                                 >
-                                                    <div className="flex items-center gap-3 text-sm lg:text-base text-foreground/80 group-hover:text-orange-600 transition-colors">
-                                                        <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                                                            <Play size={10} className="ml-0.5 text-slate-500 group-hover:text-orange-500 fill-current" />
+                                                    <div className="flex items-center gap-3 text-sm lg:text-base text-foreground/80 group-hover:text-primary transition-colors">
+                                                        <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
+                                                            <Play size={10} className="ml-0.5 text-muted-foreground group-hover:text-primary fill-current" />
                                                         </div>
                                                         <span>{lesson.title}</span>
                                                     </div>
@@ -244,21 +272,36 @@ const CourseDetail: React.FC = () => {
                         {/* Course Card */}
                         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl lg:shadow-2xl">
                             {/* Preview Video/Image */}
-                            <div className="relative w-full aspect-video bg-black group cursor-pointer overflow-hidden border-b border-border">
-                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors z-10" />
-                                <img
-                                    src={course.imageUrl || "https://files.fullstack.edu.vn/f8-prod/courses/13/13.png"}
-                                    alt={course.title}
-                                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center z-20">
-                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-orange-600 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                                        <Play size={28} fill="currentColor" className="ml-1" />
-                                    </div>
-                                </div>
-                                <div className="absolute bottom-4 left-0 right-0 text-center text-white font-bold text-base z-20 drop-shadow-md tracking-wide">
-                                    Xem giới thiệu khóa học
-                                </div>
+                            <div
+                                className="relative w-full aspect-video bg-black group cursor-pointer overflow-hidden border-b border-border"
+                                onClick={() => course.videoUrl && setIsPlayingPreview(true)}
+                            >
+                                {isPlayingPreview && course.videoUrl ? (
+                                    <video
+                                        src={course.videoUrl}
+                                        className="w-full h-full object-contain"
+                                        controls
+                                        autoPlay
+                                        onContextMenu={(e) => e.preventDefault()}
+                                    />
+                                ) : (
+                                    <>
+                                        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors z-10" />
+                                        <img
+                                            src={course.imageUrl || "https://files.fullstack.edu.vn/f8-prod/courses/13/13.png"}
+                                            alt={course.title}
+                                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                                        />
+                                        <div className="absolute inset-0 flex items-center justify-center z-20">
+                                            <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center text-primary shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                                <Play size={28} fill="currentColor" className="ml-1" />
+                                            </div>
+                                        </div>
+                                        <div className="absolute bottom-4 left-0 right-0 text-center text-white font-bold text-base z-20 drop-shadow-md tracking-wide">
+                                            Xem giới thiệu khóa học
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             {/* Card Content */}
@@ -269,12 +312,18 @@ const CourseDetail: React.FC = () => {
                                 </div>
 
                                 <button
-                                    onClick={handleEnroll}
-                                    disabled={enrollmentLoading || enrollmentStatus === 'PENDING' || enrollmentStatus === 'APPROVED'}
+                                    onClick={() => {
+                                        if (enrollmentStatus === 'APPROVED') {
+                                            navigate(`/course/${slug}/learn`);
+                                        } else {
+                                            handleEnroll();
+                                        }
+                                    }}
+                                    disabled={enrollmentLoading || enrollmentStatus === 'PENDING'}
                                     className={`w-full py-3.5 rounded-full font-bold text-lg uppercase tracking-wide transition-all hover:shadow-lg active:scale-[0.98] mb-6 disabled:opacity-70 disabled:cursor-not-allowed
                                         ${enrollmentStatus === 'PENDING' ? 'bg-amber-500 text-white hover:bg-amber-600' :
                                             enrollmentStatus === 'APPROVED' ? 'bg-emerald-600 text-white hover:bg-emerald-700' :
-                                                'bg-orange-600 text-white hover:bg-orange-700 hover:shadow-orange-500/20'}`}
+                                                'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20'}`}
                                 >
                                     {enrollmentLoading ? "Đang xử lý..." :
                                         enrollmentStatus === 'PENDING' ? "Đợi phê duyệt" :

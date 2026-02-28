@@ -29,7 +29,9 @@ export abstract class BaseService {
     // Request interceptor to attach access token
     this.apiClient.interceptors.request.use(
       (config) => {
-        const token = Cookies.get("access_token");
+        const token =
+          localStorage.getItem("access_token") ||
+          sessionStorage.getItem("access_token");
         if (token && !this.isAuthEndpoint(config.url)) {
           config.headers.Authorization = `Bearer ${token}`;
         }

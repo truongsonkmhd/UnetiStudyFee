@@ -27,14 +27,16 @@ import {
 import { APP_NAME } from "@/utils/config";
 import { PATHS } from "@/constants/paths";
 import { actionAuth } from "../context/AuthContext";
-import { hasAnyRole } from "../common/getRolesAndPermissionFromClaims";
+import { getRolesFromClaims, hasAnyPermission, hasAnyRole } from "../common/getRolesAndPermissionFromClaims";
 import { RoleEnum } from "../enum/RoleEnum";
+import { PermissionEnum } from "../enum/PermissionEnum";
 
 const navigationItems: {
   title: string;
   url: string;
   icon: string;
   requiredRoles?: RoleEnum[];
+  requiredPermissions?: PermissionEnum[];
 }[] = [
     { title: "Trang chủ", url: PATHS.HOME, icon: homepageIcon },
     { title: "Bảng xếp hạng", url: PATHS.RANKING, icon: rankingIcon },
@@ -42,44 +44,26 @@ const navigationItems: {
       title: "Tạo bài giảng",
       url: PATHS.CREATE_LESSON,
       icon: createLessionIcon,
-      requiredRoles: [
-        RoleEnum.ROLE_ADMIN,
-        RoleEnum.ROLE_SYS_ADMIN,
-        RoleEnum.ROLE_TEACHER,
-      ],
+      requiredPermissions: [PermissionEnum.COURSE_CREATE, PermissionEnum.COURSE_UPDATE],
     },
     {
       title: "Tạo bài thi",
       url: PATHS.CREATE_TEST,
       icon: createTestIcon,
-      requiredRoles: [
-        RoleEnum.ROLE_ADMIN,
-        RoleEnum.ROLE_SYS_ADMIN,
-        RoleEnum.ROLE_TEACHER,
-      ],
+      requiredPermissions: [PermissionEnum.QUIZ_CREATE, PermissionEnum.QUIZ_UPDATE],
     },
     {
       title: "Kho bài code",
       url: PATHS.CODING_EXERCISE_LIBRARY,
       icon: createTestIcon,
-      requiredRoles: [
-        RoleEnum.ROLE_ADMIN,
-        RoleEnum.ROLE_SYS_ADMIN,
-        RoleEnum.ROLE_TEACHER,
-      ],
+      requiredPermissions: [PermissionEnum.EXERCISE_MANAGE],
     },
-
     {
       title: "Kho bài quiz",
       url: PATHS.QUIZ_LIBRARY,
       icon: createTestIcon,
-      requiredRoles: [
-        RoleEnum.ROLE_ADMIN,
-        RoleEnum.ROLE_SYS_ADMIN,
-        RoleEnum.ROLE_TEACHER,
-      ],
+      requiredPermissions: [PermissionEnum.QUIZ_MANAGE],
     },
-
     {
       title: "Quản lý lớp thi",
       url: PATHS.MANAGER_CLASS,
@@ -90,36 +74,30 @@ const navigationItems: {
         RoleEnum.ROLE_TEACHER,
       ],
     },
-
     {
       title: "Quản lý sinh viên và giáo viên",
       url: PATHS.MANAGER_PERSONS,
       icon: managerIcon,
-      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
+      requiredPermissions: [PermissionEnum.USER_MANAGE],
     },
     {
       title: "Quản lý Cache",
       url: PATHS.MANAGER_CACHE,
       icon: smartIcon,
-      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
+      requiredPermissions: [PermissionEnum.CACHE_MANAGE],
     },
     {
       title: "Quản lý quyền",
       url: PATHS.MANAGER_INTEREST,
       icon: quyenIcon,
-      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
+      requiredPermissions: [PermissionEnum.SYSTEM_CONFIG],
     },
     {
       title: "Quản lý khóa học",
       url: PATHS.MANAGER_COURSES,
       icon: classIcon,
-      requiredRoles: [
-        RoleEnum.ROLE_ADMIN,
-        RoleEnum.ROLE_SYS_ADMIN,
-        RoleEnum.ROLE_TEACHER,
-      ],
+      requiredPermissions: [PermissionEnum.COURSE_VIEW, PermissionEnum.COURSE_UPDATE],
     },
-
     {
       title: "Quản lý đăng ký học",
       url: PATHS.MY_ENROLLMENTS,
@@ -129,6 +107,12 @@ const navigationItems: {
         RoleEnum.ROLE_SYS_ADMIN,
         RoleEnum.ROLE_TEACHER,
       ],
+    },
+    {
+      title: "Quản lý bài viết",
+      url: PATHS.CREATE_POST,
+      icon: createLessionIcon,
+      requiredPermissions: [PermissionEnum.POST_CREATE, PermissionEnum.POST_UPDATE],
     },
   ];
 
@@ -229,8 +213,8 @@ export function AppSidebar() {
   const { jwtClaims } = actionAuth();
 
   // tuỳ bạn đang lưu roles ở đâu trong claims
-  // ví dụ: jwtClaims.roles: string[]
-  const userRoles = (jwtClaims as any)?.roles as string[] | undefined;
+  // ví dụ: jwtClaims.scope: string (dạng space-separated)
+  const userRoles = getRolesFromClaims(jwtClaims);
   const theme = pickThemeByRoles(userRoles);
 
   const isActive = (path: string) => currentPath === path;
@@ -242,7 +226,8 @@ export function AppSidebar() {
     ].join(" ");
 
   const visibleNavItems = navigationItems.filter((i) =>
-    hasAnyRole(jwtClaims, i.requiredRoles)
+    hasAnyRole(jwtClaims, i.requiredRoles) &&
+    hasAnyPermission(jwtClaims, i.requiredPermissions)
   );
 
   const visibleHistory = history.filter((i) =>

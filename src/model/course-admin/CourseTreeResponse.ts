@@ -7,9 +7,18 @@ export interface CourseTreeResponse {
   slug: string;
   description: string;
   isPublished: boolean;
+  publishedAt?: string;
   status: CourseStatus;
   imageUrl?: string;
   videoUrl?: string;
+  level?: string;
+  category?: string;
+  subCategory?: string;
+  capacity?: number;
+  requirements?: string;
+  objectives?: string;
+  syllabus?: string;
+  shortDescription?: string;
   modules: CourseModuleResponse[];
   enrolledCount?: number;
   rating?: number;

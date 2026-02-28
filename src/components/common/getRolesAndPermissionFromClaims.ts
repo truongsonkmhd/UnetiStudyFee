@@ -1,4 +1,3 @@
-import { Role } from "@/types/Auth";
 import { JwtClaims } from "@/types/JwtClaims";
 
 export function getRolesFromClaims(claims: JwtClaims | null): string[] {
@@ -16,9 +15,18 @@ export function getPermissionsFromClaims(claims: JwtClaims | null): string[] {
 
 export function hasAnyRole(
   claims: JwtClaims | null,
-  allowed?: Role[]
+  allowed?: string[]
 ): boolean {
-  if (!allowed || allowed.length === 0) return true; // không yêu cầu role => ai cũng thấy
+  if (!allowed || allowed.length === 0) return true;
   const roles = new Set(getRolesFromClaims(claims));
   return allowed.some((r) => roles.has(r));
+}
+
+export function hasAnyPermission(
+  claims: JwtClaims | null,
+  allowed?: string[]
+): boolean {
+  if (!allowed || allowed.length === 0) return true;
+  const permissions = new Set(getPermissionsFromClaims(claims));
+  return allowed.some((p) => permissions.has(p));
 }

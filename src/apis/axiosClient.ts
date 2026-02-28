@@ -25,9 +25,7 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  paramsSerializer: {
-    encode: (params) => queryString.stringify(params),
-  },
+  paramsSerializer: (params) => queryString.stringify(params),
 });
 
 // === Helper để refresh token ===
@@ -75,7 +73,7 @@ axiosClient.interceptors.response.use(
 
     console.log("error.response", error);
 
-    if (error.response?.status === 403 && !originalRequest._retry) {
+    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
       // Logic refresh token (giữ nguyên như hiện tại)
       if (isRefreshing) {
         return new Promise((resolve) => {
@@ -93,12 +91,13 @@ axiosClient.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem("refresh_token");
-        const res = await axios.post<LoginData>(
+        const res = await axios.post<any>(
           `${baseUrlRaw}${refreshEndpointRaw}`,
           { refreshToken }
         );
 
-        const data = res.data.data;
+        // Đảm bảo lấy đúng bọc data từ IResponseMessage
+        const data = res.data.status === true ? res.data.data : res.data;
 
         if (data && data.token) {
           const storage = localStorage;

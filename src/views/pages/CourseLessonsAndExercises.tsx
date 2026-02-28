@@ -441,7 +441,7 @@ export default function CourseLessonsAndExercises() {
                     <tr>
                       <td
                         colSpan={6}
-                        className="px-3 py-6 text-center text-gray-500"
+                        className="px-3 py-6 text-center text-muted-foreground"
                       >
                         Không có bài tập phù hợp.
                       </td>
@@ -453,7 +453,7 @@ export default function CourseLessonsAndExercises() {
 
             {/* Pagination */}
             <div className="flex items-center justify-between mt-3 text-sm">
-              <span className="text-gray-500">
+              <span className="text-muted-foreground">
                 Hiển thị {pageItems.length ? `${pager.start}–${pager.end}` : 0}{" "}
                 / {filteredExercises.length}
               </span>

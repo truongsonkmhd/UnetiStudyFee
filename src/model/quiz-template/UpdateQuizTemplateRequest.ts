@@ -5,6 +5,6 @@ export interface UpdateQuizTemplateRequest {
   category?: string;
   thumbnailUrl?: string;
   passScore?: number;
-  timeLimitMinutes?: number;
   isActive?: boolean;
+  maxAttempts?: number;
 }

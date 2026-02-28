@@ -23,6 +23,7 @@ export const PATHS = {
   /* Course & Enrollments */
   MY_ENROLLMENTS: "/my-enrollments",
   COURSE_DETAIL: "/course/:slug",
+  COURSE_LEARN: "/course/:slug/learn",
   ENROLLMENT_MANAGER: "/managerCourses/:courseId/enrollments", /* Nested under course manager usually, or separate */
 
   VIEW_COURSE: "/managerCourses/view/:id",
@@ -32,4 +33,5 @@ export const PATHS = {
   PROFILE_PAGE: "/profilePage",
   UNAUTHORIZED: "/unauthorized",
   ADD_CONTEST: "/addContest",
+  CREATE_POST: "/create-post",
 };

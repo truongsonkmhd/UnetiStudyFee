@@ -208,12 +208,12 @@ export default function VideoCoursePlayer() {
     mockVideoCourse.forEach((ch) =>
       ch.lessons.forEach(
         (l) =>
-          (map[l.id] = {
-            completed: false,
-            watchedSeconds: 0,
-            allowedTime: 0,
-            duration: 0,
-          })
+        (map[l.id] = {
+          completed: false,
+          watchedSeconds: 0,
+          allowedTime: 0,
+          duration: 0,
+        })
       )
     );
     return map;
@@ -295,17 +295,17 @@ export default function VideoCoursePlayer() {
         prev.map((c) =>
           c.id === replyTo.commentId
             ? {
-                ...c,
-                replies: [
-                  {
-                    id: `r_${Date.now()}`,
-                    author: "Bạn",
-                    timeAgo: "vừa xong",
-                    content: text,
-                  },
-                  ...c.replies,
-                ].slice(0, 50),
-              }
+              ...c,
+              replies: [
+                {
+                  id: `r_${Date.now()}`,
+                  author: "Bạn",
+                  timeAgo: "vừa xong",
+                  content: text,
+                },
+                ...c.replies,
+              ].slice(0, 50),
+            }
             : c
         )
       );
@@ -360,8 +360,6 @@ export default function VideoCoursePlayer() {
   const handleSeeking = () => {
     const v = videoRef.current;
     if (!v) return;
-    const p = progress[currentLessonId];
-    if (v.currentTime > p.allowedTime + 0.5) v.currentTime = p.allowedTime; // chặn kéo quá xa
     lastTimeRef.current = v.currentTime;
   };
 
@@ -372,11 +370,7 @@ export default function VideoCoursePlayer() {
     const now = v.currentTime;
     const p = progress[currentLessonId];
 
-    // Không cho vượt quá allowedTime (chặn tua nhanh)
-    if (now > p.allowedTime + 0.5) {
-      v.currentTime = p.allowedTime;
-      return;
-    }
+    // Restriction removed
 
     // Chỉ cộng thời gian khi tiến lên bình thường
     if (now > last) {
@@ -422,9 +416,9 @@ export default function VideoCoursePlayer() {
   })();
 
   return (
-    <div className="w-full min-h-screen bg-gray-100">
+    <div className="w-full min-h-screen bg-background">
       {/* Top bar with progress text like screenshot */}
-      <div className="bg-gray-900 text-gray-100">
+      <div className="bg-foreground text-background">
         <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
           <span className="text-sm">Kiến Thức Nhập Môn IT</span>
           <span className="text-xs">
@@ -453,7 +447,7 @@ export default function VideoCoursePlayer() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl mt-3 p-4 border">
+          <div className="bg-card rounded-xl mt-3 p-4 border border-border">
             {/* Hàng tiêu đề + nút hỏi đáp */}
             <div className="flex items-center justify-between gap-3">
               <h1 className="text-xl font-semibold">{currentLesson.title}</h1>
@@ -468,7 +462,7 @@ export default function VideoCoursePlayer() {
               </button>
             </div>
 
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Cập nhật tháng 11 năm 2025
             </p>
 
@@ -476,7 +470,7 @@ export default function VideoCoursePlayer() {
               <button
                 onClick={goPrev}
                 disabled={currentIndex === 0}
-                className="px-4 py-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg border border-border bg-card text-foreground hover:bg-muted disabled:opacity-50"
               >
                 ◀ Bài trước
               </button>
@@ -486,7 +480,7 @@ export default function VideoCoursePlayer() {
                   currentIndex >= flatLessons.length - 1 ||
                   isLocked(flatLessons[currentIndex + 1].id)
                 }
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-colors"
               >
                 Bài tiếp theo ▶
               </button>
@@ -495,10 +489,10 @@ export default function VideoCoursePlayer() {
         </div>
 
         {/* Sidebar lessons */}
-        <aside className="col-span-12 lg:col-span-3 bg-white rounded-xl shadow-sm border p-4">
+        <aside className="col-span-12 lg:col-span-3 bg-card rounded-xl shadow-sm border border-border p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold">Nội dung khóa học</h3>
-            <span className="text-xs text-gray-500">
+            <h3 className="font-semibold text-foreground">Nội dung khóa học</h3>
+            <span className="text-xs text-muted-foreground">
               {completedCount}/{totalLessons}
             </span>
           </div>
@@ -506,7 +500,7 @@ export default function VideoCoursePlayer() {
             <div key={ch.id} className="mb-2">
               <button
                 onClick={() => toggle(ch.id)}
-                className="font-medium w-full text-left"
+                className="font-medium w-full text-left text-foreground hover:text-primary transition-colors"
               >
                 {ch.title}
               </button>
@@ -522,12 +516,12 @@ export default function VideoCoursePlayer() {
                           disabled={locked}
                           onClick={() => !locked && setCurrentLessonId(l.id)}
                           className={cn(
-                            "w-full text-left px-2 py-1 rounded flex items-center justify-between",
+                            "w-full text-left px-2 py-1 rounded flex items-center justify-between transition-colors",
                             active
-                              ? "bg-blue-50 text-blue-700"
+                              ? "bg-primary/20 text-primary"
                               : locked
-                              ? "opacity-50 cursor-not-allowed"
-                              : "hover:bg-gray-50"
+                                ? "opacity-50 cursor-not-allowed"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           )}
                           title={
                             locked
@@ -541,7 +535,7 @@ export default function VideoCoursePlayer() {
                               {l.order}. {l.title}
                             </span>
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-muted-foreground">
                             {l.duration}
                           </span>
                         </button>
@@ -559,11 +553,11 @@ export default function VideoCoursePlayer() {
       {qaOpen && (
         <div className="fixed inset-0 z-50">
           <div
-            className="absolute inset-0 bg-black/30"
+            className="absolute inset-0 bg-black/60"
             onClick={() => setQaOpen(false)}
           />
-          <div className="absolute right-0 top-0 h-full w-full sm:w-[520px] bg-white shadow-xl flex flex-col">
-            <div className="p-4 border-b flex items-center gap-3">
+          <div className="absolute right-0 top-0 h-full w-full sm:w-[520px] bg-card shadow-xl flex flex-col border-l border-border">
+            <div className="p-4 border-b border-border flex items-center gap-3">
               <input
                 value={newCmt}
                 onChange={(e) => setNewCmt(e.target.value)}
@@ -572,11 +566,11 @@ export default function VideoCoursePlayer() {
                     ? `Trả lời @${replyTo.mention}`
                     : "Nhập bình luận mới của bạn"
                 }
-                className="flex-1 rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
+                className="flex-1 rounded-xl border border-border bg-muted/50 text-foreground px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
               />
               <button
                 onClick={submitComment}
-                className="rounded-lg bg-blue-600 text-white px-3 py-2 text-sm hover:bg-blue-700"
+                className="rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm hover:opacity-90 transition-opacity"
               >
                 Gửi
               </button>
@@ -584,43 +578,43 @@ export default function VideoCoursePlayer() {
                 onClick={() => {
                   setQaOpen(false);
                 }}
-                className="ml-2 text-gray-500 hover:text-gray-700"
+                className="ml-2 text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Đóng"
               >
                 ✕
               </button>
             </div>
 
-            <div className="px-4 py-3 text-sm text-gray-700 border-b">
+            <div className="px-4 py-3 text-sm text-foreground border-b border-border">
               <span className="font-medium">{comments.length} bình luận</span>
-              <span className="text-gray-500 ml-2 text-xs">
+              <span className="text-muted-foreground ml-2 text-xs">
                 Nếu thấy bình luận spam, các bạn bấm report giúp admin nhé
               </span>
             </div>
 
             <div className="flex-1 overflow-y-auto p-2">
               {comments.map((c) => (
-                <div key={c.id} className="p-3 border-b">
+                <div key={c.id} className="p-3 border-b border-border">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-200" />
+                    <div className="w-8 h-8 rounded-full bg-muted" />
                     <div className="text-sm">
-                      <div className="font-medium">
+                      <div className="font-medium text-foreground">
                         {c.author}{" "}
-                        <span className="text-gray-500 font-normal">
+                        <span className="text-muted-foreground font-normal">
                           {c.timeAgo}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <p className="mt-2 text-[15px] leading-relaxed">
+                  <p className="mt-2 text-[15px] leading-relaxed text-foreground">
                     {c.content}
                   </p>
                   <div className="mt-2 flex items-center gap-4 text-sm">
-                    <button className="text-blue-600 hover:underline">
+                    <button className="text-primary hover:underline">
                       Thích
                     </button>
                     <button
-                      className="text-blue-600 hover:underline"
+                      className="text-primary hover:underline"
                       onClick={() =>
                         setReplyTo({ commentId: c.id, mention: c.author })
                       }
@@ -634,23 +628,23 @@ export default function VideoCoursePlayer() {
                     {c.replies.map((r) => (
                       <div key={r.id} className="">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-gray-200" />
+                          <div className="w-7 h-7 rounded-full bg-muted" />
                           <div className="text-sm">
-                            <div className="font-medium">
+                            <div className="font-medium text-foreground">
                               {r.author}{" "}
-                              <span className="text-gray-500 font-normal">
+                              <span className="text-muted-foreground font-normal">
                                 {r.timeAgo}
                               </span>
                             </div>
                           </div>
                         </div>
-                        <p className="mt-1 text-[15px]">{r.content}</p>
+                        <p className="mt-1 text-[15px] text-foreground">{r.content}</p>
                         <div className="mt-1 flex items-center gap-4 text-sm">
-                          <button className="text-blue-600 hover:underline">
+                          <button className="text-primary hover:underline">
                             Thích
                           </button>
                           <button
-                            className="text-blue-600 hover:underline"
+                            className="text-primary hover:underline"
                             onClick={() =>
                               setReplyTo({ commentId: c.id, mention: r.author })
                             }

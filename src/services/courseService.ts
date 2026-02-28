@@ -100,6 +100,7 @@ const courseService = {
     size?: number;
     status?: string;
     category?: string;
+    q?: string;
   }): Promise<PageResponse<CourseCardResponse>> =>
     apiService.get<PageResponse<CourseCardResponse>>(`${COURSE_BASE_ENDPOINT}`, params),
 };

@@ -25,7 +25,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
     description: '',
     category: '',
     passScore: 70,
-    timeLimitMinutes: 30,
+    maxAttempts: 3,
     isActive: true,
     questions: [],
   });
@@ -172,7 +172,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
           description: quiz.description,
           category: quiz.category,
           passScore: quiz.passScore,
-          timeLimitMinutes: quiz.timeLimitMinutes,
+          maxAttempts: quiz.maxAttempts,
           isActive: quiz.isActive,
         };
         await quizTemplateService.updateTemplate(quizId, updateRequest);
@@ -182,7 +182,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
           description: quiz.description || '',
           category: quiz.category!,
           passScore: quiz.passScore || 70,
-          timeLimitMinutes: quiz.timeLimitMinutes || 30,
+          maxAttempts: quiz.maxAttempts || 3,
           questions: quiz.questions || [],
         };
         await quizTemplateService.createTemplate(createRequest);
@@ -229,6 +229,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
               <div className="flex flex-wrap gap-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 <span className="flex items-center gap-1.5 bg-background border border-border px-3 py-1.5 rounded-lg">📝 {quiz.questions?.length || 0} Câu hỏi</span>
                 <span className="flex items-center gap-1.5 bg-background border border-border px-3 py-1.5 rounded-lg">✅ Điểm đạt: {quiz.passScore}%</span>
+                <span className="flex items-center gap-1.5 bg-background border border-border px-3 py-1.5 rounded-lg">🔄 Lượt làm: {quiz.maxAttempts || 'Không giới hạn'}</span>
                 <span className="flex items-center gap-1.5 bg-background border border-border px-3 py-1.5 rounded-lg">⏱️ 5 giây/câu</span>
               </div>
             </div>
@@ -364,12 +365,12 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
               </div>
               <div>
                 <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
-                  Thời gian (phút)
+                  Số lượt làm tối đa
                 </label>
                 <input
                   type="number"
-                  value={quiz.timeLimitMinutes || 30}
-                  onChange={(e) => setQuiz({ ...quiz, timeLimitMinutes: parseInt(e.target.value) })}
+                  value={quiz.maxAttempts || 3}
+                  onChange={(e) => setQuiz({ ...quiz, maxAttempts: parseInt(e.target.value) })}
                   min="1"
                   className="w-full px-5 py-3 bg-background border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-foreground font-bold"
                 />

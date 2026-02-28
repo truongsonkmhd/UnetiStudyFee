@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
     Plus,
     Search,
@@ -17,12 +17,31 @@ import {
     Zap,
     Loader2
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import codingExerciseTemplateService from '@/services/codingExerciseTemplateService';
 import { TemplateCard } from '@/model/coding-template/TemplateCard';
 import { SearchFilters } from '@/model/coding-template/SearchFilters';
 import { Difficulty } from '@/model/coding-template/Difficulty';
 import { toast } from 'sonner';
+import { useMotionValue, useTransform, animate } from 'framer-motion';
+
+const Counter: React.FC<{ value: number }> = ({ value }) => {
+    const count = useMotionValue(0);
+    const rounded = useTransform(count, (latest) => Math.round(latest));
+    const [displayValue, setDisplayValue] = useState(0);
+
+    useEffect(() => {
+        const controls = animate(count, value, { duration: 1.5, ease: "easeOut" });
+        const unsubscribe = rounded.on("change", (latest) => setDisplayValue(latest));
+        return () => {
+            controls.stop();
+            unsubscribe();
+        };
+    }, [value, count, rounded]);
+
+    return <span>{displayValue}</span>;
+};
 
 const CodingExerciseLibrary: React.FC = () => {
     const navigate = useNavigate();
@@ -52,15 +71,31 @@ const CodingExerciseLibrary: React.FC = () => {
     const difficulties = Object.values(Difficulty);
     const languages = ['Java', 'Python', 'JavaScript', 'C++', 'Go', 'TypeScript'];
 
+    // Stats - Memoized to avoid O(N) calculation on every render
+    const stats = useMemo(() => {
+        return {
+            total: totalElements,
+            published: templates.filter(t => t.isPublished).length,
+            draft: templates.filter(t => !t.isPublished).length,
+            usage: templates.reduce((acc, curr) => acc + (curr.usageCount || 0), 0)
+        };
+    }, [templates, totalElements]);
+
+    // Refs to track state without triggering callback regenerations
+    const loadingRef = useRef(false);
+    const loadingMoreRef = useRef(false);
+
     // Load Data
     const loadTemplates = useCallback(async (isInitial: boolean = false) => {
-        if (loading || (loadingMore && !isInitial)) return;
+        if (loadingRef.current || (loadingMoreRef.current && !isInitial)) return;
 
         if (isInitial) {
             setLoading(true);
+            loadingRef.current = true;
             setCurrentPage(0);
         } else {
             setLoadingMore(true);
+            loadingMoreRef.current = true;
         }
 
         setError(null);
@@ -72,8 +107,7 @@ const CodingExerciseLibrary: React.FC = () => {
         };
 
         try {
-            const response = await codingExerciseTemplateService.searchAllTemplates(searchParams);
-            const data = response;
+            const data = await codingExerciseTemplateService.searchAllTemplates(searchParams);
 
             setTemplates(prev => isInitial ? data.items : [...prev, ...data.items]);
             setTotalElements(data.totalElements);
@@ -88,11 +122,21 @@ const CodingExerciseLibrary: React.FC = () => {
         } finally {
             setLoading(false);
             setLoadingMore(false);
+            loadingRef.current = false;
+            loadingMoreRef.current = false;
         }
-    }, [currentPage, filters, loading, loadingMore]);
+    }, [currentPage, filters]); // Removed loading/loadingMore from deps
+
+    const isFirstRun = useRef(true);
 
     // Initial load and filter changes
     useEffect(() => {
+        if (isFirstRun.current) {
+            isFirstRun.current = false;
+            loadTemplates(true);
+            return;
+        }
+
         const timeoutId = setTimeout(() => {
             loadTemplates(true);
         }, 400);
@@ -158,24 +202,37 @@ const CodingExerciseLibrary: React.FC = () => {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+                >
                     {[
-                        { label: 'Tổng số bài tập', value: totalElements, icon: Database, color: 'text-blue-600', bg: 'bg-blue-50' },
-                        { label: 'Đã xuất bản', value: templates.filter(t => t.isPublished).length, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                        { label: 'Bản nháp', value: templates.filter(t => !t.isPublished).length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
-                        { label: 'Lượt sử dụng', value: templates.reduce((acc, curr) => acc + (curr.usageCount || 0), 0), icon: Zap, color: 'text-purple-600', bg: 'bg-purple-50' },
+                        { label: 'Tổng số bài tập', value: stats.total, icon: Database, color: 'text-blue-600', bg: 'bg-blue-50' },
+                        { label: 'Đã xuất bản (tải)', value: stats.published, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                        { label: 'Bản nháp (tải)', value: stats.draft, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+                        { label: 'Lượt sử dụng', value: stats.usage, icon: Zap, color: 'text-purple-600', bg: 'bg-purple-50' },
                     ].map((stat, i) => (
-                        <div key={i} className="bg-card p-5 rounded-2xl border border-border shadow-sm flex items-center gap-4">
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.1 }}
+                            className="bg-card p-5 rounded-2xl border border-border shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow"
+                        >
                             <div className={`${stat.bg} p-3 rounded-xl`}>
                                 <stat.icon size={24} className={stat.color} />
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                                <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
+                                <p className="text-2xl font-bold text-foreground">
+                                    {stat.label === 'Lượt sử dụng' ? <Counter value={stat.value} /> : stat.value}
+                                </p>
                             </div>
-                        </div>
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
 
                 {/* Filters Section */}
                 <div className="bg-card p-6 rounded-2xl border border-border shadow-sm space-y-4">
@@ -230,111 +287,136 @@ const CodingExerciseLibrary: React.FC = () => {
                 </div>
 
                 {/* Content Section */}
-                {loading && templates.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20">
-                        <Loader2 size={48} className="text-indigo-600 animate-spin" />
-                        <p className="mt-4 text-slate-500 font-medium tracking-wide">Đang tải dữ liệu...</p>
-                    </div>
-                ) : templates.length === 0 ? (
-                    <div className="bg-card border border-dashed border-border rounded-3xl p-12 text-center space-y-4">
-                        <div className="bg-background w-20 h-20 rounded-full flex items-center justify-center mx-auto">
-                            <Code size={40} className="text-muted-foreground/50" />
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-bold text-foreground">Không tìm thấy bài tập nào</h3>
-                            <p className="text-muted-foreground max-w-sm mx-auto">Thử thay đổi bộ lọc hoặc tạo một bài tập mới để bắt đầu xây dựng thư viện của bạn.</p>
-                        </div>
-                        <button
-                            onClick={() => navigate('/templates/create')}
-                            className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-colors"
+                <AnimatePresence mode="wait">
+                    {loading && templates.length === 0 ? (
+                        <motion.div
+                            key="loading"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex flex-col items-center justify-center py-20"
                         >
-                            Tạo bài tập đầu tiên
-                        </button>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {templates.map((template) => (
-                            <div
-                                key={template.templateId}
-                                className="group bg-card rounded-3xl border border-border shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300 overflow-hidden flex flex-col"
-                            >
-                                {/* Card Header area */}
-                                <div className="p-6 flex-1 space-y-4">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex gap-2">
-                                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${codingExerciseTemplateService.getDifficultyColor(template.difficulty) === 'success' ? 'bg-emerald-100 text-emerald-700' :
-                                                codingExerciseTemplateService.getDifficultyColor(template.difficulty) === 'warning' ? 'bg-amber-100 text-amber-700' :
-                                                    'bg-rose-100 text-rose-700'
-                                                }`}>
-                                                {template.difficulty}
-                                            </span>
-                                            <span className="px-2.5 py-1 bg-muted text-muted-foreground rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                                                {template.programmingLanguage}
-                                            </span>
-                                        </div>
-                                        <div className={`w-3 h-3 rounded-full ${template.isPublished ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-muted'}`} />
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight">
-                                            {template.title}
-                                        </h3>
-                                        <div className="flex items-center gap-3 text-muted-foreground text-xs">
-                                            <span className="flex items-center gap-1">
-                                                <Calendar size={12} />
-                                                {new Date(template.createdAt).toLocaleDateString()}
-                                            </span>
-                                            <span className="flex items-center gap-1 font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-md">
-                                                <Trophy size={11} />
-                                                {template.points} pts
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-wrap gap-2 pt-2">
-                                        {template.category && (
-                                            <span className="px-2 py-1 bg-primary/5 text-primary rounded-md text-[10px] font-semibold border border-primary/10">
-                                                {template.category}
-                                            </span>
-                                        )}
-                                        <span className="px-2 py-1 bg-muted/50 text-muted-foreground rounded-md text-[10px] font-semibold border border-border flex items-center gap-1">
-                                            <ChevronRight size={10} />
-                                            {template.usageCount} lượt dùng
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Card Actions area */}
-                                <div className="p-4 bg-muted/30 border-t border-border grid grid-cols-2 gap-2">
-                                    <button
-                                        onClick={() => navigate(`/templates/${template.templateId}/view`)}
-                                        className="flex items-center justify-center gap-2 py-2 px-3 bg-card border border-border text-foreground rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
-                                    >
-                                        <Eye size={16} />
-                                        Xem
-                                    </button>
-                                    <button
-                                        onClick={() => navigate(`/templates/${template.templateId}/edit`)}
-                                        className="flex items-center justify-center gap-2 py-2 px-3 bg-primary/10 text-primary rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors"
-                                    >
-                                        <Edit size={16} />
-                                        Sửa
-                                    </button>
-                                    <button
-                                        onClick={() => handleToggleStatus(template.templateId, template.isPublished)}
-                                        className={`col-span-2 flex items-center justify-center gap-2 py-2 px-3 border rounded-xl text-sm font-semibold transition-colors ${template.isPublished
-                                            ? 'border-destructive/20 text-destructive hover:bg-destructive/10'
-                                            : 'border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10'
-                                            }`}
-                                    >
-                                        {template.isPublished ? <XCircle size={16} /> : <CheckCircle size={16} />}
-                                        {template.isPublished ? 'Gỡ xuất bản' : 'Xuất bản'}
-                                    </button>
-                                </div>
+                            <Loader2 size={48} className="text-indigo-600 animate-spin" />
+                            <p className="mt-4 text-slate-500 font-medium tracking-wide">Đang tải dữ liệu...</p>
+                        </motion.div>
+                    ) : templates.length === 0 ? (
+                        <motion.div
+                            key="empty"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-card border border-dashed border-border rounded-3xl p-12 text-center space-y-4"
+                        >
+                            <div className="bg-background w-20 h-20 rounded-full flex items-center justify-center mx-auto">
+                                <Code size={40} className="text-muted-foreground/50" />
                             </div>
-                        ))}
-                    </div>
-                )}
+                            <div>
+                                <h3 className="text-xl font-bold text-foreground">Không tìm thấy bài tập nào</h3>
+                                <p className="text-muted-foreground max-w-sm mx-auto">Thử thay đổi bộ lọc hoặc tạo một bài tập mới để bắt đầu xây dựng thư viện của bạn.</p>
+                            </div>
+                            <button
+                                onClick={() => navigate('/templates/create')}
+                                className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-colors"
+                            >
+                                Tạo bài tập đầu tiên
+                            </button>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="content"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                        >
+                            {templates.map((template, index) => (
+                                <motion.div
+                                    key={template.templateId}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{
+                                        duration: 0.3,
+                                        delay: Math.min(index * 0.05, 0.5)
+                                    }}
+                                    className="group bg-card rounded-3xl border border-border shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300 overflow-hidden flex flex-col"
+                                >
+                                    {/* Card Header area */}
+                                    <div className="p-6 flex-1 space-y-4">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex gap-2">
+                                                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${codingExerciseTemplateService.getDifficultyColor(template.difficulty) === 'success' ? 'bg-emerald-100 text-emerald-700' :
+                                                    codingExerciseTemplateService.getDifficultyColor(template.difficulty) === 'warning' ? 'bg-amber-100 text-amber-700' :
+                                                        'bg-rose-100 text-rose-700'
+                                                    }`}>
+                                                    {template.difficulty}
+                                                </span>
+                                                <span className="px-2.5 py-1 bg-muted text-muted-foreground rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                                                    {template.programmingLanguage}
+                                                </span>
+                                            </div>
+                                            <div className={`w-3 h-3 rounded-full ${template.isPublished ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-muted'}`} />
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+                                                {template.title}
+                                            </h3>
+                                            <div className="flex items-center gap-3 text-muted-foreground text-xs">
+                                                <span className="flex items-center gap-1">
+                                                    <Calendar size={12} />
+                                                    {new Date(template.createdAt).toLocaleDateString()}
+                                                </span>
+                                                <span className="flex items-center gap-1 font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                                                    <Trophy size={11} />
+                                                    {template.points} pts
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2 pt-2">
+                                            {template.category && (
+                                                <span className="px-2 py-1 bg-primary/5 text-primary rounded-md text-[10px] font-semibold border border-primary/10">
+                                                    {template.category}
+                                                </span>
+                                            )}
+                                            <span className="px-2 py-1 bg-muted/50 text-muted-foreground rounded-md text-[10px] font-semibold border border-border flex items-center gap-1">
+                                                <ChevronRight size={10} />
+                                                {template.usageCount} lượt dùng
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Card Actions area */}
+                                    <div className="p-4 bg-muted/30 border-t border-border grid grid-cols-2 gap-2">
+                                        <button
+                                            onClick={() => navigate(`/templates/${template.templateId}/view`)}
+                                            className="flex items-center justify-center gap-2 py-2 px-3 bg-card border border-border text-foreground rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
+                                        >
+                                            <Eye size={16} />
+                                            Xem
+                                        </button>
+                                        <button
+                                            onClick={() => navigate(`/templates/${template.templateId}/edit`)}
+                                            className="flex items-center justify-center gap-2 py-2 px-3 bg-primary/10 text-primary rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors"
+                                        >
+                                            <Edit size={16} />
+                                            Sửa
+                                        </button>
+                                        <button
+                                            onClick={() => handleToggleStatus(template.templateId, template.isPublished)}
+                                            className={`col-span-2 flex items-center justify-center gap-2 py-2 px-3 border rounded-xl text-sm font-semibold transition-colors ${template.isPublished
+                                                ? 'border-destructive/20 text-destructive hover:bg-destructive/10'
+                                                : 'border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10'
+                                                }`}
+                                        >
+                                            {template.isPublished ? <XCircle size={16} /> : <CheckCircle size={16} />}
+                                            {template.isPublished ? 'Gỡ xuất bản' : 'Xuất bản'}
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Infinite Scroll Indicator */}
                 <div ref={observerTarget} className="h-20 flex items-center justify-center">

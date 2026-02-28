@@ -3,6 +3,7 @@ import { EnrollmentResponse } from '@/model/enrollment/EnrollmentResponse';
 import courseEnrollmentService from '@/services/courseEnrollmentService';
 import './EnrollmentManager.css';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import { useParams } from 'react-router-dom';
 
 interface EnrollmentManagerProps {
@@ -28,7 +29,11 @@ const EnrollmentManager: React.FC<EnrollmentManagerProps> = ({ courseId: propCou
             // "ALL" is not a status, so we handle it by passing undefined if needed, 
             // but for now let's strict type filter or pass undefined for all
             const statusParam = statusFilter === 'ALL' ? undefined : statusFilter as any;
-            const response = await courseEnrollmentService.getCourseEnrollments(courseId, statusParam, 0, 100);
+            const response = await courseEnrollmentService.getCourseEnrollments(courseId, {
+                status: statusParam,
+                page: 0,
+                size: 100
+            });
             if (response.items) {
                 setEnrollments(response.items);
             }
@@ -90,7 +95,12 @@ const EnrollmentManager: React.FC<EnrollmentManagerProps> = ({ courseId: propCou
 
     return (
         <div className="enrollment-manager-container">
-            <div className="manager-header">
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="manager-header"
+            >
                 <h1 className="manager-title">Enrollment Management</h1>
                 <select
                     className="status-filter"
@@ -102,78 +112,112 @@ const EnrollmentManager: React.FC<EnrollmentManagerProps> = ({ courseId: propCou
                     <option value="REJECTED">Rejected</option>
                     <option value="ALL">All Enrollments</option>
                 </select>
-            </div>
+            </motion.div>
 
-            {loading ? (
-                <div className="loading-spinner">Loading enrollments...</div>
-            ) : (
-                <div className="enrollment-list">
-                    {enrollments.length > 0 ? (
-                        <table className="enrollment-table">
-                            <thead>
-                                <tr>
-                                    <th>Student</th>
-                                    <th>Date Requested</th>
-                                    <th>Message</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {enrollments.map(enrollment => (
-                                    <tr key={enrollment.enrollmentId}>
-                                        <td>
-                                            <div className="student-info">
-                                                <span className="student-name">{enrollment.studentName}</span>
-                                                <span className="student-email">{enrollment.studentEmail}</span>
-                                                <span className="student-email">ID: {enrollment.studentCode}</span>
-                                            </div>
-                                        </td>
-                                        <td>{formatDate(enrollment.requestedAt)}</td>
-                                        <td style={{ maxWidth: '200px' }}>
-                                            {enrollment.requestMessage || <em style={{ color: '#ccc' }}>No message</em>}
-                                        </td>
-                                        <td>
-                                            <span className={`status-badge status-${enrollment.status.toLowerCase()}`}>
-                                                {enrollment.status}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {enrollment.status === 'PENDING' && (
-                                                <div className="action-buttons">
-                                                    <button
-                                                        className="btn-approve"
-                                                        onClick={() => handleApprove(enrollment.enrollmentId)}
-                                                        title="Approve"
-                                                    >
-                                                        ✓ Approve
-                                                    </button>
-                                                    <button
-                                                        className="btn-reject"
-                                                        onClick={() => openRejectModal(enrollment.enrollmentId)}
-                                                        title="Reject"
-                                                    >
-                                                        ✕ Reject
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
+            <AnimatePresence mode="wait">
+                {loading ? (
+                    <motion.div
+                        key="loading"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="loading-spinner"
+                    >
+                        Loading enrollments...
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="content"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="enrollment-list"
+                    >
+                        {enrollments.length > 0 ? (
+                            <table className="enrollment-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Date Requested</th>
+                                        <th>Message</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <div className="empty-state">
-                            <h3>No enrollments found</h3>
-                            <p>Try changing the filter status.</p>
-                        </div>
-                    )}
-                </div>
-            )}
+                                </thead>
+                                <tbody>
+                                    {enrollments.map((enrollment, index) => (
+                                        <motion.tr
+                                            key={enrollment.enrollmentId}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: Math.min(index * 0.05, 0.4) }}
+                                        >
+                                            <td>
+                                                <div className="student-info">
+                                                    <span className="student-name">{enrollment.studentName}</span>
+                                                    <span className="student-email">{enrollment.studentEmail}</span>
+                                                    <span className="student-email">ID: {enrollment.studentCode}</span>
+                                                </div>
+                                            </td>
+                                            <td>{formatDate(enrollment.requestedAt)}</td>
+                                            <td style={{ maxWidth: '200px' }}>
+                                                {enrollment.requestMessage || <em style={{ color: '#ccc' }}>No message</em>}
+                                            </td>
+                                            <td>
+                                                <span className={`status-badge status-${enrollment.status.toLowerCase()}`}>
+                                                    {enrollment.status}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {enrollment.status === 'PENDING' && (
+                                                    <div className="action-buttons">
+                                                        <button
+                                                            className="btn-approve"
+                                                            onClick={() => handleApprove(enrollment.enrollmentId)}
+                                                            title="Approve"
+                                                        >
+                                                            ✓ Approve
+                                                        </button>
+                                                        <button
+                                                            className="btn-reject"
+                                                            onClick={() => openRejectModal(enrollment.enrollmentId)}
+                                                            title="Reject"
+                                                        >
+                                                            ✕ Reject
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </motion.tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <motion.div
+                                key="empty"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="empty-state"
+                            >
+                                <h3>No enrollments found</h3>
+                                <p>Try changing the filter status.</p>
+                            </motion.div>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {showRejectModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="modal-overlay"
+                >
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="modal-content"
+                    >
                         <h3 className="modal-title">Reject Enrollment</h3>
                         <p>Please provide a reason for rejection:</p>
                         <textarea
@@ -196,8 +240,8 @@ const EnrollmentManager: React.FC<EnrollmentManagerProps> = ({ courseId: propCou
                                 Confirm Reject
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             )}
         </div>
     );

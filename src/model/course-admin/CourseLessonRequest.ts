@@ -1,4 +1,5 @@
 import { LessonType } from "@/types/enum/LessonType";
+import { TemplateSelection } from "./TemplateSelection";
 
 export interface CourseLessonRequest {
   lessonId?: string;
@@ -18,4 +19,8 @@ export interface CourseLessonRequest {
 
   exerciseTemplateIds?: string[];
   quizTemplateIds?: string[];
+
+  // Store template info for UI display (not sent to backend)
+  exerciseTemplates?: TemplateSelection[];
+  quizTemplates?: TemplateSelection[];
 }

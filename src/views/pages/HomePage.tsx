@@ -1,9 +1,21 @@
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Crown, Play, Users, Clock } from "lucide-react";
+import { ArrowRight, Crown, Play, Users, Clock, Loader2 } from "lucide-react";
 import { CourseCardResponse } from "@/model/course-admin/CourseCardResponse";
+import { AnimatePresence } from "framer-motion";
 import courseCatalogService from "@/services/courseCatalogService";
+import courseEnrollmentService from "@/services/courseEnrollmentService";
 import { useNavigate } from "react-router-dom";
+import CourseCard from "./component/CourseCard";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 
 /* ============================
    DATA
@@ -106,16 +118,19 @@ const Carousel: React.FC<{
     setIndex((prev) => (prev + next + slides.length) % slides.length);
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
       className="relative overflow-visible"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
       <div
         ref={ref}
-        className="flex snap-x snap-mandatory overflow-hidden rounded-2xl"
+        className="flex snap-x snap-mandatory overflow-hidden rounded-2xl shadow-2xl shadow-primary/10"
       >
-        {slides.map((s) => (
+        {slides.map((s, idx) => (
           <div key={s.id} className="min-w-full snap-start">
             <div className="relative h-[220px] sm:h-[260px] md:h-[320px] overflow-hidden rounded-2xl">
               <img
@@ -123,22 +138,29 @@ const Carousel: React.FC<{
                 alt={s.title}
                 className="h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#ff6a00]/90 via-[#ff6a00]/50 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-600/90 via-orange-500/40 to-transparent" />
               <div className="absolute inset-0 flex items-center">
                 <div className="px-6 sm:px-10 max-w-2xl text-white">
-                  <h3 className="text-2xl sm:text-3xl font-semibold">
-                    {s.title}
-                  </h3>
-                  <p className="mt-2 text-sm sm:text-base opacity-90">
-                    {s.subtitle}
-                  </p>
-                  <a
-                    href="#"
-                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/95 text-slate-900 dark:bg-slate-900/90 dark:text-white px-4 py-2 text-sm font-medium shadow transition-all hover:scale-105"
+                  <motion.div
+                    key={`${s.id}-${idx === index}`}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
                   >
-                    {s.cta}
-                    <Play size={16} />
-                  </a>
+                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight">
+                      {s.title}
+                    </h3>
+                    <p className="mt-3 text-sm sm:text-lg font-medium opacity-90 leading-relaxed max-w-lg">
+                      {s.subtitle}
+                    </p>
+                    <a
+                      href="#"
+                      className="mt-6 inline-flex items-center gap-3 rounded-xl bg-white text-orange-600 px-6 py-3 text-sm font-black shadow-xl hover:scale-105 transition-all active:scale-95"
+                    >
+                      {s.cta}
+                      <Play size={18} fill="currentColor" />
+                    </a>
+                  </motion.div>
                 </div>
               </div>
             </div>
@@ -148,107 +170,51 @@ const Carousel: React.FC<{
 
       <button
         onClick={() => goto(-1)}
-        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white p-2 shadow hover:shadow-md"
+        className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 backdrop-blur-md p-3 text-white shadow-lg border border-white/20 hover:bg-white/30 transition-all active:scale-90"
         aria-label="Prev"
       >
         ‹
       </button>
       <button
         onClick={() => goto(1)}
-        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white p-2 shadow hover:shadow-md"
+        className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 backdrop-blur-md p-3 text-white shadow-lg border border-white/20 hover:bg-white/30 transition-all active:scale-90"
         aria-label="Next"
       >
         ›
       </button>
 
-      <div className="absolute -bottom-6 left-0 right-0 flex items-center justify-center gap-2">
+      <div className="absolute -bottom-8 left-0 right-0 flex items-center justify-center gap-3">
         {slides.map((_, i) => (
           <button
             key={i}
             onClick={() => setIndex(i)}
-            className={`h-1.5 rounded-full transition-all ${i === index ? "w-8 bg-primary" : "w-4 bg-muted hover:bg-muted-foreground/30"
+            className={`h-2 rounded-full transition-all duration-300 ${i === index ? "w-10 bg-orange-500" : "w-3 bg-muted hover:bg-muted-foreground/30"
               }`}
             aria-label={`Go to slide ${i + 1}`}
           />
         ))}
       </div>
-    </div>
-  );
-};
-
-const CourseCard: React.FC<{ course: CourseCardResponse }> = ({ course }) => {
-  const navigate = useNavigate();
-
-  // Fallback gradients if no image
-  const gradients = [
-    "from-rose-500 to-pink-500", "from-cyan-500 to-teal-500", "from-sky-500 to-blue-500",
-    "from-fuchsia-500 to-purple-500", "from-amber-400 to-yellow-400", "from-orange-400 to-amber-500",
-    "from-emerald-400 to-teal-500", "from-teal-500 to-cyan-500", "from-purple-500 to-fuchsia-500",
-    "from-indigo-500 to-blue-500"
-  ];
-  // Deterministic gradient based on ID length or rough hash
-  const gradIndex = (course.courseId.charCodeAt(0) + course.courseId.charCodeAt(course.courseId.length - 1)) % gradients.length;
-  const gradient = gradients[gradIndex];
-
-  const handleClick = () => {
-    navigate(`/course/${course.slug}`);
-  };
-
-  return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all cursor-pointer"
-      onClick={handleClick}
-    >
-      {course.imageUrl ? (
-        <div className="h-40 w-full overflow-hidden bg-gray-100">
-          <img src={course.imageUrl} alt={course.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-        </div>
-      ) : (
-        <div
-          className={`relative h-40 w-full bg-gradient-to-r ${gradient}`}
-        />
-      )}
-
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <h4 className="text-lg font-bold leading-snug text-card-foreground group-hover:text-primary transition-colors line-clamp-2">
-            {course.title}
-          </h4>
-          {/* Placeholder for PRO badge if needed in future */}
-        </div>
-        {/* NEW badge logic could be restored if backend provides 'isNew' flag */}
-      </div>
-      <div className="px-4 pb-4">
-        <div className="mt-auto flex flex-col gap-1 text-muted-foreground text-xs font-medium">
-          <span className="inline-flex items-center gap-1">
-            GV: {course.instructorName || "Uneti Teacher"}
-          </span>
-          <div className="flex items-center gap-3 mt-1">
-            <span className="inline-flex items-center gap-1">
-              <Users size={14} className="text-primary/60" /> {course.enrolledCount || 0} học viên
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <Clock size={14} className="text-primary/60" /> {course.totalModules} phần
-            </span>
-          </div>
-        </div>
-      </div>
     </motion.div>
   );
 };
 
+
 const CoursesRow: React.FC<{ courses: CourseCardResponse[] }> = ({ courses }) => (
-  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-    {courses.map((c) => (
-      <CourseCard key={c.courseId} course={c} />
+  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    {courses.map((c, index) => (
+      <motion.div
+        key={c.courseId}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.4) }}
+      >
+        <CourseCard course={c} />
+      </motion.div>
     ))}
   </div>
 );
 
-/* ============================
-   FILTER/SORT CONTROLS (UI)
-============================ */
+
 const MAJOR_LABEL: Record<Major, string> = {
   all: "Tất cả",
   cntt: "Công nghệ thông tin",
@@ -284,59 +250,202 @@ const MajorSelect: React.FC<{
 export function HomePage() {
   const [major, setMajor] = useState<Major>("all");
   const [courses, setCourses] = useState<CourseCardResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [hasNext, setHasNext] = useState(true);
+  const pageSize = 12;
+
+  const loadCourses = async (page: number) => {
+    setLoading(true);
+    try {
+      const q = major === 'all' ? '' : MAJOR_LABEL[major];
+      const response = await courseCatalogService.getPublishedCourses(
+        page,
+        pageSize,
+        q === 'Tất cả' ? '' : q
+      );
+
+      if (response.items) {
+        setCourses(response.items);
+        setTotalPages(response.totalPages);
+        setTotalElements(response.totalElements);
+        setHasNext(response.hasNext);
+      }
+    } catch (e) {
+      console.error("Failed to load courses", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const isFirstRender = useRef(true);
+  const lastMajorRef = useRef<Major | null>(null);
 
   useEffect(() => {
-    const loadCourses = async () => {
-      setLoading(true);
-      try {
-        // Note: Currently backend doesn't support 'major' filter, effectively returning all published courses
-        // Search query (q) could be used if we mapped major to a search term
-        const q = major === 'all' ? '' : MAJOR_LABEL[major];
-        const response = await courseCatalogService.getPublishedCourses(0, 12, q === 'Tất cả' ? '' : q);
-        if (response.items) {
-          setCourses(response.items);
-        }
-      } catch (e) {
-        console.error("Failed to load courses", e);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      lastMajorRef.current = major;
+      loadCourses(0);
+      return;
+    }
 
-    loadCourses();
+    // Chỉ load lại khi major thực sự thay đổi
+    if (major !== lastMajorRef.current) {
+      lastMajorRef.current = major;
+      setCurrentPage(0);
+      loadCourses(0);
+    }
   }, [major]);
+
+  const handlePageChange = (page: number) => {
+    if (page < 0 || page >= totalPages) return;
+    setCurrentPage(page);
+    loadCourses(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <PageContainer>
       <Carousel slides={heroSlides} />
 
-      <SectionHeader
-        title="Khóa học "
-        rightSlot={
-          <div className="flex flex-wrap items-center gap-3">
-            <MajorSelect value={major} onChange={setMajor} />
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <SectionHeader
+          title="Khám phá khóa học"
+          subtitle="Học tập không giới hạn với những bài giảng chất lượng cao"
+          rightSlot={
+            <div className="flex flex-wrap items-center gap-5">
+              <MajorSelect value={major} onChange={setMajor} />
 
-            {/* Disabled Sort/Teacher for now until backend supports it fully */}
-            <a
-              href="#"
-              className="hidden md:inline-flex items-center gap-2 text-sm text-primary font-bold hover:underline underline-offset-4"
+              <a
+                href="#"
+                className="hidden lg:inline-flex items-center gap-2 text-sm text-primary font-black hover:underline underline-offset-8 transition-all"
+              >
+                Xem lộ trình học tập <ArrowRight size={18} />
+              </a>
+            </div>
+          }
+        />
+      </motion.div>
+
+      <AnimatePresence mode="wait">
+        {loading && courses.length === 0 ? (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="py-20 flex flex-col items-center justify-center gap-4"
+          >
+            <Loader2 size={48} className="text-orange-500 animate-spin" />
+            <p className="text-lg font-bold text-muted-foreground tracking-wide">Đang tải danh sách khóa học...</p>
+          </motion.div>
+        ) : courses.length === 0 ? (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="py-20 text-center bg-card rounded-[2.5rem] border border-dashed border-border"
+          >
+            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+              <Users className="text-muted-foreground h-10 w-10" />
+            </div>
+            <h3 className="text-2xl font-black text-foreground">Không tìm thấy khóa học nào</h3>
+            <p className="text-muted-foreground mt-3 max-w-sm mx-auto font-medium">Chúng tôi chưa có khóa học nào cho chuyên ngành này. Hãy thử quay lại sau hoặc đổi chuyên ngành khác.</p>
+            <button
+              onClick={() => setMajor('all')}
+              className="mt-8 px-8 py-3 bg-primary text-white font-black rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
             >
-              Xem lộ trình <ArrowRight size={16} />
-            </a>
-          </div>
-        }
-      />
-
-      {loading ? (
-        <div className="flex justify-center p-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
-      ) : (
-        courses.length > 0 ? (
-          <CoursesRow courses={courses} />
+              XEM TẤT CẢ KHÓA HỌC
+            </button>
+          </motion.div>
         ) : (
-          <div className="text-center p-10 text-muted-foreground">Không tìm thấy khóa học nào.</div>
-        )
-      )}
+          <motion.div
+            key="content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <CoursesRow courses={courses} />
+
+            {!loading && totalPages > 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="pt-16 pb-8"
+              >
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(currentPage - 1);
+                        }}
+                        className={currentPage === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+
+                    {Array.from({ length: totalPages }, (_, i) => {
+                      if (
+                        i === 0 ||
+                        i === totalPages - 1 ||
+                        (i >= currentPage - 1 && i <= currentPage + 1)
+                      ) {
+                        return (
+                          <PaginationItem key={i}>
+                            <PaginationLink
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handlePageChange(i);
+                              }}
+                              isActive={currentPage === i}
+                              className="cursor-pointer font-bold"
+                            >
+                              {i + 1}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      }
+                      if (
+                        (i === 1 && currentPage > 2) ||
+                        (i === totalPages - 2 && currentPage < totalPages - 3)
+                      ) {
+                        return (
+                          <PaginationItem key={i}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        );
+                      }
+                      return null;
+                    })}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(currentPage + 1);
+                        }}
+                        className={currentPage === totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </PageContainer>
   );

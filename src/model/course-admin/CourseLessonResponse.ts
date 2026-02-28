@@ -4,6 +4,7 @@ import { QuizDTO } from "./QuizDTO";
 
 export interface CourseLessonResponse {
   lessonId: string;
+  slug: string;
   title: string;
   description?: string;
   content?: string;
