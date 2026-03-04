@@ -26,7 +26,6 @@ const cacheService = {
     const endpoints: Record<string, string> = {
       users: `${CACHE_BASE_ENDPOINT}/evict/users`,
       courses: `${CACHE_BASE_ENDPOINT}/evict/courses`,
-      quizzes: `${CACHE_BASE_ENDPOINT}/evict/quizzes`,
       lessons: `${CACHE_BASE_ENDPOINT}/evict/lessons`,
       trees: `${CACHE_BASE_ENDPOINT}/evict/published-trees`,
     };

@@ -165,7 +165,7 @@ const PostCreate: React.FC = () => {
         <div className="min-h-screen bg-background pb-20">
             {/* Top Header */}
             <div className="sticky top-0 z-30 bg-card/80 backdrop-blur-md border-b border-border shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                <div className="max-w-[1700px] mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => navigate(-1)}
@@ -198,11 +198,11 @@ const PostCreate: React.FC = () => {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 mt-8">
-                <form className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="max-w-[1700px] mx-auto px-6 mt-10">
+                <form className="grid grid-cols-1 lg:grid-cols-12 gap-10">
 
                     {/* Main Content (Left Column) */}
-                    <div className="lg:col-span-2 space-y-8">
+                    <div className="lg:col-span-9 space-y-8">
 
                         {/* Title & Category */}
                         <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden transition-all">
@@ -278,7 +278,7 @@ const PostCreate: React.FC = () => {
                         </div>
 
                         {/* Rich Text Editor Mockup */}
-                        <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden flex flex-col h-[600px]">
+                        <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden flex flex-col h-[750px]">
                             <div className="bg-neutral-50 dark:bg-neutral-900 border-b border-border flex flex-wrap items-center p-1 gap-0.5">
                                 {/* Editor Toolbar Mockup - Based on image */}
                                 <div className="flex items-center p-1 gap-1 border-r border-border mr-1">
@@ -355,7 +355,7 @@ const PostCreate: React.FC = () => {
                     </div>
 
                     {/* Right Column (Sidebar Settings) */}
-                    <div className="space-y-6">
+                    <div className="lg:col-span-3 space-y-6">
 
                         {/* Thumbnail Upload */}
                         <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">

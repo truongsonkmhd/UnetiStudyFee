@@ -40,12 +40,12 @@ const navigationItems: {
 }[] = [
     { title: "Trang chủ", url: PATHS.HOME, icon: homepageIcon },
     { title: "Bảng xếp hạng", url: PATHS.RANKING, icon: rankingIcon },
-    {
-      title: "Tạo bài giảng",
-      url: PATHS.CREATE_LESSON,
-      icon: createLessionIcon,
-      requiredPermissions: [PermissionEnum.COURSE_CREATE, PermissionEnum.COURSE_UPDATE],
-    },
+    // {
+    //   title: "Tạo bài giảng",
+    //   url: PATHS.CREATE_LESSON,
+    //   icon: createLessionIcon,
+    //   requiredPermissions: [PermissionEnum.COURSE_CREATE, PermissionEnum.COURSE_UPDATE],
+    // },
     {
       title: "Tạo bài thi",
       url: PATHS.CREATE_TEST,
@@ -109,6 +109,12 @@ const navigationItems: {
       ],
     },
     {
+      title: "Học tập của tôi",
+      url: PATHS.MY_ENROLLMENTS,
+      icon: classIcon,
+      requiredRoles: [RoleEnum.ROLE_STUDENT],
+    },
+    {
       title: "Quản lý bài viết",
       url: PATHS.CREATE_POST,
       icon: createLessionIcon,
@@ -123,13 +129,11 @@ const history: {
   requiredRoles?: RoleEnum[];
 }[] = [
     {
-      title: "Lớp đã tham gia",
-      url: PATHS.CLASS_ATTENDED,
+      title: "Lớp học của tôi",
+      url: `${PATHS.MY_ENROLLMENTS}?tab=classes`,
       icon: classIcon,
       requiredRoles: [
         RoleEnum.ROLE_STUDENT,
-        RoleEnum.ROLE_ADMIN,
-        RoleEnum.ROLE_SYS_ADMIN,
       ],
     },
     {
@@ -212,12 +216,19 @@ export function AppSidebar() {
 
   const { jwtClaims } = actionAuth();
 
-  // tuỳ bạn đang lưu roles ở đâu trong claims
-  // ví dụ: jwtClaims.scope: string (dạng space-separated)
   const userRoles = getRolesFromClaims(jwtClaims);
   const theme = pickThemeByRoles(userRoles);
 
-  const isActive = (path: string) => currentPath === path;
+  const isActive = (path: string) => {
+    const [pathName, queryStr] = path.split('?');
+    if (queryStr) {
+      const params = new URLSearchParams(queryStr);
+      const currentParams = new URLSearchParams(location.search);
+      return currentPath === pathName &&
+        [...params.entries()].every(([k, v]) => currentParams.get(k) === v);
+    }
+    return currentPath === pathName;
+  };
 
   const getNavClassName = (path: string) =>
     [
@@ -321,7 +332,7 @@ export function AppSidebar() {
 
         <SidebarGroup>
           <SidebarGroupLabel className={theme.groupLabel}>
-            Lịch sử
+            Học tập của tôi
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

@@ -25,25 +25,25 @@ const codingExerciseService = {
      * Update an existing coding exercise
      */
     updateExercise: (
-        templateId: string,
+        id: string,
         payload: UpdateCodingExerciseRequest
     ): Promise<CodingExerciseDetail> =>
         apiService.put<CodingExerciseDetail>(
-            `${CODING_EXERCISE_BASE_ENDPOINT}/${templateId}`,
+            `${CODING_EXERCISE_BASE_ENDPOINT}/${id}`,
             payload
         ),
 
     /**
      * Delete exercise (soft delete)
      */
-    deleteExercise: (templateId: string): Promise<void> =>
-        apiService.delete<void>(`${CODING_EXERCISE_BASE_ENDPOINT}/${templateId}`),
+    deleteExercise: (id: string): Promise<void> =>
+        apiService.delete<void>(`${CODING_EXERCISE_BASE_ENDPOINT}/${id}`),
 
     /**
      * Get exercise by ID
      */
-    getExerciseById: (templateId: string): Promise<CodingExerciseDetail> =>
-        apiService.get<CodingExerciseDetail>(`${CODING_EXERCISE_BASE_ENDPOINT}/${templateId}`),
+    getExerciseById: (id: string): Promise<CodingExerciseDetail> =>
+        apiService.get<CodingExerciseDetail>(`${CODING_EXERCISE_BASE_ENDPOINT}/${id}`),
 
     /**
      * Get all categories
@@ -60,9 +60,9 @@ const codingExerciseService = {
     /**
      * Toggle exercise status (active/inactive)
      */
-    toggleExerciseStatus: (templateId: string, isActive: boolean): Promise<void> =>
+    toggleExerciseStatus: (id: string, isActive: boolean): Promise<void> =>
         apiService.put<void>(
-            `${CODING_EXERCISE_BASE_ENDPOINT}/${templateId}/status?isActive=${isActive}`
+            `${CODING_EXERCISE_BASE_ENDPOINT}/${id}/status?isActive=${isActive}`
         ),
 
     /**
@@ -94,9 +94,9 @@ const codingExerciseService = {
     /**
      * Duplicate exercise
      */
-    duplicateExercise: (templateId: string, newTitle: string): Promise<CodingExerciseDetail> =>
+    duplicateExercise: (id: string, newTitle: string): Promise<CodingExerciseDetail> =>
         apiService.post<CodingExerciseDetail>(
-            `${CODING_EXERCISE_BASE_ENDPOINT}/${templateId}/duplicate?newTitle=${encodeURIComponent(newTitle)}`
+            `${CODING_EXERCISE_BASE_ENDPOINT}/${id}/duplicate?newTitle=${encodeURIComponent(newTitle)}`
         ),
 
     /**
@@ -120,9 +120,9 @@ const codingExerciseService = {
     /**
      * Add test case to exercise
      */
-    addTestCase: (templateId: string, testCase: TestCase): Promise<CodingExerciseDetail> =>
+    addTestCase: (id: string, testCase: TestCase): Promise<CodingExerciseDetail> =>
         apiService.post<CodingExerciseDetail>(
-            `${CODING_EXERCISE_BASE_ENDPOINT}/${templateId}/test-cases`,
+            `${CODING_EXERCISE_BASE_ENDPOINT}/${id}/test-cases`,
             testCase
         ),
 
@@ -130,21 +130,21 @@ const codingExerciseService = {
      * Update test case
      */
     updateTestCase: (
-        templateId: string,
+        id: string,
         testCaseId: string,
         testCase: Partial<TestCase>
     ): Promise<CodingExerciseDetail> =>
         apiService.put<CodingExerciseDetail>(
-            `${CODING_EXERCISE_BASE_ENDPOINT}/${templateId}/test-cases/${testCaseId}`,
+            `${CODING_EXERCISE_BASE_ENDPOINT}/${id}/test-cases/${testCaseId}`,
             testCase
         ),
 
     /**
      * Delete test case
      */
-    deleteTestCase: (templateId: string, testCaseId: string): Promise<void> =>
+    deleteTestCase: (id: string, testCaseId: string): Promise<void> =>
         apiService.delete<void>(
-            `${CODING_EXERCISE_BASE_ENDPOINT}/${templateId}/test-cases/${testCaseId}`
+            `${CODING_EXERCISE_BASE_ENDPOINT}/${id}/test-cases/${testCaseId}`
         ),
 
     // ===== Import/Export Functions =====
@@ -322,6 +322,35 @@ You can return the answer in any order.`,
         link.click();
         URL.revokeObjectURL(link.href);
     },
+
+    /**
+     * Get exercise detail (student-facing)
+     */
+    getExerciseDetail: (exerciseId: string): Promise<any> =>
+        apiService.get<any>(`/judge/exercise/${exerciseId}`),
+
+    /**
+     * Submit code for evaluation
+     */
+    /**
+     * Submit code for evaluation
+     */
+    submitCode: (exerciseId: string, sourceCode: string, language: string): Promise<any> =>
+        apiService.post<any>('/judge/submitMQ', {
+            exerciseId,
+            sourceCode,
+            language: language.toLowerCase(),
+        }),
+
+    /**
+     * Run code against sample test cases
+     */
+    runCode: (exerciseId: string, sourceCode: string, language: string): Promise<any> =>
+        apiService.post<any>('/judge/run', {
+            exerciseId,
+            sourceCode,
+            language: language.toLowerCase(),
+        }),
 };
 
 // ===== Helper Functions =====

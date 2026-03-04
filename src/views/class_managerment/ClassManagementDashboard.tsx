@@ -1,54 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Users, Trophy, Clock, Search, Edit2, Trash2, Eye, AlertCircle, CheckCircle, XCircle, PlayCircle } from 'lucide-react';
+import { Calendar, Plus, Users, Trophy, Clock, Search, Edit2, Trash2, Eye, AlertCircle, CheckCircle, XCircle, PlayCircle, Link, Copy, RefreshCw, ExternalLink } from 'lucide-react';
 import { ClazzResponse } from '@/model/class/ClazzResponse';
 import classService from '@/services/classService';
+import classContestService from '@/services/classContestService';
 import { actionAuth } from '@/components/context/AuthContext';
 import { toast } from 'sonner';
+import { ClassContestResponse } from '@/model/class-contest/ClassContestResponse';
+import AddContestModal from './components/AddContestModal';
+import RescheduleContestModal from './components/RescheduleContestModal';
 
-const mockContests = [
-  {
-    classContestId: '1',
-    contestInfo: {
-      title: 'Midterm Exam - Algorithms',
-      description: 'Comprehensive test covering sorting and searching',
-      defaultTotalPoints: 100,
-      codingExerciseCount: 5,
-      quizQuestionCount: 10
-    },
-    scheduledStartTime: '2024-03-15T09:00:00Z',
-    scheduledEndTime: '2024-03-15T11:00:00Z',
-    status: 'SCHEDULED',
-    isActive: true,
-    weight: 1.0,
-    effectiveConfig: {
-      maxAttempts: 1,
-      showLeaderboard: true,
-      totalPoints: 100,
-      passingScore: 60
-    }
-  },
-  {
-    classContestId: '2',
-    contestInfo: {
-      title: 'Weekly Practice - Recursion',
-      description: 'Practice problems on recursive algorithms',
-      defaultTotalPoints: 50,
-      codingExerciseCount: 3,
-      quizQuestionCount: 5
-    },
-    scheduledStartTime: '2024-02-01T14:00:00Z',
-    scheduledEndTime: '2024-02-01T15:30:00Z',
-    status: 'COMPLETED',
-    isActive: true,
-    weight: 0.5,
-    effectiveConfig: {
-      maxAttempts: 3,
-      showLeaderboard: true,
-      totalPoints: 25,
-      passingScore: 15
-    }
-  }
-];
 
 const ClassManagementDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -57,10 +17,12 @@ const ClassManagementDashboard = () => {
   const [filterActive, setFilterActive] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [classes, setClasses] = useState<ClazzResponse[]>([]);
+  const [selectedClassContests, setSelectedClassContests] = useState<ClassContestResponse[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isAddContestModalOpen, setIsAddContestModalOpen] = useState(false);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [contestToReschedule, setContestToReschedule] = useState<ClassContestResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { jwtClaims } = actionAuth();
 
@@ -130,10 +92,65 @@ const ClassManagementDashboard = () => {
   }, []);
 
 
-  const mockClassInfo = {
-    classId: '1',
-    classCode: 'CS101-2024',
-    className: 'Introduction to Computer Science'
+  const fetchClassContests = async (classId: string) => {
+    try {
+      const data = await classContestService.getClassContests(classId);
+      setSelectedClassContests(data);
+    } catch (err) {
+      console.error("Error fetching class contests:", err);
+      toast.error("Không thể tải danh sách bài thi của lớp");
+    }
+  };
+
+  const handleSelectClass = (cls: ClazzResponse) => {
+    if (selectedClass?.classId === cls.classId) {
+      setSelectedClass(null);
+      setSelectedClassContests([]);
+    } else {
+      setSelectedClass(cls);
+      if (cls.classId) fetchClassContests(cls.classId);
+    }
+  };
+
+  const handleCancelContest = async (classContestId: string) => {
+    if (!window.confirm("Bạn có chắc chắn muốn hủy bài thi này?")) return;
+    try {
+      await classContestService.cancelContest(classContestId);
+      toast.success("Đã hủy bài thi");
+      if (selectedClass?.classId) fetchClassContests(selectedClass.classId);
+    } catch (err) {
+      console.error("Error cancelling contest:", err);
+      toast.error("Không thể hủy bài thi");
+    }
+  };
+
+  const handleRescheduleClick = (contest: ClassContestResponse) => {
+    setContestToReschedule(contest);
+    setIsRescheduleModalOpen(true);
+  };
+
+  const handleRegenerateInviteCode = async (classId: string) => {
+    if (!window.confirm("Bạn có chắc chắn muốn tạo mã mời mới? Mã cũ sẽ không còn hiệu lực.")) return;
+    try {
+      const res = await classService.regenerateInviteCode(classId);
+      if (res) {
+        setClasses(classes.map(c => c.classId === classId ? { ...c, inviteCode: res.inviteCode } : c));
+        if (selectedClass?.classId === classId) {
+          setSelectedClass({ ...selectedClass, inviteCode: res.inviteCode });
+        }
+        toast.success("Đã tạo mã mời mới");
+      }
+    } catch (err) {
+      console.error("Error regenerating invite code:", err);
+      toast.error("Không thể tạo lại mã mời");
+    }
+  };
+
+  const copyInviteLink = (inviteCode: string) => {
+    const baseUrl = window.location.origin;
+    const inviteLink = `${baseUrl}/join-class?code=${inviteCode}`;
+    navigator.clipboard.writeText(inviteLink);
+    toast.success("Đã sao chép link mời tham gia lớp học!");
   };
 
 
@@ -274,8 +291,8 @@ const ClassManagementDashboard = () => {
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => setSelectedClass(cls)}
-                      className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                      onClick={() => handleSelectClass(cls)}
+                      className={`p-2 rounded-lg transition-colors ${selectedClass?.classId === cls.classId ? 'bg-primary text-primary-foreground' : 'text-primary hover:bg-primary/10'}`}
                       title="View Details"
                     >
                       <Eye className="w-5 h-5" />
@@ -306,16 +323,48 @@ const ClassManagementDashboard = () => {
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Trophy className="w-4 h-4 text-muted-foreground/60" />
-                    <span className="font-medium text-foreground">{cls.contests.length} Bài thi</span>
+                    <span className="font-medium text-foreground">{cls.contests?.length || 0} Bài thi</span>
                   </div>
                 </div>
 
                 {selectedClass?.classId === cls.classId && (
                   <div className="mt-6 pt-6 border-t border-border">
+                    <div className="bg-primary/5 rounded-lg border border-primary/20 p-4 mb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Link className="w-4 h-4 text-primary" />
+                          <h4 className="font-bold text-foreground">Link mời tham gia lớp học</h4>
+                        </div>
+                        <button
+                          onClick={() => handleRegenerateInviteCode(cls.classId!)}
+                          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                          title="Tạo mã mời mới"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          Làm mới mã
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-background border border-border px-3 py-2 rounded-lg font-mono text-sm text-foreground overflow-hidden whitespace-nowrap text-ellipsis">
+                          {window.location.origin}/join-class?code={cls.inviteCode}
+                        </div>
+                        <button
+                          onClick={() => copyInviteLink(cls.inviteCode || '')}
+                          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-all shadow-sm text-sm font-medium"
+                        >
+                          <Copy className="w-4 h-4" />
+                          Copy Link
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-2">
+                        Chia sẻ link này cho học sinh để họ có thể tự tham gia vào lớp học của bạn.
+                      </p>
+                    </div>
+
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="font-bold text-foreground">Bài thi của lớp</h4>
                       <button
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={() => setIsAddContestModalOpen(true)}
                         className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground text-sm rounded-lg hover:opacity-90 transition-colors"
                       >
                         <Plus className="w-4 h-4" />
@@ -323,67 +372,80 @@ const ClassManagementDashboard = () => {
                       </button>
                     </div>
 
-                    <div className="space-y-3">
-                      {mockContests.map((contest) => (
-                        <div
-                          key={contest.classContestId}
-                          className="p-4 bg-muted/30 rounded-lg border border-border"
-                        >
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <h5 className="font-bold text-foreground mb-1">
-                                {contest.contestInfo.title}
-                              </h5>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                {contest.contestInfo.description}
-                              </p>
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  {formatDateTime(contest.scheduledStartTime)} - {formatDateTime(contest.scheduledEndTime)}
-                                </span>
+                    {selectedClassContests.length === 0 ? (
+                      <div className="text-center py-8 bg-muted/20 rounded-lg border border-dashed border-border">
+                        <p className="text-sm text-muted-foreground">Chưa có bài thi nào được gán cho lớp này</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {selectedClassContests.map((contest) => (
+                          <div
+                            key={contest.classContestId}
+                            className="p-4 bg-muted/30 rounded-lg border border-border"
+                          >
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <h5 className="font-bold text-foreground mb-1">
+                                  {contest.contestInfo.title}
+                                </h5>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                  {contest.contestInfo.description}
+                                </p>
+                                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    {formatDateTime(contest.scheduledStartTime)} - {formatDateTime(contest.scheduledEndTime)}
+                                  </span>
+                                </div>
+                              </div>
+                              {getStatusBadge(contest.status)}
+                            </div>
+
+                            <div className="grid grid-cols-5 gap-3 text-xs">
+                              <div className="bg-background p-2 rounded border border-border">
+                                <div className="text-muted-foreground mb-1">Tổng điểm</div>
+                                <div className="font-bold text-foreground">{contest.effectiveConfig.totalPoints}</div>
+                              </div>
+                              <div className="bg-background p-2 rounded border border-border">
+                                <div className="text-muted-foreground mb-1">Điểm đạt</div>
+                                <div className="font-bold text-foreground">{contest.effectiveConfig.passingScore}</div>
+                              </div>
+                              <div className="bg-background p-2 rounded border border-border">
+                                <div className="text-muted-foreground mb-1">Hệ số</div>
+                                <div className="font-bold text-foreground">{contest.weight}x</div>
+                              </div>
+                              <div className="bg-background p-2 rounded border border-border">
+                                <div className="text-muted-foreground mb-1">Số lần thử</div>
+                                <div className="font-bold text-foreground">{contest.effectiveConfig.maxAttempts}</div>
+                              </div>
+                              <div className="bg-background p-2 rounded border border-border">
+                                <div className="text-muted-foreground mb-1">Nội dung</div>
+                                <div className="font-bold text-foreground">{contest.contestInfo.codingExerciseCount}C | {contest.contestInfo.quizQuestionCount}Q</div>
                               </div>
                             </div>
-                            {getStatusBadge(contest.status)}
-                          </div>
 
-                          <div className="grid grid-cols-4 gap-3 text-xs">
-                            <div className="bg-background p-2 rounded border border-border">
-                              <div className="text-muted-foreground mb-1">Tổng điểm</div>
-                              <div className="font-bold text-foreground">{contest.effectiveConfig.totalPoints}</div>
-                            </div>
-                            <div className="bg-background p-2 rounded border border-border">
-                              <div className="text-muted-foreground mb-1">Điểm đạt</div>
-                              <div className="font-bold text-foreground">{contest.effectiveConfig.passingScore}</div>
-                            </div>
-                            <div className="bg-background p-2 rounded border border-border">
-                              <div className="text-muted-foreground mb-1">Hệ số</div>
-                              <div className="font-bold text-foreground">{contest.weight}x</div>
-                            </div>
-                            <div className="bg-background p-2 rounded border border-border">
-                              <div className="text-muted-foreground mb-1">Số lần thử tối đa</div>
-                              <div className="font-bold text-foreground">{contest.effectiveConfig.maxAttempts}</div>
+                            <div className="flex gap-2 mt-3 pt-3 border-t border-border">
+                              {(contest.status === 'SCHEDULED' || contest.status === 'ONGOING') && (
+                                <button
+                                  onClick={() => handleRescheduleClick(contest)}
+                                  className="px-3 py-1.5 text-sm bg-card text-foreground border border-border rounded hover:bg-muted transition-colors"
+                                >
+                                  Edit Schedule
+                                </button>
+                              )}
+                              {contest.status === 'SCHEDULED' && (
+                                <button
+                                  onClick={() => handleCancelContest(contest.classContestId)}
+                                  className="px-3 py-1.5 text-sm bg-card text-destructive border border-destructive/20 rounded hover:bg-destructive/10 transition-colors"
+                                >
+                                  Cancel Contest
+                                </button>
+                              )}
                             </div>
                           </div>
-
-                          <div className="flex gap-2 mt-3 pt-3 border-t border-border">
-                            <button className="px-3 py-1.5 text-sm bg-card text-foreground border border-border rounded hover:bg-muted transition-colors">
-                              Edit Schedule
-                            </button>
-                            {contest.status === 'SCHEDULED' && (
-                              <button className="px-3 py-1.5 text-sm bg-card text-destructive border border-destructive/20 rounded hover:bg-destructive/10 transition-colors">
-                                Cancel Contest
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {/* <AddContestModal
-                      isOpen={isModalOpen}
-                      onClose={() => setIsModalOpen(false)}
-                      classInfo={mockClassInfo}
-                    /> */}
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -507,6 +569,25 @@ const ClassManagementDashboard = () => {
         </div>
       )}
 
+
+      {/* Modals */}
+      <AddContestModal
+        isOpen={isAddContestModalOpen}
+        onClose={() => setIsAddContestModalOpen(false)}
+        classId={selectedClass?.classId || ''}
+        className={selectedClass?.className || ''}
+        onSuccess={() => selectedClass?.classId && fetchClassContests(selectedClass.classId)}
+      />
+
+      <RescheduleContestModal
+        isOpen={isRescheduleModalOpen}
+        onClose={() => {
+          setIsRescheduleModalOpen(false);
+          setContestToReschedule(null);
+        }}
+        contest={contestToReschedule}
+        onSuccess={() => selectedClass?.classId && fetchClassContests(selectedClass.classId)}
+      />
     </div>
 
 

@@ -7,7 +7,7 @@ import CourseLessonsAndExercises from "@/views/pages/CourseLessonsAndExercises";
 import LeaderboardPage from "@/views/pages/LeaderboardPage";
 import { PATHS } from "@/constants/paths";
 import AuthScreen from "@/views/login-and-registor/AuthScreen";
-import { AppLayout } from "@/components/layout/AppLayout";
+import { RoleBasedLayout } from "@/components/layout/RoleBasedLayout";
 import { Routes, Route, Navigate } from "react-router-dom";
 import PublicRoute from "@/components/PublicRoute";
 import ProfilePage from "@/views/profile/ProfilePage";
@@ -31,6 +31,7 @@ import MyEnrollments from "@/views/student/my-learning/MyEnrollments";
 import CourseDetail from "@/views/student/course-detail/CourseDetail";
 import CourseLearn from "@/views/student/course-learn/CourseLearn";
 import PostCreate from "@/views/teacher/post/PostCreate";
+import JoinClass from "@/views/student/JoinClass";
 
 const queryClient = new QueryClient();
 
@@ -169,7 +170,8 @@ const App = () => (
                   RoleEnum.ROLE_TEACHER,
                 ]}
               >
-                <PostCreate />
+                <WebSocketSubmission />
+
               </ProtectedRoute>
             }
           />
@@ -178,29 +180,12 @@ const App = () => (
           <Route path={PATHS.COURSE_LEARN} element={<CourseLearn />} />
 
 
-          <Route element={<AppLayout />}>
+          <Route element={<RoleBasedLayout />}>
             <Route path={PATHS.RANKING} element={<LeaderboardPage />} />
 
             <Route path={PATHS.UNAUTHORIZED} element={<UnauthorizedPage />} />
 
             <Route path={PATHS.HOME} element={<HomePage />} />
-
-            <Route path={PATHS.RANKING} element={<LeaderboardPage />} />
-
-            <Route
-              path={PATHS.CREATE_LESSON}
-              element={
-                <ProtectedRoute
-                  requiredRoles={[
-                    RoleEnum.ROLE_ADMIN,
-                    RoleEnum.ROLE_SYS_ADMIN,
-                    RoleEnum.ROLE_TEACHER,
-                  ]}
-                >
-                  <CourseLessonsAndExercises />
-                </ProtectedRoute>
-              }
-            />
             <Route
               path={PATHS.CREATE_TEST}
               element={
@@ -240,7 +225,6 @@ const App = () => (
                     RoleEnum.ROLE_TEACHER,
                   ]}
                 >
-                  {/* <ClassManagementDashboard /> */}
                   <QuizTemplateManager />
                 </ProtectedRoute>
               }
@@ -313,7 +297,7 @@ const App = () => (
               path={PATHS.CLASS_ATTENDED}
               element={
                 <ProtectedRoute requiredRoles={[RoleEnum.ROLE_STUDENT]}>
-                  <div>Lớp đã tham gia (Sắp Ra Mắt)</div>
+                  <WebSocketSubmission />
                 </ProtectedRoute>
               }
             />
@@ -339,6 +323,15 @@ const App = () => (
                   RoleEnum.ROLE_TEACHER,
                   RoleEnum.ROLE_STUDENT]}>
                   <MyEnrollments />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={PATHS.JOIN_CLASS}
+              element={
+                <ProtectedRoute requiredRoles={[RoleEnum.ROLE_STUDENT, RoleEnum.ROLE_TEACHER]}>
+                  <JoinClass />
                 </ProtectedRoute>
               }
             />

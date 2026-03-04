@@ -34,13 +34,10 @@ const CourseDetail: React.FC = () => {
             const data = await courseService.getCourseTreeBySlug(courseSlug);
             setCourse(data);
 
-            // Fetch enrollment status if course is loaded
             if (data && data.courseId) {
                 checkEnrollmentStatus(data.courseId);
                 subscribeToEnrollments(data.courseId);
             }
-
-            // Auto open first module
             if (data.modules && data.modules.length > 0) {
                 setOpenModules({ [data.modules[0].moduleId]: true });
             }
@@ -66,15 +63,8 @@ const CourseDetail: React.FC = () => {
 
     const subscribeToEnrollments = (courseId: string) => {
         webSocketService.subscribe(`/topic/course/${courseId}/enrollments`, (data: EnrollmentResponse) => {
-            // Check if the update is for the current student
-            // Note: In a real app we should compare with current student ID
-            // For now, since it's a topic for this course, any approval/rejection will trigger it
-            // Backend should ideally send only to the student, or we filter here
             console.log("WebSocket enrollment update:", data);
-
-            // Re-fetch status to be sure and update UI
             checkEnrollmentStatus(courseId);
-
             if (data.status === 'APPROVED') {
                 toast.success(`Đăng ký khóa học "${data.courseName}" của bạn đã được phê duyệt!`);
             } else if (data.status === 'REJECTED') {
@@ -125,24 +115,19 @@ const CourseDetail: React.FC = () => {
     }
 
     const totalLessons = course.modules.reduce((acc, m) => acc + (m.lessons ? m.lessons.length : 0), 0);
-    // Dynamic stats
-    const formattedDuration = "28h 05m"; // Duration is not yet available in CourseTreeResponse modules sum
+    const formattedDuration = "28h 05m";
     const studentCount = course.enrolledCount || 0;
-    const rating = course.rating || 5.0; // Default to 5.0 if no rating
+    const rating = course.rating || 5.0;
     const ratingCount = course.ratingCount || 0;
     const lastUpdated = course.updatedAt ? new Date(course.updatedAt).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' }) : new Date().toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' });
 
     return (
         <div className="min-h-screen bg-background pb-20">
-            {/* --- HERO HEADER SECTION --- */}
             <div className="bg-foreground text-background pt-8 pb-12 lg:pt-12 lg:pb-24 px-6 relative overflow-hidden">
-                {/* Background decorative elements */}
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-600/20 to-transparent pointer-events-none" />
 
                 <div className="max-w-[1440px] mx-auto relative z-10 flex flex-col lg:flex-row gap-8">
-                    {/* Left Content of Header */}
                     <div className="flex-1 lg:max-w-[65%]">
-                        {/* BreadCrumb / Back */}
                         <div className="flex items-center gap-2 mb-6 text-background/80 font-medium text-sm">
                             <button onClick={() => navigate(-1)} className="hover:text-background flex items-center gap-1 transition-colors">
                                 <ChevronLeft size={16} /> Quay lại
@@ -160,7 +145,6 @@ const CourseDetail: React.FC = () => {
                             dangerouslySetInnerHTML={{ __html: course.description || course.title }}
                         />
 
-                        {/* Meta Stats */}
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-background/80">
                             <div className="flex items-center gap-1.5 text-primary">
                                 <span className="text-background font-bold text-base">{rating}</span>
@@ -179,13 +163,10 @@ const CourseDetail: React.FC = () => {
                 </div>
             </div>
 
-            {/* --- MAIN CONTENT & SIDEBAR CONTAINER --- */}
             <div className="max-w-[1440px] mx-auto px-6 -mt-8 lg:-mt-16 flex flex-col lg:flex-row gap-10 relative z-20">
 
-                {/* Left Column content */}
                 <div className="flex-1 min-w-0">
 
-                    {/* 'What you will learn' Card */}
                     <div className="bg-card border border-border rounded-xl p-6 lg:p-8 shadow-sm mb-10">
                         <h2 className="text-xl lg:text-2xl font-bold mb-6 text-foreground">Bạn sẽ học được gì?</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -205,7 +186,6 @@ const CourseDetail: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Course Content Accordion */}
                     <div className="mb-12">
                         <h2 className="text-2xl font-bold mb-6 text-foreground">Nội dung khóa học</h2>
 
@@ -262,16 +242,11 @@ const CourseDetail: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Requirements, Instructor, etc. could go here */}
-
                 </div>
 
-                {/* Right Sidebar (Sticky) */}
                 <div className="w-full lg:w-[380px] shrink-0 relative">
                     <div className="lg:sticky lg:top-24 space-y-6">
-                        {/* Course Card */}
                         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl lg:shadow-2xl">
-                            {/* Preview Video/Image */}
                             <div
                                 className="relative w-full aspect-video bg-black group cursor-pointer overflow-hidden border-b border-border"
                                 onClick={() => course.videoUrl && setIsPlayingPreview(true)}
@@ -304,7 +279,6 @@ const CourseDetail: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* Card Content */}
                             <div className="p-6">
                                 <div className="flex items-center gap-3 mb-6">
                                     <span className="text-3xl font-bold text-foreground">Miễn phí</span>
@@ -335,19 +309,10 @@ const CourseDetail: React.FC = () => {
                                     <p className="font-semibold text-foreground text-sm">Khóa học này bao gồm:</p>
                                     <ul className="space-y-3">
                                         <li className="flex items-center gap-3 text-sm text-muted-foreground">
-                                            <BarChart size={18} className="text-foreground shrink-0" /> <span>Trình độ cơ bản</span>
-                                        </li>
-                                        <li className="flex items-center gap-3 text-sm text-muted-foreground">
                                             <Film size={18} className="text-foreground shrink-0" /> <span>Tổng số <b>{totalLessons}</b> bài học</span>
                                         </li>
                                         <li className="flex items-center gap-3 text-sm text-muted-foreground">
                                             <Clock size={18} className="text-foreground shrink-0" /> <span>Thời lượng <b>{formattedDuration}</b></span>
-                                        </li>
-                                        <li className="flex items-center gap-3 text-sm text-muted-foreground">
-                                            <Battery size={18} className="text-foreground shrink-0" /> <span>Học mọi lúc, mọi nơi</span>
-                                        </li>
-                                        <li className="flex items-center gap-3 text-sm text-muted-foreground">
-                                            <Check size={18} className="text-foreground shrink-0" /> <span>Cấp chứng chỉ khi hoàn thành</span>
                                         </li>
                                     </ul>
                                 </div>

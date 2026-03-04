@@ -4,6 +4,7 @@ export interface ClazzResponse {
   classId?: string;
   classCode?: string;
   className?: string;
+  inviteCode?: string;
   instructorId?: string;
   instructorName?: string;
   startDate?: string;
@@ -11,6 +12,6 @@ export interface ClazzResponse {
   createdAt?: string;
   updatedAt?: string;
   maxStudents?: number;
-  isActive? : boolean;
-  contests? : ClassContestResponse[];
+  isActive?: boolean;
+  contests?: ClassContestResponse[];
 }

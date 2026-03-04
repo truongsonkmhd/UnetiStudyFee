@@ -25,23 +25,17 @@ import codingExerciseTemplateService from '@/services/codingExerciseTemplateServ
 import quizTemplateService from '@/services/quizTemplateService';
 import contestLessonService from '@/services/contestLessonService';
 import { toast } from 'sonner';
-import { Difficulty } from '@/model/coding-template/Difficulty';
 import { Loader2 } from 'lucide-react';
 import { TemplateCard } from '@/model/coding-template/TemplateCard';
 import { QuizTemplateDetail } from '@/model/quiz-template/QuizTemplateDetail';
 
-// APIs are integrated, no need for mock generators here anymore.
-
-// ────────────────────────────────────────────────
-// Main Component
-// ────────────────────────────────────────────────
 const ContestManager = () => {
   const [view, setView] = useState<'classes' | 'library_coding' | 'library_quiz' | 'create-class' | 'manage-contest'>('classes');
   const [selectedContest, setSelectedContest] = useState<any>(null);
 
   const [exercises, setExercises] = useState<TemplateCard[]>([]);
   const [quizzes, setQuizzes] = useState<QuizTemplateDetail[]>([]);
-  const [classes, setClasses] = useState<any[]>([]); // Contest Templates (ContestLesson)
+  const [classes, setClasses] = useState<any[]>([]); 
   const [isLoading, setIsLoading] = useState(false);
 
   const [selectedExercises, setSelectedExercises] = useState<Set<string>>(new Set());
@@ -56,13 +50,14 @@ const ContestManager = () => {
   const navigate = useNavigate();
 
   const [newClass, setNewClass] = useState({
-    contestLessonId: '', // Added for edit mode
+    contestLessonId: '', 
     title: '',
     description: '',
     durationMinutes: 60,
     passingScore: 70,
     maxAttempts: 3,
     totalPoints: 100,
+    showLeaderboardDefault: true,
   });
 
 
@@ -113,7 +108,6 @@ const ContestManager = () => {
   };
 
   const handleViewExercise = (id: string) => {
-    // Open in a new tab or modal - for now navigate
     navigate(`${PATHS.CODING_EXERCISE_LIBRARY}/${id}`);
   };
 
@@ -122,7 +116,6 @@ const ContestManager = () => {
       setIsLoading(true);
       const contest = await contestLessonService.getById(contestId);
 
-      // Pre-fill form
       setNewClass({
         contestLessonId: contest.contestLessonId,
         title: contest.title,
@@ -131,12 +124,8 @@ const ContestManager = () => {
         passingScore: contest.passingScore || 70,
         maxAttempts: contest.defaultMaxAttempts || 3,
         totalPoints: contest.totalPoints || 100,
-      });
-
-      // We need to fetch the IDs of templates assigned to this contest
-      // Assuming the contest object returns them, or we might need another API call
-      // For now, let's assume they might be in the contest object or we just allow editing basic info
-      // In a real app, we'd fetch assigned IDs here.
+        showLeaderboardDefault: contest.showLeaderboardDefault !== undefined ? contest.showLeaderboardDefault : true,
+      })
 
       setView('create-class');
     } catch (error) {
@@ -323,6 +312,7 @@ const ContestManager = () => {
         passingScore: newClass.passingScore,
         defaultMaxAttempts: newClass.maxAttempts,
         totalPoints: newClass.totalPoints,
+        showLeaderboardDefault: newClass.showLeaderboardDefault,
         exerciseTemplateIds: Array.from(selectedExercises),
         quizTemplateIds: Array.from(selectedQuizzes),
       };
@@ -343,6 +333,7 @@ const ContestManager = () => {
         passingScore: 70,
         maxAttempts: 3,
         totalPoints: 100,
+        showLeaderboardDefault: true,
       });
       setSelectedExercises(new Set());
       setSelectedQuizzes(new Set());
@@ -668,10 +659,7 @@ const ContestManager = () => {
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full -mr-32 -mt-32 z-0 opacity-50" />
         <div className="relative z-10">
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Bài thi của tôi</h1>
-          <p className="text-gray-500 mt-2 max-w-lg text-lg">
-            Hệ thống quản lý bài kiểm tra và bài tập lập trình tập trung.
-            Thiết kế, triển khai và theo dõi kết quả của sinh viên.
-          </p>
+          <p className="text-gray-500 mt-1 font-medium">Quản lý và tạo mới các bài thi lập trình</p>    
         </div>
         <div className="relative z-10">
           <button
@@ -684,6 +672,7 @@ const ContestManager = () => {
                 passingScore: 70,
                 maxAttempts: 3,
                 totalPoints: 100,
+                showLeaderboardDefault: true,
               });
               setSelectedExercises(new Set());
               setSelectedQuizzes(new Set());
@@ -894,6 +883,25 @@ const ContestManager = () => {
                 />
               </div>
             </div>
+
+            <div className="flex items-center gap-3 bg-gray-50/80 p-4 rounded-xl border border-gray-100 mt-4">
+              <input
+                type="checkbox"
+                id="showLeaderboardDefault"
+                checked={newClass.showLeaderboardDefault}
+                onChange={(e) => setNewClass({ ...newClass, showLeaderboardDefault: e.target.checked })}
+                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+              />
+              <div className="flex flex-col cursor-pointer select-none" onClick={() => setNewClass({ ...newClass, showLeaderboardDefault: !newClass.showLeaderboardDefault })}>
+                <label
+                  htmlFor="showLeaderboardDefault"
+                  className="text-sm font-bold text-gray-800 cursor-pointer"
+                >
+                  Hiển thị bảng xếp hạng mặc định
+                </label>
+                <p className="text-[11px] text-gray-500 italic">Cho phép sinh viên xem bảng vinh danh ngay khi kết thúc bài thi.</p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -1080,9 +1088,8 @@ const ContestManager = () => {
         <div className="lg:col-span-2 space-y-8">
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Code size={22} className="text-indigo-600" />
-              Nội dung bài tập ({selectedContest?.codingExerciseCount + selectedContest?.quizQuestionCount})
-            </h3>
+              Nội dung bài thi 
+                          </h3>
 
             <div className="space-y-3">
               <div className="bg-white rounded-2xl border border-gray-200 p-5 flex items-center justify-between">
@@ -1114,17 +1121,6 @@ const ContestManager = () => {
                   Xem chi tiết
                 </button>
               </div>
-            </div>
-          </div>
-
-          <div className="bg-indigo-50 rounded-2xl p-6 border border-indigo-100 flex items-center gap-6">
-            <div className="p-4 bg-white rounded-xl shadow-sm">
-              <Trophy size={32} className="text-indigo-600" />
-            </div>
-            <div>
-              <h4 className="font-bold text-indigo-900">Thống kê & Kết quả</h4>
-              <p className="text-indigo-700/80 text-sm">Xem chi tiết kết quả làm bài của học sinh và phân tích độ khó.</p>
-              <button className="mt-2 text-indigo-600 font-bold text-sm hover:underline">Đi tới Statistics →</button>
             </div>
           </div>
         </div>

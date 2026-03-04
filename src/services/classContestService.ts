@@ -6,7 +6,6 @@ import { UpdateClassRequest } from "@/model/class-contest/UpdateClassRequest";
 import { ClassSummary } from "@/types/ClassSummary";
 import { ClasssContest } from "@/types/ClassContest";
 
-
 const CLASS_BASE_ENDPOINT = "/admin/class-contests";
 
 const classContestService = {
@@ -48,7 +47,7 @@ const classContestService = {
   // ===== Class Contest Management =====
   getClassContests: (classId: string): Promise<ClassContestResponse[]> =>
     apiService.get<ClassContestResponse[]>(
-      `${CLASS_BASE_ENDPOINT}/${classId}/contests`
+      `${CLASS_BASE_ENDPOINT}/${classId}`
     ),
 
   getOngoingContests: (classId: string): Promise<ClassContestResponse[]> =>

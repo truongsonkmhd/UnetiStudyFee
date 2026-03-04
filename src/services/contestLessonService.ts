@@ -22,7 +22,7 @@ const contestLessonService = {
     if (params.size !== undefined) queryParams.append("size", String(params.size));
     if (params.q) queryParams.append("q", params.q);
     if (params.statusContest) queryParams.append("statusContest", params.statusContest);
-    
+
     return apiService.get<PageResponse<ContestLessonSummary>>(
       `${CONTEST_BASE_ENDPOINT}/search?${queryParams}`
     );
@@ -63,8 +63,14 @@ const contestLessonService = {
   getUsageStatistics: (contestLessonId: string): Promise<any> =>
     apiService.get<any>(`${CONTEST_BASE_ENDPOINT}/${contestLessonId}/statistics`),
 
-  getReadyContests: (): Promise<ContestLessonSummary[]> =>
-    apiService.get<ContestLessonSummary[]>(`${CONTEST_BASE_ENDPOINT}/ready`),
+  getReadyContests: (params: { page?: number; size?: number; q?: string }): Promise<PageResponse<ContestLessonSummary>> => {
+    const queryParams = new URLSearchParams();
+    if (params.page !== undefined) queryParams.append("page", String(params.page));
+    if (params.size !== undefined) queryParams.append("size", String(params.size));
+    if (params.q) queryParams.append("q", params.q);
+
+    return apiService.get<PageResponse<ContestLessonSummary>>(`${CONTEST_BASE_ENDPOINT}/ready?${queryParams}`);
+  },
 };
 
 export default contestLessonService;

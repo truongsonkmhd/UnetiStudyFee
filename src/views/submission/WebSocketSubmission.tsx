@@ -65,13 +65,13 @@ const VERDICT_CONFIG: Record<string, VerdictConfig> = {
   MEMORY_LIMIT_EXCEEDED: { icon: AlertCircle, color: "text-purple-500", bg: "bg-purple-100", label: "MLE" },
 };
 
-// ===== helper: parse JWT payload (không verify signature, chỉ decode để lấy userId) =====
+
 function getUserIdFromJwt(token: string): string | null {
   try {
     const payload = token.split(".")[1];
     if (!payload) return null;
     const json = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-    // trong token của bạn đang là "userID" (chữ D hoa) -> map luôn cả 2
+
     return (json.userId ?? json.userID ?? json.userID ?? null) as string | null;
   } catch {
     return null;
@@ -87,17 +87,14 @@ export default function ClassManagementDashboardWebSocketSubmission() {
   const stompClientRef = useRef<Client | null>(null);
   const subscriptionRef = useRef<StompSubscription | null>(null);
 
-  // ====== Config ======
   const wsUrl = "http://localhost:8097/ws-submission";
   const submitUrl = "http://localhost:8097/api/judge/submitMQ";
 
-  // ❗ ĐỪNG hardcode token trong code thật. Tạm thời theo bạn đưa.
   const token =
-    "eyJhbGciOiJIUzI1NiJ9.eyJjbGFzc0lkIjoiREhUSTE2QTNITiIsInNjb3BlIjoiUk9MRV9URUFDSEVSIFVQREFURV9EQVRBIFVQTE9BRF9EQVRBIENSRUFURV9EQVRBIFZJRVdfREFUQSIsInVzZXJOYW1lIjoidHJ1b25nc29ua21oZDIiLCJ1c2VySUQiOiI2OTM3MzA5Zi1jOTU0LTRlYmMtYTE2Yy03MmIyYjgyYWY4NjkiLCJzdWIiOiJ0cnVvbmdzb25rbWhkMiIsImlhdCI6MTc2ODc5ODg2MiwiZXhwIjoxNzY4ODg1MjYyfQ.yXi0KBQ_zG72M7w7nNHMgMK_j1asKU2SpQc4l73qPpw";
+    "eyJhbGciOiJIUzI1NiJ9.eyJjbGFzc0lkIjoiREhUSTE2QTNITiIsInNjb3BlIjoiUk9MRV9BRE1JTiBQT1NUX1VQREFURSBVU0VSX01BTkFHRSBFWEVSQ0lTRV9TVUJNSVQgVVNFUl9NQU5BR0UgUE9TVF9WSUVXIFBPU1RfVklFVyBQT1NUX1VQREFURSBDT1VSU0VfVklFVyBFWEVSQ0lTRV9NQU5BR0UgUVVJWl9UQUtFIFBPU1RfQ1JFQVRFIENPVVJTRV9VUERBVEUgUVVJWl9DUkVBVEUgUVVJWl9NQU5BR0UgQ09VUlNFX0NSRUFURSBQT1NUX0RFTEVURSBDT1VSU0VfVVBEQVRFIEVYRVJDSVNFX0RFTEVURSBDT1VSU0VfREVMRVRFIENPVVJTRV9WSUVXIEVYRVJDSVNFX0NSRUFURSBDT1VSU0VfREVMRVRFIFBPU1RfREVMRVRFIENPVVJTRV9DUkVBVEUgRVhFUkNJU0VfVVBEQVRFIFFVSVpfVVBEQVRFIFBPU1RfQ1JFQVRFIFFVSVpfREVMRVRFIiwidXNlck5hbWUiOiJ0cnVvbmdzb25rbWhkIiwidXNlcklEIjoiMTZhYzdkOTktOTNiYi00NjJkLWI1ZDItNjcyY2Y4NzE4MGZhIiwic3ViIjoidHJ1b25nc29ua21oZCIsImlhdCI6MTc3MjI3MDc3MSwiZXhwIjoxNzcyMzU3MTcxfQ.9LvWy_xNrLu1E_-HDyzYOz0vZ7hZ-KLk5VrUT7fDi-8";
 
   const userId = useMemo(() => {
-    // trong payload token của bạn là "userID" -> hàm đã handle
-    return getUserIdFromJwt(token) ?? "6937309f-c954-4ebc-a16c-72b2b82af869";
+    return getUserIdFromJwt(token) ?? "16ac7d99-93bb-462d-b5d2-672cf87180fa";
   }, [token]);
 
   const addLog = (message: string) => {
@@ -110,10 +107,6 @@ export default function ClassManagementDashboardWebSocketSubmission() {
     const client = new Client({
       webSocketFactory: () => new SockJS(wsUrl) as any,
       reconnectDelay: 3000,
-
-      // (optional) nếu bạn muốn gửi token ở STOMP CONNECT headers:
-      // connectHeaders: { Authorization: `Bearer ${token}` },
-
       onConnect: () => {
         setIsConnected(true);
         addLog("✅ WebSocket connected");

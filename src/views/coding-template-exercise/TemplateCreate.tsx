@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import Editor from "@monaco-editor/react";
 import {
   ArrowLeft,
   Save,
@@ -162,8 +163,9 @@ const TemplateCreate: React.FC = () => {
 
     try {
       if (isEditing) {
-        // Handle update
-        toast.info('Tính năng cập nhật đang được phát triển');
+        await codingExerciseTemplateService.update(id!, templateData);
+        toast.success('Đã cập nhật bài tập mẫu thành công!');
+        navigate('/codingExerciseLibrary');
       } else {
         await codingExerciseTemplateService.create(templateData);
         toast.success('Đã tạo bài tập mẫu thành công!');
@@ -186,9 +188,8 @@ const TemplateCreate: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Top Header */}
       <div className="sticky top-0 z-30 bg-card/80 backdrop-blur-md border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-[1850px] w-[96%] mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/codingExerciseLibrary')}
@@ -221,11 +222,11 @@ const TemplateCreate: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 mt-8">
-        <form className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-[1850px] w-[96%] mx-auto px-4 sm:px-6 mt-8">
+        <form className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
 
           {/* Main Content (Left Column) */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-9 space-y-8">
 
             {/* Header Info */}
             <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden transition-all">
@@ -233,7 +234,7 @@ const TemplateCreate: React.FC = () => {
                 <FileText size={20} className="text-primary" />
                 Thông tin cơ bản
               </div>
-              <div className="p-6 space-y-6">
+              <div className="p-10 space-y-10">
                 <div>
                   <label className="block text-sm font-bold text-foreground mb-2">Tiêu đề bài tập <span className="text-destructive">*</span></label>
                   <input
@@ -293,33 +294,51 @@ const TemplateCreate: React.FC = () => {
                 <Code2 size={20} className="text-primary" />
                 Cấu hình mã nguồn
               </div>
-              <div className="p-6 space-y-6">
+              <div className="p-10 space-y-10">
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-sm font-bold text-foreground">Mã khởi tạo (Initial Code) <span className="text-destructive">*</span></label>
                     <span className="text-[10px] uppercase font-bold text-muted-foreground/60">Environment: {formData.programmingLanguage}</span>
                   </div>
-                  <textarea
-                    name="initialCode"
-                    rows={10}
-                    value={formData.initialCode}
-                    onChange={handleInputChange}
-                    className="w-full p-4 bg-slate-950 text-indigo-100 font-mono text-sm border-0 rounded-2xl focus:ring-2 focus:ring-primary outline-none shadow-inner"
-                    placeholder="// Viết mã nguồn mẫu cho học sinh ở đây..."
-                  />
+                  <div className="h-[400px] border border-border rounded-2xl overflow-hidden bg-[#1e1e1e]">
+                    <Editor
+                      height="100%"
+                      language={formData.programmingLanguage.toLowerCase() === 'c++' ? 'cpp' : formData.programmingLanguage.toLowerCase()}
+                      theme="vs-dark"
+                      value={formData.initialCode}
+                      onChange={(value) => setFormData(prev => ({ ...prev, initialCode: value || '' }))}
+                      options={{
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        lineNumbers: 'on',
+                        scrollBeyondLastLine: false,
+                        automaticLayout: true,
+                        padding: { top: 16, bottom: 16 }
+                      }}
+                    />
+                  </div>
                   {errors.initialCode && <p className="mt-1 text-xs font-semibold text-destructive flex items-center gap-1"><AlertCircle size={12} />{errors.initialCode}</p>}
                 </div>
 
                 <div>
                   <label className="block text-sm font-bold text-foreground mb-2 font-mono">Giải pháp mẫu (Solution Code)</label>
-                  <textarea
-                    name="solutionCode"
-                    rows={8}
-                    value={formData.solutionCode}
-                    onChange={handleInputChange}
-                    className="w-full p-4 bg-slate-900 text-emerald-100 font-mono text-sm border-0 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none shadow-inner"
-                    placeholder="// Lưu trữ lời giải tối ưu (không bắt buộc)..."
-                  />
+                  <div className="h-[300px] border border-border rounded-2xl overflow-hidden bg-[#1e1e1e]">
+                    <Editor
+                      height="100%"
+                      language={formData.programmingLanguage.toLowerCase() === 'c++' ? 'cpp' : formData.programmingLanguage.toLowerCase()}
+                      theme="vs-dark"
+                      value={formData.solutionCode}
+                      onChange={(value) => setFormData(prev => ({ ...prev, solutionCode: value || '' }))}
+                      options={{
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        lineNumbers: 'on',
+                        scrollBeyondLastLine: false,
+                        automaticLayout: true,
+                        padding: { top: 16, bottom: 16 }
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -412,7 +431,7 @@ const TemplateCreate: React.FC = () => {
                       <Trash2 size={18} />
                     </button>
                   </div>
-                  <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
                     <div className="space-y-2">
                       <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Input</label>
                       <textarea
@@ -461,7 +480,7 @@ const TemplateCreate: React.FC = () => {
           </div>
 
           {/* Right Column (Sidebar Settings) */}
-          <div className="space-y-6">
+          <div className="lg:col-span-3 space-y-6">
 
             {/* Quick Settings */}
             <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden sticky top-24">
@@ -469,7 +488,7 @@ const TemplateCreate: React.FC = () => {
                 <Settings2 size={20} className="text-primary" />
                 Thiết lập nhanh
               </div>
-              <div className="p-6 space-y-6">
+              <div className="p-10 space-y-10">
                 <div>
                   <label className="block text-sm font-bold text-foreground mb-2">Ngôn ngữ chủ đạo</label>
                   <select
@@ -530,15 +549,7 @@ const TemplateCreate: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-2xl border border-dashed border-border">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle2 size={18} className="text-emerald-500 shrink-0 mt-0.5" />
-                      <div>
-                        <h4 className="text-sm font-bold text-foreground">Tự động cấu hình</h4>
-                        <p className="text-xs text-muted-foreground leading-relaxed">Chúng tôi tự động tối ưu hóa slug và cấu hình môi trường dựa trên tiêu đề và ngôn ngữ bạn chọn.</p>
-                      </div>
-                    </div>
-                  </div>
+
                 </div>
               </div>
             </div>

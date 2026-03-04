@@ -1,6 +1,7 @@
 import { Difficulty } from "../coding-template/Difficulty";
 
 export interface CodingExerciseDTO {
+  exerciseId: string;
   contestLessonId: string | null;
   templateId?: string;
   title: string;

@@ -1,29 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
     ChevronLeft,
+    ChevronRight,
     Play,
     Send,
-    RotateCcw,
-    Settings,
-    Maximize2,
     Lightbulb,
-    MessageSquare,
     Trophy,
     Clock,
     Database,
     ChevronDown,
-    CheckCircle2,
-    Info,
-    Layout,
-    PanelLeftClose,
-    PanelLeftOpen,
-    Code2,
     Terminal,
     FileText,
     History,
     Languages,
-    HistoryIcon
+    History as HistoryIcon,
+    Settings2,
+    Code2
 } from 'lucide-react';
 import {
     ResizableHandle,
@@ -47,91 +40,189 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import codingExerciseTemplateService from '@/services/codingExerciseTemplateService';
-import { CodingExerciseTemplate } from '@/model/coding-template/CodingExerciseTemplate';
+import codingExerciseService from '@/services/codingExercise';
+import webSocketService from '@/services/webSocketService';
+import authService from '@/services/AuthService';
 import { Difficulty } from '@/model/coding-template/Difficulty';
 import { toast } from 'sonner';
+import { AlertCircle as AlertIcon, CheckCircle, XCircle, Clock as ClockIcon, Loader2 } from 'lucide-react';
+
+type Verdict =
+    | "PENDING"
+    | "RUNNING"
+    | "ACCEPTED"
+    | "WRONG_ANSWER"
+    | "COMPILATION_ERROR"
+    | "RUNTIME_ERROR"
+    | "TIME_LIMIT_EXCEEDED"
+    | "MEMORY_LIMIT_EXCEEDED"
+    | string;
+
+type SubmissionDTO = {
+    submissionId?: string;
+    verdict?: Verdict;
+    passedTestcases?: number;
+    totalTestcases?: number;
+    score?: number;
+    runtimeMs?: number | null;
+    memoryKb?: number | null;
+    language?: string | null;
+    submittedAt?: string | number | Date | null;
+};
+
+const VERDICT_CONFIG: Record<string, any> = {
+    PENDING: { icon: ClockIcon, color: "text-gray-500", bg: "bg-gray-100", label: "Đang chờ" },
+    RUNNING: { icon: Loader2, color: "text-blue-500", bg: "bg-blue-100", label: "Đang chấm", animate: "animate-spin" },
+    ACCEPTED: { icon: CheckCircle, color: "text-green-500", bg: "bg-green-100", label: "Accepted" },
+    WRONG_ANSWER: { icon: XCircle, color: "text-red-500", bg: "bg-red-100", label: "Wrong Answer" },
+    COMPILATION_ERROR: { icon: AlertIcon, color: "text-orange-500", bg: "bg-orange-100", label: "Compilation Error" },
+    RUNTIME_ERROR: { icon: AlertIcon, color: "text-red-500", bg: "bg-red-100", label: "Runtime Error" },
+    TIME_LIMIT_EXCEEDED: { icon: ClockIcon, color: "text-yellow-500", bg: "bg-yellow-100", label: "TLE" },
+    MEMORY_LIMIT_EXCEEDED: { icon: AlertIcon, color: "text-purple-500", bg: "bg-purple-100", label: "MLE" },
+};
 
 const CodingExerciseView: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [template, setTemplate] = useState<CodingExerciseTemplate | null>(null);
+    const [searchParams] = useSearchParams();
+    const courseSlug = searchParams.get('courseSlug');
+    const [exerciseDetail, setExerciseDetail] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
     const [code, setCode] = useState('');
     const [selectedLanguage, setSelectedLanguage] = useState('');
     const [consoleOutput, setConsoleOutput] = useState<string>('');
     const [isRunning, setIsRunning] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submission, setSubmission] = useState<SubmissionDTO | null>(null);
+
 
     useEffect(() => {
-        if (id) {
-            loadTemplate(id);
-        }
-    }, [id]);
+        const claims = authService.getJwtClaimDecoded();
+        const userId = claims?.userID || (claims as any)?.userID;
 
-    const loadTemplate = async (templateId: string) => {
+        if (userId) {
+            webSocketService.connect();
+            const destination = `/queue/submission/${userId}`;
+            webSocketService.subscribe(destination, (data) => {
+
+                if (data.submissionId && data.verdict) {
+                    setSubmission(data);
+                    if (!["PENDING", "RUNNING"].includes(data.verdict)) {
+                        setIsSubmitting(false);
+                        if (data.verdict === 'ACCEPTED') {
+                            toast.success(`Chúc mừng! Bạn đã vượt qua tất cả test case. (+${data.score || 0} điểm)`);
+                        } else {
+                            toast.error(`Kết quả: ${data.verdict}`);
+                        }
+                    }
+                } else if (data.status) {
+                    setSubmission(prev => prev ? { ...prev, verdict: data.status } : { verdict: data.status });
+                }
+            });
+
+            return () => {
+                webSocketService.unsubscribe(destination);
+            };
+        } else {
+            console.warn('User ID not found, WebSocket will not subscribe');
+        }
+    }, []);
+
+    const loadExercise = async (targetId: string) => {
         try {
-            const response = await codingExerciseTemplateService.getById(templateId);
-            console.log('Loaded template:', response);
-            if (response) {
-                setTemplate(response);
-                setCode(response.initialCode || '');
-                setSelectedLanguage(response.programmingLanguage || 'Java');
+            let data: any;
+            if (courseSlug) {
+                const response = await codingExerciseService.getExerciseDetail(targetId);
+                data = response;
+                console.log('API response for exercise detail:', data);
+            } else {
+                data = await codingExerciseTemplateService.getById(targetId);
+            }
+
+            console.log('Loaded exercise data:', data);
+            if (data) {
+                setExerciseDetail(data);
+                setCode(data.initialCode || '');
+                setSelectedLanguage(data.programmingLanguage || 'Java');
             }
         } catch (error) {
-            console.error('Error loading template:', error);
+            console.error('Error loading exercise:', error);
             toast.error('Không thể tải dữ liệu bài tập');
             // Mock data for demo if API fails
-            const mockTemplate: CodingExerciseTemplate = {
-                templateId: templateId,
+            const mockData: any = {
+                exerciseId: targetId,
                 title: "Design Dynamic Array (Resizable Array)",
-                description: "Design a **Dynamic Array** (aka a resizable array) class, such as an `ArrayList` in Java or a `vector` in C++.\n\nYour `DynamicArray` class should support the following operations:\n\n- `DynamicArray(int capacity)` will initialize an empty array with a capacity of `capacity`, where `capacity > 0`.\n- `int get(int i)` will return the element at index `i`. Assume that index `i` is valid.\n- `void set(int i, int n)` will set the element at index `i` to `n`. Assume that index `i` is valid.\n- `void pushback(int n)` will push the element `n` to the end of the array.\n- `int popback()` will pop and return the element at the end of the array. Assume that the array is non-empty.\n- `void resize()` will double the capacity of the array.\n- `int getSize()` will return the number of elements in the array.\n- `int getCapacity()` will return the capacity of the array.\n\nIf we call `void pushback(int n)` but the array is full, we should resize the array first.",
+                description: "Design a **Dynamic Array** class, such as an `ArrayList` in Java or a `vector` in C++.\n\nYour `DynamicArray` class should support the following operations:\n\n- `DynamicArray(int capacity)` will initialize an empty array with a capacity of `capacity`, where `capacity > 0`.\n- `int get(int i)` will return the element at index `i`. Assume that index `i` is valid.\n- `void set(int i, int n)` will set the element at index `i` to `n`. Assume that index `i` is valid.\n- `void pushback(int n)` will push the element `n` to the end of the array.\n- `int popback()` will pop and return the element at the end of the array. Assume that the array is non-empty.\n- `void resize()` will double the capacity of the array.\n- `int getSize()` will return the number of elements in the array.\n- `int getCapacity()` will return the capacity of the array.\n\nIf we call `void pushback(int n)` but the array is full, we should resize the array first.",
                 programmingLanguage: "Python",
-                difficulty: Difficulty.EASY,
+                difficulty: "EASY",
                 points: 100,
                 isPublished: true,
                 timeLimitMs: 1000,
                 memoryLimitMb: 256,
                 initialCode: "class DynamicArray:\n    \n    def __init__(self, capacity: int):\n        pass\n\n    def get(self, i: int) -> int:\n        pass\n\n    def set(self, i: int, n: int) -> None:\n        pass\n\n    def pushback(self, n: int) -> None:\n        pass\n\n    def popback(self) -> int:\n        pass\n\n    def resize(self) -> None:\n        pass\n\n    def getSize(self) -> int:\n        pass\n\n    def getCapacity(self) -> int:\n        pass",
                 slug: "design-dynamic-array",
-                exerciseTestCases: [
-                    {
-                        input: '["Array", 1, "getSize", "getCapacity"]',
-                        expectedOutput: '[null, 0, 1]',
-                        isPublic: true,
-                        explanation: "Initialize an array with capacity 1. Size is 0, Capacity is 1."
-                    }
-                ]
+                exerciseTestCases: []
             };
-            setTemplate(mockTemplate);
-            setCode(mockTemplate.initialCode);
-            setSelectedLanguage(mockTemplate.programmingLanguage);
+            setExerciseDetail(mockData);
+            setCode(mockData.initialCode);
+            setSelectedLanguage(mockData.programmingLanguage);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleRunCode = () => {
+    useEffect(() => {
+        if (id) {
+            loadExercise(id);
+        }
+    }, [id, courseSlug]);
+
+    const handleRunCode = async () => {
+        const targetExerciseId = exerciseDetail?.exerciseId || exerciseDetail?.templateId;
+        if (!targetExerciseId) return;
+
         setIsRunning(true);
-        setConsoleOutput('Đang biên dịch và chạy thử các test case công khai...');
-        setTimeout(() => {
-            setConsoleOutput('Test Case 1: PASSED\nInput: ["Array", 1, "getSize", "getCapacity"]\nOutput: [null, 0, 1]\n\nAll public test cases passed! 🎉');
+        setConsoleOutput('Đăng biên dịch và chạy thử các test case công khai...');
+
+        try {
+            const result = await codingExerciseService.runCode(
+                targetExerciseId,
+                code,
+                selectedLanguage
+            );
+            console.log('Run result:', result);
+            setConsoleOutput(result.output || 'Không có kết quả đầu ra');
+        } catch (error: any) {
+            console.error('Run error:', error);
+            setConsoleOutput(`Lỗi thực thi: ${error.message || 'Lỗi không xác định'}`);
+            toast.error('Có lỗi khi chạy thử bài code');
+        } finally {
             setIsRunning(false);
-        }, 1500);
+        }
     };
 
     const handleSubmit = async () => {
+        const targetExerciseId = exerciseDetail?.exerciseId || exerciseDetail?.templateId;
+        if (!targetExerciseId) return;
+
         setIsSubmitting(true);
+        setSubmission({ verdict: 'PENDING' });
+        setConsoleOutput('Đang gửi bài lên hệ thống đánh giá...');
+
         try {
-            await toast.promise(
-                new Promise(resolve => setTimeout(resolve, 3000)),
-                {
-                    loading: 'Đang chấm bài trên hệ thống...',
-                    success: 'Chúc mừng! Bạn đã vượt qua tất cả test case. (+100 điểm)',
-                    error: 'Có lỗi trong quá trình chấm điểm',
-                }
+            const result = await codingExerciseService.submitCode(
+                targetExerciseId,
+                code,
+                selectedLanguage
             );
-        } finally {
+            console.log('Submit success:', result);
+            setSubmission(result);
+            setConsoleOutput('Bài đã được gửi. Đang chờ kết quả từ Judge...');
+        } catch (error: any) {
+            console.error('Submit error:', error);
+            toast.error(error.message || 'Có lỗi khi nộp bài');
             setIsSubmitting(false);
+            setSubmission(null);
         }
     };
 
@@ -146,7 +237,7 @@ const CodingExerciseView: React.FC = () => {
         );
     }
 
-    if (!template) return <div>Không tìm thấy bài tập.</div>;
+    if (!exerciseDetail) return <div className="h-screen flex items-center justify-center bg-slate-950 text-white">Không tìm thấy bài tập.</div>;
 
     return (
         <div className="h-screen flex flex-col bg-[#1a1a1a] text-[#eff1f6] overflow-hidden">
@@ -154,7 +245,13 @@ const CodingExerciseView: React.FC = () => {
             <header className="h-12 flex items-center justify-between px-4 bg-[#282828] border-b border-[#3e3e3e] shrink-0">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={() => navigate('/codingExerciseLibrary')}
+                        onClick={() => {
+                            if (courseSlug) {
+                                navigate(`/learn/${courseSlug}`);
+                            } else {
+                                navigate('/codingExerciseLibrary');
+                            }
+                        }}
                         className="p-1.5 hover:bg-[#3e3e3e] rounded-md transition-colors text-slate-400 hover:text-white"
                     >
                         <ChevronLeft size={20} />
@@ -162,7 +259,7 @@ const CodingExerciseView: React.FC = () => {
                     <div className="h-4 w-px bg-[#3e3e3e]"></div>
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-slate-300">Bài tập:</span>
-                        <span className="text-sm font-semibold truncate max-w-[300px]">{template.title}</span>
+                        <span className="text-sm font-semibold truncate max-w-[300px]">{exerciseDetail.title}</span>
                     </div>
                 </div>
 
@@ -174,7 +271,7 @@ const CodingExerciseView: React.FC = () => {
                     <div className="h-4 w-px bg-[#3e3e3e]"></div>
                     <div className="flex items-center gap-2 bg-[#1a1a1a] px-3 py-1 rounded-full border border-[#3e3e3e]">
                         <Trophy size={14} className="text-indigo-400" />
-                        <span className="text-xs font-bold text-indigo-400">{template.points} pts</span>
+                        <span className="text-xs font-bold text-indigo-400">{exerciseDetail.points} pts</span>
                     </div>
                 </div>
             </header>
@@ -217,35 +314,35 @@ const CodingExerciseView: React.FC = () => {
                                         <ScrollArea className="h-full">
                                             <div className="p-6 space-y-6">
                                                 <div>
-                                                    <h1 className="text-2xl font-bold mb-3">{template.title}</h1>
+                                                    <h1 className="text-2xl font-bold mb-3">{exerciseDetail.title}</h1>
                                                     <div className="flex items-center gap-3">
-                                                        <Badge className={`${template.difficulty === Difficulty.EASY ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                                                            template.difficulty === Difficulty.MEDIUM ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                                                        <Badge className={`${exerciseDetail.difficulty === Difficulty.EASY ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                                                            exerciseDetail.difficulty === Difficulty.MEDIUM ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                                                                 'bg-rose-500/10 text-rose-500 border-rose-500/20'
                                                             } hover:bg-transparent font-bold`}>
-                                                            {template.difficulty}
+                                                            {exerciseDetail.difficulty}
                                                         </Badge>
                                                         <div className="flex items-center gap-1.5 text-xs text-slate-400">
                                                             <Clock size={14} />
-                                                            {template.timeLimitMs}ms
+                                                            {exerciseDetail.timeLimitMs}ms
                                                         </div>
                                                         <div className="flex items-center gap-1.5 text-xs text-slate-400">
                                                             <Database size={14} />
-                                                            {template.memoryLimitMb}MB
+                                                            {exerciseDetail.memoryLimitMb}MB
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <div className="prose prose-invert max-w-none prose-p:text-slate-300 prose-code:text-indigo-300 prose-code:bg-slate-900 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded">
                                                     {/* We can use a markdown renderer here, for now just replace newlines */}
-                                                    {template.description.split('\n').map((line, i) => (
+                                                    {exerciseDetail.description.split('\n').map((line: string, i: number) => (
                                                         <p key={i} className="mb-4 leading-relaxed whitespace-pre-wrap">
                                                             {line}
                                                         </p>
                                                     ))}
                                                 </div>
 
-                                                {template.exerciseTestCases?.filter(tc => tc.isPublic).map((tc, idx) => (
+                                                {exerciseDetail.exerciseTestCases?.filter((tc: any) => tc.isSample).map((tc: any, idx: number) => (
                                                     <div key={idx} className="space-y-3 pt-4">
                                                         <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                                                             <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>
@@ -299,10 +396,8 @@ const CodingExerciseView: React.FC = () => {
 
                     <ResizableHandle className="w-[1.5px] bg-[#3e3e3e] hover:bg-indigo-500 transition-colors" />
 
-                    {/* Right Side: Code Editor */}
                     <ResizablePanel defaultSize={60} minSize={30}>
                         <div className="h-full flex flex-col bg-[#1a1a1a]">
-                            {/* Editor Toolbar */}
                             <div className="h-10 flex items-center justify-between px-3 bg-[#282828] border-b border-[#3e3e3e]">
                                 <div className="flex items-center gap-2">
                                     <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
@@ -320,25 +415,7 @@ const CodingExerciseView: React.FC = () => {
                                             <SelectItem value="TypeScript">TypeScript</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <div className="h-4 w-px bg-[#3e3e3e]"></div>
-                                    <Button variant="ghost" size="sm" className="h-7 text-xs text-slate-400 hover:text-white px-2">
-                                        Auto Save
-                                    </Button>
-                                </div>
 
-                                <div className="flex items-center gap-1">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white rounded-md">
-                                        <Settings size={16} />
-                                    </Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white rounded-md">
-                                        <RotateCcw size={16} />
-                                    </Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white rounded-md">
-                                        <Maximize2 size={16} />
-                                    </Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white rounded-md">
-                                        <PanelLeftClose size={16} />
-                                    </Button>
                                 </div>
                             </div>
 
@@ -362,14 +439,80 @@ const CodingExerciseView: React.FC = () => {
                             <div className="shrink-0 bg-[#282828] border-t border-[#3e3e3e]">
                                 {/* Output Area (Collapsible) */}
                                 {consoleOutput && (
-                                    <div className="p-4 border-b border-[#3e3e3e] max-h-40 overflow-y-auto">
-                                        <div className="flex items-center gap-2 mb-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                    <div className="p-4 border-b border-[#3e3e3e] max-h-60 overflow-y-auto">
+                                        <div className="flex items-center gap-2 mb-3 text-xs font-bold text-slate-400 uppercase tracking-widest">
                                             <Terminal size={12} />
-                                            Console Output
+                                            {submission ? 'Submission Status' : 'Console Output'}
                                         </div>
-                                        <pre className="text-xs font-mono text-emerald-400 whitespace-pre-wrap leading-relaxed">
-                                            {consoleOutput}
-                                        </pre>
+
+                                        {submission ? (
+                                            <div className="space-y-4">
+                                                <div className="flex items-center gap-3">
+                                                    {(() => {
+                                                        const verdict = submission.verdict || "PENDING";
+                                                        const config = VERDICT_CONFIG[verdict] || VERDICT_CONFIG.PENDING;
+                                                        const Icon = config.icon;
+                                                        return (
+                                                            <>
+                                                                <div className={`p-2 rounded-lg ${config.bg}`}>
+                                                                    <Icon className={`w-5 h-5 ${config.color} ${config.animate || ""}`} />
+                                                                </div>
+                                                                <div>
+                                                                    <div className={`font-bold text-sm ${config.color}`}>{config.label}</div>
+                                                                    <div className="text-[10px] text-slate-400">
+                                                                        {submission.submissionId ? `ID: ${submission.submissionId.slice(0, 8)}` : 'Đang xử lý...'}
+                                                                    </div>
+                                                                </div>
+                                                            </>
+                                                        );
+                                                    })()}
+                                                </div>
+
+                                                {submission.verdict && !["PENDING", "RUNNING"].includes(submission.verdict) && (
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                        <div className="bg-slate-900/50 p-2 rounded-lg border border-slate-800">
+                                                            <div className="text-[10px] text-slate-500 font-bold uppercase">Test cases</div>
+                                                            <div className="text-sm font-bold text-indigo-400">{submission.passedTestcases || 0} / {submission.totalTestcases || 0}</div>
+                                                        </div>
+                                                        <div className="bg-slate-900/50 p-2 rounded-lg border border-slate-800">
+                                                            <div className="text-[10px] text-slate-500 font-bold uppercase">Points</div>
+                                                            <div className="text-sm font-bold text-emerald-400">{submission.score || 0}</div>
+                                                        </div>
+                                                        {submission.runtimeMs != null && (
+                                                            <div className="bg-slate-900/50 p-2 rounded-lg border border-slate-800">
+                                                                <div className="text-[10px] text-slate-500 font-bold uppercase">Time</div>
+                                                                <div className="text-sm font-bold text-slate-300">{submission.runtimeMs} ms</div>
+                                                            </div>
+                                                        )}
+                                                        {submission.memoryKb != null && (
+                                                            <div className="bg-slate-900/50 p-2 rounded-lg border border-slate-800">
+                                                                <div className="text-[10px] text-slate-500 font-bold uppercase">Memory</div>
+                                                                <div className="text-sm font-bold text-slate-300">{(submission.memoryKb / 1024).toFixed(2)} MB</div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {submission.verdict === 'ACCEPTED' && courseSlug && (
+                                                    <div className="pt-2">
+                                                        <Button
+                                                            onClick={() => navigate(`/learn/${courseSlug}?jumpNext=true`)}
+                                                            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold gap-2"
+                                                        >
+                                                            Tiếp theo <ChevronRight size={16} />
+                                                        </Button>
+                                                    </div>
+                                                )}
+
+                                                <pre className="text-xs font-mono text-slate-300 whitespace-pre-wrap mt-2 bg-slate-900/30 p-2 rounded border border-slate-800/50 italic">
+                                                    {consoleOutput}
+                                                </pre>
+                                            </div>
+                                        ) : (
+                                            <pre className="text-xs font-mono text-emerald-400 whitespace-pre-wrap leading-relaxed">
+                                                {consoleOutput}
+                                            </pre>
+                                        )}
                                     </div>
                                 )}
 
@@ -390,7 +533,7 @@ const CodingExerciseView: React.FC = () => {
                                             className="h-9 px-6 bg-[#3e3e3e] hover:bg-[#4a4a4a] text-white border-0 font-bold gap-2 active:scale-95 transition-all"
                                         >
                                             {isRunning ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Play size={16} fill="currentColor" />}
-                                            Run
+                                            Chạy
                                         </Button>
                                         <Button
                                             onClick={handleSubmit}
@@ -398,7 +541,7 @@ const CodingExerciseView: React.FC = () => {
                                             className="h-9 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold gap-2 shadow-lg shadow-emerald-900/20 active:scale-95 transition-all"
                                         >
                                             {isSubmitting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Send size={16} />}
-                                            Submit
+                                            Nộp bài
                                         </Button>
                                     </div>
                                 </div>
@@ -407,7 +550,7 @@ const CodingExerciseView: React.FC = () => {
                     </ResizablePanel>
                 </ResizablePanelGroup>
             </main>
-        </div>
+        </div >
     );
 };
 

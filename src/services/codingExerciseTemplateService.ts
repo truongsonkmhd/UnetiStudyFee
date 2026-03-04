@@ -26,6 +26,16 @@ const codingExerciseTemplateService = {
       payload
     ),
 
+    
+    update: (
+    id: string,
+    payload: CodingExerciseTemplate
+  ): Promise<CodingExerciseTemplate> =>
+    apiService.put<CodingExerciseTemplate>(
+      `${CODING_EXERCISE_TEMPLATE_ENDPOINT}/${id}`,
+      payload
+    ),
+
   // ===== OFFSET PAGINATION =====
   getPublishedTemplates: (
     page = 0,

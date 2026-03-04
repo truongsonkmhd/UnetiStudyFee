@@ -4,11 +4,10 @@ import { toast } from 'sonner';
 import { CheckCircle2, XCircle, Clock, ChevronRight, RotateCcw, FileText, Calendar, Target, Award, Info } from 'lucide-react';
 import { studentQuizService, StartQuizResponse, QuestionResponse, QuizResultResponse } from '@/services/studentQuizService';
 import { QuizDTO } from '@/model/course-admin/QuizDTO';
-import courseService from '@/services/courseService';
 
 interface QuizPlayerProps {
     quizId: string;
-    onComplete?: () => void;
+    onComplete?: (isPassed: boolean) => void;
     onBack: () => void;
 }
 
@@ -195,8 +194,8 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onBack }) =
             const result = await studentQuizService.completeQuiz(currAttemptId);
             setQuizResult(result);
             setState(QuizState.RESULT);
-            if (onComplete) onComplete();
-            fetchQuizDetails(); // Refresh history
+            if (onComplete) onComplete(result.isPassed);
+            fetchQuizDetails();
         } catch (error) {
             console.error("Failed to complete quiz", error);
             toast.error("Lỗi khi hoàn thành bài kiểm tra");
@@ -259,6 +258,8 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onBack }) =
                             {quizInfo?.totalPoints?.toFixed(2) || lastAttempt?.totalPoints?.toFixed(2) || "0.00"}
                         </span>
                     </div>
+
+
                     {quizInfo?.maxAttempts ? (
                         <div className="bg-card border border-border/60 rounded-xl p-4 shadow-sm flex flex-col gap-1">
                             <span className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
@@ -411,12 +412,24 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onBack }) =
                     >
                         Quay lại bài học
                     </Button>
-                    <Button
-                        onClick={() => setState(QuizState.INTRO)}
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 font-bold shadow-lg shadow-primary/20"
-                    >
-                        <RotateCcw className="mr-2 h-4 w-4" /> Làm lại
-                    </Button>
+                    {quizResult.isPassed ? (
+                        <Button
+                            onClick={() => {
+                                onBack();
+                                // We'll trigger the next lesson jump in the parent (onBack is actually just closing the quiz view)
+                            }}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white h-12 px-8 font-bold shadow-lg shadow-emerald-500/20"
+                        >
+                            Bài tiếp theo <ChevronRight className="ml-2 h-4 w-4" />
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={() => setState(QuizState.INTRO)}
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 font-bold shadow-lg shadow-primary/20"
+                        >
+                            <RotateCcw className="mr-2 h-4 w-4" /> Làm lại
+                        </Button>
+                    )}
                 </div>
             </div>
         );

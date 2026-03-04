@@ -5,7 +5,7 @@ export const PATHS = {
   HOME: "/home",
   REGISTER: "/register",
   RANKING: "/ranking",
-  CREATE_LESSON: "/createLession",
+  // CREATE_LESSON: "/createLession",
   CREATE_TEST: "/createTest",
   CODING_EXERCISE_LIBRARY: "/codingExerciseLibrary",
   QUIZ_LIBRARY: "/quizLibrary",
@@ -34,4 +34,5 @@ export const PATHS = {
   UNAUTHORIZED: "/unauthorized",
   ADD_CONTEST: "/addContest",
   CREATE_POST: "/create-post",
+  JOIN_CLASS: "/join-class",
 };

@@ -1,11 +1,10 @@
-import React, { useMemo, useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Crown, Play, Users, Clock, Loader2 } from "lucide-react";
+import { ArrowRight, Play, Users, Loader2 } from "lucide-react";
 import { CourseCardResponse } from "@/model/course-admin/CourseCardResponse";
 import { AnimatePresence } from "framer-motion";
 import courseCatalogService from "@/services/courseCatalogService";
-import courseEnrollmentService from "@/services/courseEnrollmentService";
-import { useNavigate } from "react-router-dom";
+
 import CourseCard from "./component/CourseCard";
 import {
   Pagination,
@@ -17,9 +16,6 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 
-/* ============================
-   DATA
-============================ */
 const heroSlides = [
   {
     id: "s1",
@@ -78,9 +74,6 @@ const SectionHeader: React.FC<{
   </div>
 );
 
-/* ============================
-   Carousel
-============================ */
 const Carousel: React.FC<{
   slides: typeof heroSlides;
   intervalMs?: number;
@@ -316,8 +309,7 @@ export function HomePage() {
         transition={{ duration: 0.6 }}
       >
         <SectionHeader
-          title="Khám phá khóa học"
-          subtitle="Học tập không giới hạn với những bài giảng chất lượng cao"
+          title="Khóa học nổi bật"
           rightSlot={
             <div className="flex flex-wrap items-center gap-5">
               <MajorSelect value={major} onChange={setMajor} />

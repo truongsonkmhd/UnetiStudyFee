@@ -212,7 +212,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
   if (showPreview) {
     return (
       <div className="fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-[100] p-4 overflow-y-auto">
-        <div className="bg-card rounded-3xl shadow-2xl border border-border max-w-4xl w-full my-8 max-h-[90vh] overflow-y-auto">
+        <div className="bg-card rounded-3xl shadow-2xl border border-border max-w-7xl w-full my-8 max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-card/90 backdrop-blur border-b border-border p-6 z-10 flex justify-between items-center">
             <h2 className="text-2xl font-black text-foreground tracking-tight">Xem trước Quiz</h2>
             <button
@@ -281,7 +281,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-[100] p-4 overflow-y-auto">
-      <div className="bg-card rounded-3xl shadow-2xl border border-border max-w-5xl w-full my-8 max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-3xl shadow-2xl border border-border max-w-[1700px] w-full my-8 max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-card/90 backdrop-blur border-b border-border p-6 z-10">
           <div className="flex justify-between items-center">

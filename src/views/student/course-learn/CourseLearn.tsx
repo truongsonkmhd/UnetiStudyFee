@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Clock, ChevronDown, ChevronUp, Play, Code, FileQuestion, CheckCircle2, Lock } from 'lucide-react';
 import courseService from '@/services/courseService';
 import lessonProgressService from '@/services/lessonProgressService';
@@ -19,6 +19,10 @@ const CourseLearn: React.FC = () => {
     const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
     const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
 
+    const [searchParams, setSearchParams] = useSearchParams();
+    const jumpNext = searchParams.get('jumpNext');
+    const [shouldJumpAfterQuiz, setShouldJumpAfterQuiz] = useState(false);
+
     const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
     const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -29,10 +33,22 @@ const CourseLearn: React.FC = () => {
     }, [slug]);
 
     useEffect(() => {
-        if (course) {
-            loadProgress();
-        }
-    }, [course]);
+        if (!course) return;
+
+        const initLoad = async () => {
+            await loadProgress();
+
+            if (jumpNext === 'true') {
+                handleNextLesson();
+                // Clear the param
+                const newParams = new URLSearchParams(searchParams);
+                newParams.delete('jumpNext');
+                setSearchParams(newParams);
+            }
+        };
+
+        initLoad();
+    }, [course, jumpNext]);
 
     useEffect(() => {
         if (videoRef.current) {
@@ -121,7 +137,7 @@ const CourseLearn: React.FC = () => {
     };
 
     const updateProgressInBackground = async (lessonId: string, watchedPercent: number) => {
-        if (!course) return;
+        if (!course || completedLessons.has(lessonId)) return;
 
         try {
             const status = watchedPercent >= 95
@@ -149,6 +165,9 @@ const CourseLearn: React.FC = () => {
         const duration = videoRef.current.duration;
 
         const watchedPercent = duration > 0 ? Math.round((currentTime / duration) * 100) : 0;
+
+        // Chỉ cập nhật nếu chưa hoàn thành
+        if (completedLessons.has(currentLessonId)) return;
 
         if (watchedPercent % 10 === 0 && watchedPercent > 0) {
             updateProgressInBackground(currentLessonId, watchedPercent);
@@ -184,6 +203,27 @@ const CourseLearn: React.FC = () => {
         }
 
         setCurrentLessonId(lessonId);
+    };
+
+    const handleQuizComplete = async (isPassed: boolean) => {
+        if (isPassed) {
+            await loadProgress();
+            setShouldJumpAfterQuiz(true);
+            toast.success('Chúc mừng! Bạn đã vượt qua bài kiểm tra.');
+        }
+    };
+
+    const handleActiveQuizBack = () => {
+        setActiveQuizId(null);
+        if (shouldJumpAfterQuiz) {
+            handleNextLesson();
+            setShouldJumpAfterQuiz(false);
+        }
+    };
+
+    const handleCodingExerciseClick = (exerciseId: string) => {
+        if (!course) return;
+        navigate(`/templates/${exerciseId}/view?courseSlug=${course.slug}&fromLesson=${currentLessonId}`);
     };
 
     const getCurrentLesson = () => {
@@ -272,8 +312,8 @@ const CourseLearn: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {hasCoding && currentLesson.codingExercises.map((ex) => (
                         <div
-                            key={ex.templateId}
-                            onClick={() => navigate(`/templates/${ex.templateId}/view`)}
+                            key={ex.exerciseId}
+                            onClick={() => handleCodingExerciseClick(ex.exerciseId)}
                             className="bg-muted px-4 py-3 rounded-xl border border-border hover:border-primary/50 cursor-pointer transition-all group"
                         >
                             <div className="flex items-start gap-4">
@@ -386,17 +426,12 @@ const CourseLearn: React.FC = () => {
                         <ChevronLeft size={20} />
                     </button>
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-md text-primary-foreground text-foreground">
-                            {course.title.substring(0, 2).toUpperCase()}
-                        </div>
+
                         <h1 className="font-bold text-base lg:text-lg truncate text-foreground">{course.title}</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-4 flex-shrink-0">
-                    <div className="text-sm bg-muted px-3 py-1.5 rounded-full">
-                        <span className="text-primary font-bold">{currentLessonIndex + 1}</span>
-                        <span className="text-muted-foreground"> / {allLessons.length}</span>
-                    </div>
+
                     <div className="text-sm bg-green-600/20 text-green-400 px-3 py-1.5 rounded-full font-semibold">
                         {completedLessons.size}/{allLessons.length} hoàn thành
                     </div>
@@ -409,8 +444,8 @@ const CourseLearn: React.FC = () => {
                         <div className="p-6 max-w-5xl mx-auto w-full flex-1 flex flex-col">
                             <QuizPlayer
                                 quizId={activeQuizId}
-                                onBack={() => setActiveQuizId(null)}
-                                onComplete={() => { }}
+                                onBack={handleActiveQuizBack}
+                                onComplete={handleQuizComplete}
                             />
                         </div>
                     ) : (
@@ -576,10 +611,10 @@ const CourseLearn: React.FC = () => {
                                                             <div className="flex flex-col pl-14 pr-4 py-1 gap-1 animate-in slide-in-from-top-1 duration-200">
                                                                 {hasCode && lesson.codingExercises.map((ex) => (
                                                                     <button
-                                                                        key={ex.templateId}
+                                                                        key={ex.exerciseId}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            navigate(`/templates/${ex.templateId}/view`);
+                                                                            handleCodingExerciseClick(ex.exerciseId);
                                                                         }}
                                                                         className="flex items-center gap-2 py-2 px-3 text-xs text-primary hover:text-primary/80 hover:bg-primary/10 rounded-lg transition-all border border-transparent hover:border-primary/20 group/sub"
                                                                     >

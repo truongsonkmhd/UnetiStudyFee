@@ -11,6 +11,8 @@ import {
   ChevronUp, GripVertical, Rocket, PlayCircle, HelpCircle, Trophy, Calendar, Search
 } from 'lucide-react';
 import TemplateSelector from './TemplateSelector';
+import lessonService from '@/services/lessonService';
+import { toast } from 'sonner';
 
 interface CourseFormProps {
   course?: CourseTreeResponse;
@@ -188,7 +190,29 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
     }));
   };
 
-  const removeModule = (index: number) => {
+  const removeModule = async (index: number) => {
+    const module = formData.modules[index];
+
+    // Nếu module đã được lưu (có ID), kiểm tra xem có bài nộp trong bất kỳ lesson nào không
+    if (module.moduleId) {
+      try {
+        const hasSubs = await lessonService.hasModuleSubmissions(module.moduleId);
+        if (hasSubs) {
+          const confirmDelete = window.confirm(
+            "CẢNH BÁO CỰC KỲ QUAN TRỌNG:\n\n" +
+            "Chương này (Module) chứa các bài học đã có dữ liệu sinh viên nộp bài.\n" +
+            "Nếu bạn xóa chương này, TOÀN BỘ các bài học bên trong và TOÀN BỘ kết quả học tập của sinh viên liên quan sẽ bị XÓA VĨNH VIỄN.\n\n" +
+            "Bạn có chắc chắn muốn xóa toàn bộ chương này không?"
+          );
+          if (!confirmDelete) return;
+        }
+      } catch (err) {
+        console.error("Lỗi khi kiểm tra bài nộp của module:", err);
+        toast.error("Không thể kiểm tra dữ liệu bài nộp. Vui lòng thử lại.");
+        return;
+      }
+    }
+
     setFormData(prev => ({
       ...prev,
       modules: prev.modules.filter((_, i) => i !== index)
@@ -240,7 +264,29 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
     }));
   };
 
-  const removeLesson = (moduleIndex: number, lessonIndex: number) => {
+  const removeLesson = async (moduleIndex: number, lessonIndex: number) => {
+    const lesson = formData.modules[moduleIndex].lessons[lessonIndex];
+
+    // Nếu lesson đã được lưu (có ID), kiểm tra xem có bài nộp không
+    if (lesson.lessonId) {
+      try {
+        const hasSubs = await lessonService.hasSubmissions(lesson.lessonId);
+        if (hasSubs) {
+          const confirmDelete = window.confirm(
+            "CẢNH BÁO QUAN TRỌNG:\n\n" +
+            "Bài học này đã được học sinh sử dụng và có dữ liệu nộp bài (Lập trình hoặc Trắc nghiệm).\n" +
+            "Nếu bạn xóa, toàn bộ kết quả học tập và lịch sử nộp bài của sinh viên sẽ bị XÓA VĨNH VIỄN.\n\n" +
+            "Bạn có chắc chắn muốn xóa bài học này không?"
+          );
+          if (!confirmDelete) return;
+        }
+      } catch (err) {
+        console.error("Lỗi khi kiểm tra bài nộp:", err);
+        toast.error("Không thể kiểm tra dữ liệu bài nộp. Vui lòng thử lại.");
+        return;
+      }
+    }
+
     setFormData(prev => ({
       ...prev,
       modules: prev.modules.map((m, i) =>

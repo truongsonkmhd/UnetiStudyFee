@@ -244,8 +244,8 @@ const QuizTemplateManager: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-background p-4 md:p-10">
+      <div className="max-w-[1700px] mx-auto space-y-10">
 
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -381,7 +381,7 @@ const QuizTemplateManager: React.FC = () => {
               key="content"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {templates.map((template, index) => (
                 <motion.div

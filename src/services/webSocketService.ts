@@ -1,6 +1,5 @@
 import { Client, type IMessage, type StompSubscription } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-import authService from "@/services/AuthService";
 
 const WS_URL = import.meta.env.VITE_WS_URL || "http://localhost:8097/ws-submission";
 
