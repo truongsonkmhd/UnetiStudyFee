@@ -1,13 +1,16 @@
 package com.truongsonkmhd.unetistudy.configuration;
 
 import com.rabbitmq.client.Channel;
+import com.truongsonkmhd.unetistudy.common.ProgressStatus;
 import com.truongsonkmhd.unetistudy.common.SubmissionVerdict;
 import com.truongsonkmhd.unetistudy.dto.coding_exercise_dto.JudgeRequestDTO;
 import com.truongsonkmhd.unetistudy.dto.coding_submission.CodingSubmissionResponseDTO;
+import com.truongsonkmhd.unetistudy.dto.progress_dto.LessonProgressRequest;
 import com.truongsonkmhd.unetistudy.model.lesson.CodingSubmission;
 import com.truongsonkmhd.unetistudy.dto.judge_rabbit_mq.JudgeSubmitMessage;
 import com.truongsonkmhd.unetistudy.service.CodingSubmissionService;
 import com.truongsonkmhd.unetistudy.service.JudgeService;
+import com.truongsonkmhd.unetistudy.service.LessonProgressService;
 import com.truongsonkmhd.unetistudy.service.WebSocketNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +33,7 @@ public class JudgeSubmitConsumer {
     private final JudgeService judgeService;
     private final RabbitTemplate rabbitTemplate;
     private final WebSocketNotificationService webSocketService;
+    private final LessonProgressService lessonProgressService;
 
     @RabbitListener(queues = JudgeRabbitConfig.QUEUE_SUBMIT)
     public void consume(JudgeSubmitMessage payload, Message message, Channel channel) throws Exception {
@@ -91,6 +95,28 @@ public class JudgeSubmitConsumer {
 
             // 6) Tạo Contest Attempt nếu cần (QUAN TRỌNG: chỉ khi đã có score thực)
             judgeService.createContestAttemptIfNeeded(sub);
+
+            // 6.1) Update Lesson Progress if ACCEPTED for all lessons containing this
+
+            if (sub.getVerdict() == SubmissionVerdict.ACCEPTED && sub.getExercise().getCourseLessons() != null) {
+                for (var lesson : sub.getExercise().getCourseLessons()) {
+                    try {
+                        if (lesson.getModule() != null && lesson.getModule().getCourse() != null) {
+                            lessonProgressService.updateProgress(payload.getUserId(),
+                                    LessonProgressRequest.builder()
+                                            .courseId(lesson.getModule().getCourse().getCourseId())
+                                            .lessonId(lesson.getLessonId())
+                                            .status(ProgressStatus.DONE)
+                                            .watchedPercent(100)
+                                            .timeSpentSec(0)
+                                            .build());
+                        }
+                    } catch (Exception e) {
+                        log.error("Failed to update lesson progress after successful coding submission for lesson: {}",
+                                lesson.getLessonId(), e);
+                    }
+                }
+            }
 
             // 7) Push kết quả cuối cùng qua WebSocket
             CodingSubmissionResponseDTO responseDTO = CodingSubmissionResponseDTO.builder()

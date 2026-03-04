@@ -19,12 +19,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "tbl_question",
-        indexes = {
-                @Index(name = "idx_question_quiz", columnList = "quiz_id")
-        })
+@Table(name = "tbl_question", indexes = {
+        @Index(name = "idx_question_quiz", columnList = "quiz_id")
+})
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Question  extends BaseEntityQuestion {
+public class Question extends BaseEntityQuestion {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id", nullable = false)

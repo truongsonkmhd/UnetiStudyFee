@@ -13,46 +13,54 @@ import java.util.UUID;
 
 @Repository
 public interface CodingSubmissionRepository extends JpaRepository<CodingSubmission, UUID> {
-    @Query("""
-            SELECT cb
-            FROM CodingSubmission cb
-            WHERE cb.user.username = :userName AND cb.exercise.slug = :theSlug
-            ORDER BY cb.submittedAt DESC
-            """)
-    List<CodingSubmission> getCodingSubmissionShowByUserName(@Param("userName") String theUserName,
-            @Param("theSlug") String theSlug);
+  @Query("""
+      SELECT cb
+      FROM CodingSubmission cb
+      WHERE cb.user.username = :userName AND cb.exercise.slug = :theSlug
+      ORDER BY cb.submittedAt DESC
+      """)
+  List<CodingSubmission> getCodingSubmissionShowByUserName(@Param("userName") String theUserName,
+      @Param("theSlug") String theSlug);
 
-    @Query("""
-            SELECT cb
-            FROM CodingSubmission cb
-            WHERE cb.exercise.slug = :theSlug
-            ORDER BY cb.submittedAt DESC
-            """)
-    List<CodingSubmission> getCodingSubmissionShowBySlugExercise(@Param("theSlug") String theSlug);
+  @Query("""
+      SELECT cb
+      FROM CodingSubmission cb
+      WHERE cb.exercise.slug = :theSlug
+      ORDER BY cb.submittedAt DESC
+      """)
+  List<CodingSubmission> getCodingSubmissionShowBySlugExercise(@Param("theSlug") String theSlug);
 
-    @Query("""
-                select
-                    case when count(cs) = 0 then null
-                         else sum(
-                                case when cs.passedTestcases = cs.totalTestcases then 1 else 0 end
-                              ) * 1.0 / count(cs)
-                    end
-                from CodingSubmission cs
-                where cs.user.id = :userId
-                  and cs.exercise.courseLesson.lessonId = :lessonId
-            """)
-    Double acRate(
-            @Param("userId") UUID userId,
-            @Param("lessonId") UUID lessonId);
+  @Query("""
+          select
+              case when count(cs) = 0 then null
+                   else sum(
+                          case when cs.passedTestcases = cs.totalTestcases then 1 else 0 end
+                        ) * 1.0 / count(cs)
+              end
+          from CodingSubmission cs
+          where cs.user.id = :userId
+            and cs.exercise.exerciseId IN (
+              SELECT e.exerciseId FROM CourseLesson cl JOIN cl.codingExercises e WHERE cl.lessonId = :lessonId
+            )
+      """)
+  Double acRate(
+      @Param("userId") UUID userId,
+      @Param("lessonId") UUID lessonId);
 
-    @Query("""
-                select cs
-                from CodingSubmission cs
-                where cs.submissionId = :id
-            """)
-    Optional<CodingSubmission> findByIdEntity(@Param("id") UUID id);
+  @Query("""
+          select cs
+          from CodingSubmission cs
+          where cs.submissionId = :id
+      """)
+  Optional<CodingSubmission> findByIdEntity(@Param("id") UUID id);
 
-    @Modifying
-    @Query("DELETE FROM CodingSubmission cs WHERE cs.exercise.exerciseId = :exerciseId")
-    void deleteByExerciseId(@Param("exerciseId") UUID exerciseId);
+  @Modifying
+  @Query("DELETE FROM CodingSubmission cs WHERE cs.exercise.exerciseId = :exerciseId")
+  void deleteByExerciseId(@Param("exerciseId") UUID exerciseId);
+
+  @Query("SELECT COUNT(cs) > 0 FROM CodingSubmission cs WHERE cs.exercise.exerciseId IN (SELECT e.exerciseId FROM CourseLesson cl JOIN cl.codingExercises e WHERE cl.lessonId = :lessonId)")
+  boolean existsByExerciseCourseLessonLessonId(@Param("lessonId") UUID lessonId);
+
+  @Query("SELECT COUNT(cs) > 0 FROM CodingSubmission cs WHERE cs.exercise.exerciseId IN (SELECT e.exerciseId FROM CourseLesson cl JOIN cl.codingExercises e WHERE cl.module.moduleId = :moduleId)")
+  boolean existsByExerciseCourseLessonModuleModuleId(@Param("moduleId") UUID moduleId);
 }

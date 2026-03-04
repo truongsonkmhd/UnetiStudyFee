@@ -59,11 +59,17 @@ public class CourseLesson {
     @Builder.Default
     Integer orderIndex = 0;
 
-    @OneToMany(mappedBy = "courseLesson", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(name = "tbl_course_lesson_to_coding_exercise",
+            joinColumns = @JoinColumn(name = "lesson_id"),
+            inverseJoinColumns = @JoinColumn(name = "exercise_id"))
     @Builder.Default
     List<CodingExercise> codingExercises = new ArrayList<>();
 
-    @OneToMany(mappedBy = "courseLesson", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(name = "tbl_course_lesson_to_quiz",
+            joinColumns = @JoinColumn(name = "lesson_id"),
+            inverseJoinColumns = @JoinColumn(name = "quiz_id"))
     @Builder.Default
     List<Quiz> quizzes = new ArrayList<>();
 
@@ -90,26 +96,26 @@ public class CourseLesson {
     @Column(name = "updated_at")
     Instant updatedAt;
 
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    boolean isDeleted = false;
+
     // ======= HELPER METHODS =======
 
     public void addCodingExercise(CodingExercise exercise) {
         codingExercises.add(exercise);
-        exercise.setCourseLesson(this);
     }
 
     public void removeCodingExercise(CodingExercise exercise) {
         codingExercises.remove(exercise);
-        exercise.setCourseLesson(null);
     }
 
     public void addQuizQuestion(Quiz quiz) {
         quizzes.add(quiz);
-        quiz.setCourseLesson(this);
     }
 
     public void removeQuizQuestion(Quiz quiz) {
         quizzes.remove(quiz);
-        quiz.setCourseLesson(null);
     }
 
 }

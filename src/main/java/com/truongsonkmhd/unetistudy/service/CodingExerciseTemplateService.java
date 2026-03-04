@@ -14,6 +14,8 @@ public interface CodingExerciseTemplateService {
 
         CodingExerciseTemplate save(CodingExerciseTemplateDTO codingExercise);
 
+        CodingExerciseTemplate update(UUID id, CodingExerciseTemplateDTO dto);
+
         PageResponse<CodingExerciseTemplateCardResponse> getPublishedTemplates(
                         int page, int size);
 

@@ -129,6 +129,10 @@ public class Course {
     @UpdateTimestamp
     Instant updatedAt;
 
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    boolean isDeleted = false;
+
     public void addCourse(CourseModule courseModule) {
         modules.add(courseModule);
         courseModule.setCourse(this);

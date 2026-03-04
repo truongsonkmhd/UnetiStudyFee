@@ -99,6 +99,14 @@ public class ClassContestServiceImpl implements ClassContestService {
                 return mapToResponse(classContest);
         }
 
+        @Override
+        @Transactional(readOnly = true)
+        public List<ClassContestResponse> getAllClassContests() {
+                return classContestRepository.findAll().stream()
+                                .map(this::mapToResponse)
+                                .collect(Collectors.toList());
+        }
+
         /**
          * Lấy danh sách contest của một lớp
          */

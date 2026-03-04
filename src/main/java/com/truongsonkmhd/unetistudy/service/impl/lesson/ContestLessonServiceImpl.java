@@ -1,24 +1,25 @@
 package com.truongsonkmhd.unetistudy.service.impl.lesson;
 
-import com.truongsonkmhd.unetistudy.cache.CacheConstants;
 import com.truongsonkmhd.unetistudy.common.StatusContest;
 import com.truongsonkmhd.unetistudy.dto.a_common.PageResponse;
 import com.truongsonkmhd.unetistudy.dto.contest_lesson.ContestLessonRequestDTO;
 import com.truongsonkmhd.unetistudy.dto.contest_lesson.ContestLessonResponseDTO;
+import com.truongsonkmhd.unetistudy.dto.contest_lesson.ContestLessonSummaryDTO;
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.CodingExercise;
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.ContestLesson;
-import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.ExerciseTestCase;
 import com.truongsonkmhd.unetistudy.model.coding_template.CodingExerciseTemplate;
 import com.truongsonkmhd.unetistudy.model.quiz.Quiz;
 import com.truongsonkmhd.unetistudy.model.quiz.template.QuizTemplate;
+import com.truongsonkmhd.unetistudy.repository.coding.CodingExerciseRepository;
 import com.truongsonkmhd.unetistudy.repository.coding.CodingExerciseTemplateRepository;
 import com.truongsonkmhd.unetistudy.repository.course.ContestLessonRepository;
+import com.truongsonkmhd.unetistudy.repository.quiz.QuizQuestionRepository;
 import com.truongsonkmhd.unetistudy.repository.quiz.QuizTemplateRepository;
 import com.truongsonkmhd.unetistudy.service.ContestLessonService;
+import com.truongsonkmhd.unetistudy.mapper.lesson.ContestCodingExerciseMapper;
+import com.truongsonkmhd.unetistudy.mapper.lesson.QuizDTOMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,15 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-/**
- * Service quản lý Contest Lesson với tích hợp Caching
- * 
- * Cache Patterns áp dụng:
- * 1. Cache-Aside - @Cacheable cho searchContestLessons
- * 2. Cache Invalidation - @CacheEvict khi addContestLesson
- * 3. Time-based Expiration - TTL 15 phút
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -44,15 +38,15 @@ public class ContestLessonServiceImpl implements ContestLessonService {
     private final ContestLessonRepository contestLessonRepository;
     private final CodingExerciseTemplateRepository templateRepository;
     private final QuizTemplateRepository quizTemplateRepository;
+    private final CodingExerciseRepository codingExerciseRepository;
+    private final QuizQuestionRepository quizQuestionRepository;
 
-    /**
-     * Cache Invalidation: Xóa cache danh sách contest khi tạo mới
-     */
+    private final ContestCodingExerciseMapper codingExerciseMapper;
+    private final QuizDTOMapper quizDTOMapper;
+
     @Override
-    @CacheEvict(cacheNames = CacheConstants.CONTESTS, allEntries = true)
+    @Transactional
     public ContestLessonResponseDTO addContestLesson(ContestLessonRequestDTO request) {
-        log.info("Adding new contest lesson: {} - Evicting cache", request.getTitle());
-
         ContestLesson contestLesson = ContestLesson.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -70,7 +64,20 @@ public class ContestLessonServiceImpl implements ContestLessonService {
 
         contestLessonRepository.save(contestLesson);
 
+        return mapToResponseDTO(contestLesson);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ContestLessonResponseDTO getContestLessonById(UUID id) {
+        ContestLesson contestLesson = contestLessonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Contest lesson not found with id: " + id));
+        return mapToResponseDTO(contestLesson);
+    }
+
+    private ContestLessonResponseDTO mapToResponseDTO(ContestLesson contestLesson) {
         return ContestLessonResponseDTO.builder()
+                .contestLessonId(contestLesson.getContestLessonId())
                 .title(contestLesson.getTitle())
                 .description(contestLesson.getDescription())
                 .defaultDurationMinutes(contestLesson.getDefaultDurationMinutes())
@@ -80,22 +87,22 @@ public class ContestLessonServiceImpl implements ContestLessonService {
                 .showLeaderboardDefault(contestLesson.getShowLeaderboardDefault())
                 .instructions(contestLesson.getInstructions())
                 .status(contestLesson.getStatus())
+                .codingExercises(contestLesson.getCodingExercises().stream()
+                        .map(codingExerciseMapper::toDto)
+                        .collect(Collectors.toList()))
+                .quizzes(contestLesson.getQuizzes().stream()
+                        .map(quizDTOMapper::toDto)
+                        .collect(Collectors.toList()))
                 .build();
     }
 
-    /**
-     * Cache-Aside: Tìm kiếm contest lessons
-     */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = CacheConstants.CONTESTS, key = "'search:' + #page + ':' + #size + ':' + (#q ?: '') + ':' + (#statusContest ?: '')", unless = "#result.items.isEmpty()")
     public PageResponse<ContestLessonResponseDTO> searchContestLessons(
             int page,
             int size,
             String q,
             StatusContest statusContest) {
-
-        log.debug("Cache MISS - Searching contest lessons: q={}, status={}", q, statusContest);
 
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, 1), 50);
@@ -107,9 +114,25 @@ public class ContestLessonServiceImpl implements ContestLessonService {
         return buildPageResponse(result);
     }
 
-    private PageResponse<ContestLessonResponseDTO> buildPageResponse(
-            Page<ContestLessonResponseDTO> page) {
-        return PageResponse.<ContestLessonResponseDTO>builder()
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<ContestLessonSummaryDTO> getPageReadyContestLessons(
+            int page,
+            int size,
+            String q) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 50);
+
+        Pageable pageable = PageRequest.of(safePage, safeSize);
+        Page<ContestLessonSummaryDTO> result = contestLessonRepository.findSummaryByStatus(q, StatusContest.READY,
+                pageable);
+
+        return buildPageResponse(result);
+    }
+
+    private <T> PageResponse<T> buildPageResponse(
+            Page<T> page) {
+        return PageResponse.<T>builder()
                 .items(page.getContent())
                 .page(page.getNumber())
                 .size(page.getSize())
@@ -119,27 +142,21 @@ public class ContestLessonServiceImpl implements ContestLessonService {
                 .build();
     }
 
-    public void addCodingExercisesToContest(List<UUID> exerciseTemplateIds2, ContestLesson contestLesson) {
+    public void addCodingExercisesToContest(List<UUID> exerciseTemplateIds, ContestLesson contestLesson) {
 
-        if (exerciseTemplateIds2 != null && !exerciseTemplateIds2.isEmpty()) {
+        if (exerciseTemplateIds != null && !exerciseTemplateIds.isEmpty()) {
             List<CodingExerciseTemplate> templates = templateRepository
-                    .findAllById(exerciseTemplateIds2);
+                    .findAllById(exerciseTemplateIds);
 
             for (CodingExerciseTemplate template : templates) {
-                CodingExercise contestExercise = template.toContestExercise();
+                CodingExercise exercise = codingExerciseRepository.findByTemplateId(template.getTemplateId())
+                        .orElseGet(() -> {
+                            CodingExercise newEx = template.toContestExercise();
+                            newEx.setTemplateId(template.getTemplateId());
+                            return codingExerciseRepository.save(newEx);
+                        });
 
-                for (var templateTestCase : template.getTestCases()) {
-                    ExerciseTestCase testCase = ExerciseTestCase.builder()
-                            .input(templateTestCase.getInput())
-                            .expectedOutput(templateTestCase.getExpectedOutput())
-                            .isSample(templateTestCase.getIsSample())
-                            .explanation(templateTestCase.getExplanation())
-                            .orderIndex(templateTestCase.getOrderIndex())
-                            .build();
-                    contestExercise.addTestCase(testCase);
-                }
-
-                contestLesson.addCodingExercise(contestExercise);
+                contestLesson.addCodingExercise(exercise);
                 template.incrementUsageCount();
             }
         }
@@ -155,10 +172,24 @@ public class ContestLessonServiceImpl implements ContestLessonService {
         List<QuizTemplate> templates = quizTemplateRepository.findAllById(quizTemplateIds);
 
         templates.forEach(template -> {
-            Quiz quiz = template.toQuiz();
+            Quiz quiz = quizQuestionRepository.findByTemplateId(template.getId())
+                    .orElseGet(() -> {
+                        Quiz newQuiz = template.toQuiz();
+                        newQuiz.setTemplateId(template.getId());
+                        return quizQuestionRepository.save(newQuiz);
+                    });
             contestLesson.addQuizQuestion(quiz);
             template.incrementUsageCount();
         });
+    }
+
+    @Override
+    @Transactional
+    public void publishContestLesson(UUID id) {
+        ContestLesson contestLesson = contestLessonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Contest lesson not found with id: " + id));
+        contestLesson.setStatus(StatusContest.READY);
+        contestLessonRepository.save(contestLesson);
     }
 
 }

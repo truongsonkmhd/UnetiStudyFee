@@ -27,10 +27,16 @@ public interface UserQuizAttemptRepository extends JpaRepository<UserQuizAttempt
     void deleteByQuizId(UUID quizId);
 
     @Modifying
-    @Query("DELETE FROM UserQuizAttempt a WHERE a.quiz.courseLesson.lessonId = :lessonId")
-    void deleteByLessonId(UUID lessonId);
+    @Query("DELETE FROM UserQuizAttempt a WHERE a.quiz.id IN (SELECT q.id FROM CourseLesson cl JOIN cl.quizzes q WHERE cl.lessonId = :lessonId)")
+    void deleteByLessonId(@Param("lessonId") UUID lessonId);
 
     @Modifying
-    @Query("DELETE FROM UserQuizAttempt a WHERE a.quiz.courseLesson.module.moduleId = :moduleId")
-    void deleteByModuleId(UUID moduleId);
+    @Query("DELETE FROM UserQuizAttempt a WHERE a.quiz.id IN (SELECT q.id FROM CourseLesson cl JOIN cl.quizzes q WHERE cl.module.moduleId = :moduleId)")
+    void deleteByModuleId(@Param("moduleId") UUID moduleId);
+
+    @Query("SELECT COUNT(a) > 0 FROM UserQuizAttempt a WHERE a.quiz.id IN (SELECT q.id FROM CourseLesson cl JOIN cl.quizzes q WHERE cl.lessonId = :lessonId)")
+    boolean existsByQuizCourseLessonLessonId(@Param("lessonId") UUID lessonId);
+
+    @Query("SELECT COUNT(a) > 0 FROM UserQuizAttempt a WHERE a.quiz.id IN (SELECT q.id FROM CourseLesson cl JOIN cl.quizzes q WHERE cl.module.moduleId = :moduleId)")
+    boolean existsByQuizCourseLessonModuleModuleId(@Param("moduleId") UUID moduleId);
 }

@@ -66,7 +66,7 @@ public class CodingExerciseCacheService {
     /**
      * Xóa cache của một template cụ thể
      */
-    public void evictTemplate(UUID templateId) {
+    public void evictTemplateById(UUID templateId) {
         CacheStrategy<UUID, ?> cache = appCacheService.getCache(CacheConstants.CODING_EXERCISE_BY_ID);
         cache.evict(templateId);
 

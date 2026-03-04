@@ -19,6 +19,7 @@ public class ClazzResponse {
     UUID classId;
     String classCode;
     String className;
+    String inviteCode;
 
     // Instructor
     UUID instructorId;

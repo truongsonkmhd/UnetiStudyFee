@@ -4,7 +4,8 @@ import com.truongsonkmhd.unetistudy.common.SubmissionVerdict;
 import lombok.*;
 
 @Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class JudgeInternalResult {
     private SubmissionVerdict verdict;

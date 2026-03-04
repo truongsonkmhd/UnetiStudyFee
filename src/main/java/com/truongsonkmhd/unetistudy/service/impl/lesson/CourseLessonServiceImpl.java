@@ -14,11 +14,15 @@ import com.truongsonkmhd.unetistudy.model.course.CourseModule;
 import com.truongsonkmhd.unetistudy.model.coding_template.CodingExerciseTemplate;
 import com.truongsonkmhd.unetistudy.model.quiz.Quiz;
 import com.truongsonkmhd.unetistudy.model.quiz.template.QuizTemplate;
+import com.truongsonkmhd.unetistudy.repository.coding.CodingExerciseRepository;
 import com.truongsonkmhd.unetistudy.repository.coding.CodingExerciseTemplateRepository;
 import com.truongsonkmhd.unetistudy.repository.course.CourseLessonRepository;
-import com.truongsonkmhd.unetistudy.repository.course.CourseModuleRepository;
 import com.truongsonkmhd.unetistudy.repository.UserRepository;
+import com.truongsonkmhd.unetistudy.repository.course.CourseModuleRepository;
+import com.truongsonkmhd.unetistudy.repository.coding.CodingSubmissionRepository;
+import com.truongsonkmhd.unetistudy.repository.quiz.QuizQuestionRepository;
 import com.truongsonkmhd.unetistudy.repository.quiz.QuizTemplateRepository;
+import com.truongsonkmhd.unetistudy.repository.quiz.UserQuizAttemptRepository;
 import com.truongsonkmhd.unetistudy.service.CourseLessonService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +54,10 @@ public class CourseLessonServiceImpl implements CourseLessonService {
     private final UserRepository userRepository;
     private final QuizTemplateRepository quizTemplateRepository;
     private final CodingExerciseTemplateRepository templateRepository;
+    private final CodingSubmissionRepository codingSubmissionRepository;
+    private final UserQuizAttemptRepository userQuizAttemptRepository;
+    private final CodingExerciseRepository codingExerciseRepository;
+    private final QuizQuestionRepository quizQuestionRepository;
 
     /**
      * Cache-Aside: Lấy lessons by moduleId
@@ -124,8 +132,12 @@ public class CourseLessonServiceImpl implements CourseLessonService {
         List<QuizTemplate> templates = quizTemplateRepository.findAllById(quizTemplateIds);
 
         templates.forEach(template -> {
-            Quiz quiz = template.toQuiz();
-            quiz.setTemplateId(template.getId());
+            Quiz quiz = quizQuestionRepository.findByTemplateId(template.getId())
+                    .orElseGet(() -> {
+                        Quiz newQuiz = template.toQuiz();
+                        newQuiz.setTemplateId(template.getId());
+                        return quizQuestionRepository.save(newQuiz);
+                    });
             courseLesson.addQuizQuestion(quiz);
             template.incrementUsageCount();
         });
@@ -139,21 +151,14 @@ public class CourseLessonServiceImpl implements CourseLessonService {
                     .findAllById(exerciseTemplateIds);
 
             for (CodingExerciseTemplate template : templates) {
-                CodingExercise contestExercise = template.toContestExercise();
-                contestExercise.setTemplateId(template.getTemplateId());
+                CodingExercise exercise = codingExerciseRepository.findByTemplateId(template.getTemplateId())
+                        .orElseGet(() -> {
+                            CodingExercise newEx = template.toContestExercise();
+                            newEx.setTemplateId(template.getTemplateId());
+                            return codingExerciseRepository.save(newEx);
+                        });
 
-                for (var templateTestCase : template.getTestCases()) {
-                    ExerciseTestCase testCase = ExerciseTestCase.builder()
-                            .input(templateTestCase.getInput())
-                            .expectedOutput(templateTestCase.getExpectedOutput())
-                            .isSample(templateTestCase.getIsSample())
-                            .explanation(templateTestCase.getExplanation())
-                            .orderIndex(templateTestCase.getOrderIndex())
-                            .build();
-                    contestExercise.addTestCase(testCase);
-                }
-
-                courseLesson.addCodingExercise(contestExercise);
+                courseLesson.addCodingExercise(exercise);
                 template.incrementUsageCount();
             }
         }
@@ -198,6 +203,15 @@ public class CourseLessonServiceImpl implements CourseLessonService {
     public Optional<CourseLesson> findById(UUID id) {
         log.debug("Cache MISS - Loading lesson from DB: {}", id);
         return courseLessonRepository.findById(id);
+    }
+
+    @Override
+    public boolean hasSubmissions(UUID lessonId) {
+        log.debug("Checking if lesson {} has student submissions", lessonId);
+        boolean hasCodingSubmissions = codingSubmissionRepository.existsByExerciseCourseLessonLessonId(lessonId);
+        if (hasCodingSubmissions)
+            return true;
+        return userQuizAttemptRepository.existsByQuizCourseLessonLessonId(lessonId);
     }
 
     private String generateUniqueSlug(String baseSlug) {

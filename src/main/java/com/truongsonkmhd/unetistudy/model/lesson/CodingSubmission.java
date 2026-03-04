@@ -18,16 +18,13 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(
-        name = "tbl_coding_submission",
-        indexes = {
-                @Index(name = "idx_sub_user", columnList = "user_id"),
-                @Index(name = "idx_sub_exercise", columnList = "exercise_id"),
-                @Index(name = "idx_sub_submitted_at", columnList = "submitted_at"),
-                @Index(name = "idx_sub_verdict", columnList = "verdict"),
-                @Index(name = "idx_sub_language", columnList = "language")
-        }
-)
+@Table(name = "tbl_coding_submission", indexes = {
+        @Index(name = "idx_sub_user", columnList = "user_id"),
+        @Index(name = "idx_sub_exercise", columnList = "exercise_id"),
+        @Index(name = "idx_sub_submitted_at", columnList = "submitted_at"),
+        @Index(name = "idx_sub_verdict", columnList = "verdict"),
+        @Index(name = "idx_sub_language", columnList = "language")
+})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CodingSubmission {
 
@@ -90,9 +87,13 @@ public class CodingSubmission {
      */
     @PrePersist
     void prePersist() {
-        if (verdict == null) verdict = SubmissionVerdict.PENDING;
-        if (passedTestcases == null) passedTestcases = 0;
-        if (totalTestcases == null) totalTestcases = 0;
-        if (score == null) score = 0;
+        if (verdict == null)
+            verdict = SubmissionVerdict.PENDING;
+        if (passedTestcases == null)
+            passedTestcases = 0;
+        if (totalTestcases == null)
+            totalTestcases = 0;
+        if (score == null)
+            score = 0;
     }
 }

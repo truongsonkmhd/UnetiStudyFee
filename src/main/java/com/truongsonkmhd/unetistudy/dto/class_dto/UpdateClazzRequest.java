@@ -16,6 +16,5 @@ public class UpdateClazzRequest {
     String className;
     Instant startDate;
     Instant endDate;
-    Integer maxStudents;
     Boolean isActive;
 }

@@ -61,9 +61,17 @@ public class LessonProgressServiceImpl implements LessonProgressService {
                                                 .lesson(lesson)
                                                 .build());
 
-                // Update fields
-                progress.setStatus(request.getStatus());
-                progress.setWatchedPercent(request.getWatchedPercent() != null ? request.getWatchedPercent() : 0);
+                if (progress.getStatus() != ProgressStatus.DONE) {
+                        progress.setStatus(request.getStatus());
+                }
+
+                if (progress.getStatus() != ProgressStatus.DONE ||
+                                (request.getWatchedPercent() != null
+                                                && request.getWatchedPercent() > progress.getWatchedPercent())) {
+                        progress.setWatchedPercent(
+                                        request.getWatchedPercent() != null ? request.getWatchedPercent() : 0);
+                }
+
                 progress.setTimeSpentSec(request.getTimeSpentSec() != null ? request.getTimeSpentSec() : 0);
                 progress.setLastAccessAt(Instant.now());
 

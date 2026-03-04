@@ -57,4 +57,9 @@ public class CourseLessonController {
         return ResponseEntity.ok().body(ResponseMessage.UpdatedSuccess(lessonService.update(id, request)));
     }
 
+    @GetMapping("/hasSubmissions/{id}")
+    ResponseEntity<IResponseMessage> hasSubmissions(@PathVariable UUID id) {
+        return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(lessonService.hasSubmissions(id)));
+    }
+
 }

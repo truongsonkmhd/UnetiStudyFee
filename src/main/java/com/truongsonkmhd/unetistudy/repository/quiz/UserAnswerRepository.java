@@ -52,10 +52,10 @@ public interface UserAnswerRepository extends JpaRepository<UserAnswer, UUID> {
         void deleteByQuestionId(@Param("questionId") UUID questionId);
 
         @Modifying
-        @Query("DELETE FROM UserAnswer ua WHERE ua.question.quiz.courseLesson.lessonId = :lessonId")
+        @Query("DELETE FROM UserAnswer ua WHERE ua.question.quiz.id IN (SELECT q.id FROM CourseLesson cl JOIN cl.quizzes q WHERE cl.lessonId = :lessonId)")
         void deleteByLessonId(@Param("lessonId") UUID lessonId);
 
         @Modifying
-        @Query("DELETE FROM UserAnswer ua WHERE ua.question.quiz.courseLesson.module.moduleId = :moduleId")
+        @Query("DELETE FROM UserAnswer ua WHERE ua.question.quiz.id IN (SELECT q.id FROM CourseLesson cl JOIN cl.quizzes q WHERE cl.module.moduleId = :moduleId)")
         void deleteByModuleId(@Param("moduleId") UUID moduleId);
 }

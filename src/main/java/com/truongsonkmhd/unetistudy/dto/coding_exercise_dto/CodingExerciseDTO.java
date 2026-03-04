@@ -11,10 +11,10 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CodingExerciseDTO extends BaseCodingExerciseDTO {
 
     UUID contestLessonId;
-
-    UUID templateId;
 }

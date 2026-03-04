@@ -3,6 +3,7 @@ package com.truongsonkmhd.unetistudy.service.impl.quiz;
 import com.truongsonkmhd.unetistudy.cache.CacheConstants;
 import com.truongsonkmhd.unetistudy.cache.service.ScoreWriteBehindService;
 import com.truongsonkmhd.unetistudy.common.AttemptStatus;
+import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.CourseLesson;
 import com.truongsonkmhd.unetistudy.model.quiz.Quiz;
 import com.truongsonkmhd.unetistudy.model.quiz.Answer;
 import com.truongsonkmhd.unetistudy.model.quiz.Question;
@@ -43,6 +44,7 @@ public class QuizServiceImpl implements QuizService {
         private final UserQuizAttemptRepository attemptRepository;
         private final UserAnswerRepository userAnswerRepository;
         private final ScoreWriteBehindService scoreWriteBehindService;
+        private final com.truongsonkmhd.unetistudy.service.LessonProgressService lessonProgressService;
 
         @Override
         @Transactional
@@ -183,8 +185,12 @@ public class QuizServiceImpl implements QuizService {
                                 ? (totalScore / totalPossiblePoints) * 100
                                 : 0.0;
 
-                boolean isPassed = attempt.getQuiz().getPassScore() != null
-                                && percentage >= attempt.getQuiz().getPassScore();
+                Double passScoreThreshold = attempt.getQuiz().getPassScore();
+                if (passScoreThreshold == null) {
+                        passScoreThreshold = 50.0;
+                }
+
+                boolean isPassed = percentage >= passScoreThreshold;
 
                 attempt.setScore(totalScore);
                 attempt.setTotalPoints(totalPossiblePoints);
@@ -192,6 +198,29 @@ public class QuizServiceImpl implements QuizService {
                 attempt.setIsPassed(isPassed);
                 attempt.setCompletedAt(Instant.now());
                 attempt.setStatus(AttemptStatus.COMPLETED);
+
+                // Update Lesson Progress for all lessons containing this quiz
+                if (isPassed && attempt.getQuiz().getCourseLessons() != null) {
+                        for (CourseLesson lesson : attempt.getQuiz().getCourseLessons()) {
+                                try {
+                                        if (lesson.getModule() != null && lesson.getModule().getCourse() != null) {
+                                                lessonProgressService.updateProgress(attempt.getUserId(),
+                                                                com.truongsonkmhd.unetistudy.dto.progress_dto.LessonProgressRequest
+                                                                                .builder()
+                                                                                .courseId(lesson.getModule().getCourse()
+                                                                                                .getCourseId())
+                                                                                .lessonId(lesson.getLessonId())
+                                                                                .status(com.truongsonkmhd.unetistudy.common.ProgressStatus.DONE)
+                                                                                .watchedPercent(100)
+                                                                                .timeSpentSec(0)
+                                                                                .build());
+                                        }
+                                } catch (Exception e) {
+                                        log.error("Failed to update lesson progress after quiz completion for lesson: "
+                                                        + lesson.getLessonId(), e);
+                                }
+                        }
+                }
 
                 // Lưu vào DB ngay (vì cần ID)
                 UserQuizAttempt savedAttempt = attemptRepository.save(attempt);

@@ -13,10 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Standalone coding exercise template (library/pool of exercises)
- * NO foreign keys - can be reused across multiple contests
- */
+
 @Getter
 @Setter
 @SuperBuilder
@@ -38,7 +35,7 @@ public class CodingExerciseTemplate extends BaseCodingExercise {
 
     @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
-    List<ExerciseTemplateTestCase> testCases = new ArrayList<>();
+    List<ExerciseTemplateTestCase> exerciseTestCases = new ArrayList<>();
 
     @Column(name = "category", length = 50)
     String category; // e.g., "Array", "String", "Dynamic Programming"
@@ -51,12 +48,12 @@ public class CodingExerciseTemplate extends BaseCodingExercise {
 
     // Helper methods
     public void addTestCase(ExerciseTemplateTestCase testCase) {
-        testCases.add(testCase);
+        exerciseTestCases.add(testCase);
         testCase.setTemplate(this);
     }
 
     public void removeTestCase(ExerciseTemplateTestCase testCase) {
-        testCases.remove(testCase);
+        exerciseTestCases.remove(testCase);
         testCase.setTemplate(null);
     }
 
@@ -81,8 +78,8 @@ public class CodingExerciseTemplate extends BaseCodingExercise {
                 .isPublished(true)
                 .build();
 
-        if (this.testCases != null) {
-            for (ExerciseTemplateTestCase tc : this.testCases) {
+        if (this.exerciseTestCases != null) {
+            for (ExerciseTemplateTestCase tc : this.exerciseTestCases) {
                 exercise.addTestCase(ExerciseTestCase.builder()
                         .input(tc.getInput())
                         .expectedOutput(tc.getExpectedOutput())

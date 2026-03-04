@@ -37,6 +37,15 @@ public class CodingExerciseTemplateController {
                                 ResponseMessage.CreatedSuccess(codingExerciseTemplateService.save(dto)));
         }
 
+        @PutMapping("/{id}")
+        @Operation(summary = "Update coding exercise template")
+        public ResponseEntity<IResponseMessage> updateTemplate(
+                        @PathVariable UUID id,
+                        @RequestBody CodingExerciseTemplateDTO dto) {
+                return ResponseEntity.ok(
+                                ResponseMessage.UpdatedSuccess(codingExerciseTemplateService.update(id, dto)));
+        }
+
         @GetMapping("/{id}")
         @Operation(summary = "Get coding exercise template by id")
         public ResponseEntity<IResponseMessage> getById(
@@ -44,17 +53,6 @@ public class CodingExerciseTemplateController {
                 return ResponseEntity.ok(
                                 ResponseMessage.CreatedSuccess(codingExerciseTemplateService.getById(id)));
         }
-
-        // @PatchMapping("/{id}")
-        // @Operation(summary = )
-        // public ResponseEntity<IResponseMessage> updateStatus(
-        // @PathVariable UUID id){
-        // return ResponseEntity.ok().body(
-        // ResponseMessage.UpdatedSuccess()
-        // );
-        // }
-
-        // ========== OFFSET PAGINATION ==========
 
         @GetMapping("")
         @Operation(summary = "Get published templates (offset pagination)")

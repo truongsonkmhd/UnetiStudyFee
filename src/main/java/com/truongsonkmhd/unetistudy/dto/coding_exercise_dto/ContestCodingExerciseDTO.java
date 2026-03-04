@@ -11,6 +11,8 @@ import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @SuperBuilder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ContestCodingExerciseDTO extends BaseCodingExerciseDTO {

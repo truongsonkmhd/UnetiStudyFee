@@ -12,6 +12,8 @@ import java.util.UUID;
 public interface ClassContestService {
     ClassContestResponse createClassContest(CreateClassContestRequest request);
 
+    List<ClassContestResponse> getAllClassContests();
+
     List<ClassContestResponse> getClassContests(UUID classId);
 
     List<ClassContestResponse> getOngoingContests(UUID classId);

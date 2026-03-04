@@ -6,8 +6,10 @@ import com.truongsonkmhd.unetistudy.exception.custom_exception.ResourceNotFoundE
 import com.truongsonkmhd.unetistudy.mapper.course.CourseModuleRequestMapper;
 import com.truongsonkmhd.unetistudy.mapper.course.CourseModuleResponseMapper;
 import com.truongsonkmhd.unetistudy.model.course.CourseModule;
+import com.truongsonkmhd.unetistudy.repository.coding.CodingSubmissionRepository;
 import com.truongsonkmhd.unetistudy.repository.course.CourseModuleRepository;
 import com.truongsonkmhd.unetistudy.repository.course.CourseRepository;
+import com.truongsonkmhd.unetistudy.repository.quiz.UserQuizAttemptRepository;
 import com.truongsonkmhd.unetistudy.service.CourseModuleService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,10 @@ public class CourseModuleServiceImpl implements CourseModuleService {
     private final CourseModuleResponseMapper courseModuleResponseMapper;
 
     private final CourseModuleRequestMapper courseModuleRequestMapper;
+
+    private final CodingSubmissionRepository codingSubmissionRepository;
+
+    private final UserQuizAttemptRepository userQuizAttemptRepository;
 
     @Override
     public List<CourseModuleResponse> getAllModule() {
@@ -48,5 +54,14 @@ public class CourseModuleServiceImpl implements CourseModuleService {
     public UUID delete(UUID theId) {
         courseModuleRepository.deleteById(theId);
         return theId;
+    }
+
+    @Override
+    public boolean hasSubmissions(UUID moduleId) {
+        log.debug("Checking if module {} has student submissions", moduleId);
+        boolean hasCodingSubmissions = codingSubmissionRepository.existsByExerciseCourseLessonModuleModuleId(moduleId);
+        if (hasCodingSubmissions)
+            return true;
+        return userQuizAttemptRepository.existsByQuizCourseLessonModuleModuleId(moduleId);
     }
 }

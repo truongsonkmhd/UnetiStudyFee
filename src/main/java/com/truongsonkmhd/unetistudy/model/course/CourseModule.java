@@ -61,4 +61,8 @@ public class CourseModule {
     @Column(name = "slug", nullable = true)
     String slug;
 
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    boolean isDeleted = false;
+
 }

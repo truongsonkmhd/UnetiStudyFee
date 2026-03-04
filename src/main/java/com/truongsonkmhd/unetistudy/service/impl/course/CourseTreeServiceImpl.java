@@ -328,13 +328,19 @@ public class CourseTreeServiceImpl implements CourseTreeService {
 
         List<Quiz> quizzes = quizRepository.findQuizzesByLessonIds(lessonIds);
 
-        Map<UUID, List<CodingExercise>> exByLesson = exercises.stream()
-                .filter(e -> e.getCourseLesson() != null)
-                .collect(Collectors.groupingBy(e -> e.getCourseLesson().getLessonId()));
+        Map<UUID, List<CodingExercise>> exByLesson = new HashMap<>();
+        exercises.forEach(e -> {
+            e.getCourseLessons().forEach(cl -> {
+                exByLesson.computeIfAbsent(cl.getLessonId(), k -> new ArrayList<>()).add(e);
+            });
+        });
 
-        Map<UUID, List<Quiz>> quizByLesson = quizzes.stream()
-                .filter(q -> q.getCourseLesson() != null)
-                .collect(Collectors.groupingBy(q -> q.getCourseLesson().getLessonId()));
+        Map<UUID, List<Quiz>> quizByLesson = new HashMap<>();
+        quizzes.forEach(q -> {
+            q.getCourseLessons().forEach(cl -> {
+                quizByLesson.computeIfAbsent(cl.getLessonId(), k -> new ArrayList<>()).add(q);
+            });
+        });
 
         return mapCourse(course, courseModule, lessons, roles, exByLesson, quizByLesson);
     }
@@ -422,8 +428,10 @@ public class CourseTreeServiceImpl implements CourseTreeService {
             return null;
 
         return CodingExerciseDTO.builder()
+                .exerciseId(e.getExerciseId())
                 .templateId(e.getTemplateId())
-                .contestLessonId(e.getContestLesson() != null ? e.getContestLesson().getContestLessonId() : null)
+                .contestLessonId(
+                        e.getContestLessons().isEmpty() ? null : e.getContestLessons().get(0).getContestLessonId())
                 .title(e.getTitle())
                 .description(e.getDescription())
                 .programmingLanguage(e.getProgrammingLanguage())
@@ -438,7 +446,6 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 .constraintName(e.getConstraintName())
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())
-                .templateId(e.getTemplateId())
                 .build();
     }
 
@@ -584,47 +591,84 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         if (exerciseTemplateIds == null)
             return;
 
-        // Clean up student submissions for the exercises being removed to avoid FK
-        // violations
-        for (CodingExercise exercise : lesson.getCodingExercises()) {
-            codingSubmissionRepository.deleteByExerciseId(exercise.getExerciseId());
+        Set<UUID> newTemplateIds = new HashSet<>(exerciseTemplateIds);
+
+        List<CodingExercise> toRemove = lesson.getCodingExercises().stream()
+                .filter(ex -> ex.getTemplateId() == null || !newTemplateIds.contains(ex.getTemplateId()))
+                .collect(Collectors.toList());
+
+        for (CodingExercise ex : toRemove) {
+            codingSubmissionRepository.deleteByExerciseId(ex.getExerciseId());
+            lesson.removeCodingExercise(ex);
+        }
+
+        List<CodingExercise> orderedList = new ArrayList<>();
+        Map<UUID, CodingExercise> remainingByTemplate = lesson.getCodingExercises().stream()
+                .filter(ex -> ex.getTemplateId() != null)
+                .collect(Collectors.toMap(CodingExercise::getTemplateId, ex -> ex, (a, b) -> a));
+
+        for (UUID templateId : exerciseTemplateIds) {
+            if (remainingByTemplate.containsKey(templateId)) {
+                orderedList.add(remainingByTemplate.get(templateId));
+            } else {
+                codingExerciseTemplateRepository.findById(templateId).ifPresent(template -> {
+                    CodingExercise exercise = template.toContestExercise();
+                    exercise.setTemplateId(template.getTemplateId());
+                    exercise.getCourseLessons().add(lesson);
+
+                    orderedList.add(exercise);
+                    template.incrementUsageCount();
+                    codingExerciseTemplateRepository.save(template);
+                });
+            }
         }
 
         lesson.getCodingExercises().clear();
-
-        for (UUID templateId : exerciseTemplateIds) {
-            codingExerciseTemplateRepository.findById(templateId).ifPresent(template -> {
-                CodingExercise exercise = template.toContestExercise();
-                exercise.setTemplateId(template.getTemplateId());
-                lesson.addCodingExercise(exercise);
-                template.incrementUsageCount();
-                codingExerciseTemplateRepository.save(template);
-            });
-        }
+        lesson.getCodingExercises().addAll(orderedList);
     }
 
     private void syncLessonQuizzes(CourseLesson lesson, List<UUID> quizTemplateIds) {
         if (quizTemplateIds == null)
             return;
+        Set<UUID> newTemplateIds = new HashSet<>(quizTemplateIds);
 
-        // Clean up student data for the quizzes being removed to avoid FK violations
-        for (Quiz quiz : lesson.getQuizzes()) {
+        List<Quiz> toRemove = lesson.getQuizzes().stream()
+                .filter(q -> q.getTemplateId() == null || !newTemplateIds.contains(q.getTemplateId()))
+                .collect(Collectors.toList());
+
+        for (Quiz quiz : toRemove) {
             userAnswerRepository.deleteSelectedAnswerReferencesByQuizId(quiz.getId());
             userAnswerRepository.deleteByQuizId(quiz.getId());
             userQuizAttemptRepository.deleteByQuizId(quiz.getId());
+            lesson.removeQuizQuestion(quiz);
         }
 
-        lesson.getQuizzes().clear();
+        List<Quiz> orderedList = new ArrayList<>();
+        Map<UUID, Quiz> remainingByTemplate = lesson.getQuizzes().stream()
+                .filter(q -> q.getTemplateId() != null)
+                .collect(Collectors.toMap(Quiz::getTemplateId, q -> q, (a, b) -> a));
 
         for (UUID templateId : quizTemplateIds) {
-            quizTemplateRepository.findById(templateId).ifPresent(template -> {
-                Quiz quiz = template.toQuiz();
-                quiz.setTemplateId(template.getId());
-                lesson.addQuizQuestion(quiz);
-                template.incrementUsageCount();
-                quizTemplateRepository.save(template);
-            });
+            if (remainingByTemplate.containsKey(templateId)) {
+                // Keep existing instance
+                orderedList.add(remainingByTemplate.get(templateId));
+            } else {
+                // Add new instance from template
+                quizTemplateRepository.findById(templateId).ifPresent(template -> {
+                    Quiz quiz = template.toQuiz();
+                    quiz.setTemplateId(template.getId());
+                    quiz.getCourseLessons().add(lesson);
+
+                    orderedList.add(quiz);
+                    template.incrementUsageCount();
+                    quizTemplateRepository.save(template);
+                });
+            }
         }
+
+        // 5. Update the lesson's quizzes list
+        lesson.getQuizzes().clear();
+        lesson.getQuizzes().addAll(orderedList);
     }
 
     // =========================

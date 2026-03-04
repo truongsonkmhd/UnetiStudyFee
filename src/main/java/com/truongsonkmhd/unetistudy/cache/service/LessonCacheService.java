@@ -137,8 +137,8 @@ public class LessonCacheService {
         CodingExercise savedExercise = cache.writeThrough(exerciseId, exercise, dbWriter);
 
         // Invalidate exercise list cache
-        if (savedExercise != null && savedExercise.getContestLesson() != null) {
-            invalidateCodingExercisesByLesson(savedExercise.getContestLesson().getContestLessonId());
+        if (savedExercise != null && savedExercise.getContestLessons() != null) {
+            savedExercise.getContestLessons().forEach(cl -> invalidateCodingExercisesByLesson(cl.getContestLessonId()));
         }
 
         return savedExercise;

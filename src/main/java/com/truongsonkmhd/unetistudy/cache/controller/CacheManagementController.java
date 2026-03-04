@@ -27,7 +27,6 @@ public class CacheManagementController {
     private final AppCacheService appCacheService;
     private final UserCacheService userCacheService;
     private final CourseCacheService courseCacheService;
-    private final QuizCacheService quizCacheService;
     private final LessonCacheService lessonCacheService;
     private final ScoreWriteBehindService scoreWriteBehindService;
 
@@ -89,12 +88,6 @@ public class CacheManagementController {
         return ResponseEntity.ok().body(ResponseMessage.DeletedSuccess(Map.of("message", "Course caches evicted successfully")));
     }
 
-    @DeleteMapping("/evict/quizzes")
-    @Operation(summary = "Xóa tất cả quiz caches")
-    public ResponseEntity<IResponseMessage> evictQuizCaches() {
-        quizCacheService.evictAllQuizzes();
-        return ResponseEntity.ok().body(ResponseMessage.DeletedSuccess(Map.of("message", "Quiz caches evicted successfully")));
-    }
 
     @DeleteMapping("/evict/lessons")
     @Operation(summary = "Xóa tất cả lesson caches")

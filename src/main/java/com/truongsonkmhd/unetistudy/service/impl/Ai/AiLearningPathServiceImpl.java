@@ -71,7 +71,7 @@ public class AiLearningPathServiceImpl implements AiLearningPathService {
                                 }
 
                                 // RULE 2: quiz thấp
-                                Double quizAvg = quizAttemptRepository.avgScore(userId, lesson.getLessonId());
+                                Double quizAvg = quizAttemptRepository.avgScore( lesson.getLessonId());
                                 if (quizAvg != null && quizAvg < 0.6) {
                                         suggestions.add(AiLessonSuggestionDTO.builder()
                                                         .lessonId(lesson.getLessonId())

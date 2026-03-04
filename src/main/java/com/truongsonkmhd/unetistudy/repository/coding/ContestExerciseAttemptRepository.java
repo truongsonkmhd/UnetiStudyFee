@@ -23,7 +23,9 @@ public interface ContestExerciseAttemptRepository extends JpaRepository<ContestE
           WHERE c2.user.id = :userID AND c2.exerciseID = :exerciseID
       )
     """)
-    ContestExerciseAttempt getAttemptInfoDTOByUserIDAndExerciseID(@Param("userID") UUID userID, @Param("exerciseID") UUID exerciseID, @Param("exerciseType") String exerciseType);
+    ContestExerciseAttempt getAttemptInfoDTOByUserIDAndExerciseID(@Param("userID") UUID userID,
+                                                                  @Param("exerciseID") UUID exerciseID,
+                                                                  @Param("exerciseType") String exerciseType);
 
 
 }

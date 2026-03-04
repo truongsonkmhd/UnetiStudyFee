@@ -18,11 +18,18 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "tbl_coding_exercise", indexes = {
-        @Index(name = "idx_exercise_contest", columnList = "contest_lesson_id"),
         @Index(name = "idx_exercise_slug", columnList = "slug")
 })
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CodingExercise extends BaseCodingExercise {
+
+    @ManyToMany(mappedBy = "codingExercises")
+    @Builder.Default
+    List<CourseLesson> courseLessons = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "codingExercises")
+    @Builder.Default
+    List<ContestLesson> contestLessons = new ArrayList<>();
 
     @Id
     @UuidGenerator
@@ -32,17 +39,13 @@ public class CodingExercise extends BaseCodingExercise {
     @Column(name = "template_id")
     UUID templateId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "contest_lesson_id", nullable = true)
-    ContestLesson contestLesson;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lesson_id", nullable = true)
-    CourseLesson courseLesson;
-
     @OneToMany(mappedBy = "codingExercise", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     List<ExerciseTestCase> exerciseTestCases = new ArrayList<>();
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    boolean isDeleted = false;
 
     // Helper methods (đúng bidirectional)
     public void addTestCase(ExerciseTestCase testCase) {

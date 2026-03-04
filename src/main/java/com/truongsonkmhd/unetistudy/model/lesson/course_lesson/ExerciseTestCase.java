@@ -6,9 +6,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-/**
- * Test case for CONTEST exercises (has FK to ContestCodingExercise)
- */
 @Getter
 @Setter
 @NoArgsConstructor

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -37,7 +38,8 @@ public class CodingExerciseServiceImpl implements CodingExerciseService {
 
     @Override
     public UUID getLessonIDByExerciseID(UUID exerciseId) {
-        return codingExerciseRepository.getLessonIDByExerciseID(exerciseId);
+        List<UUID> lessonIds = codingExerciseRepository.getLessonIDByExerciseID(exerciseId);
+        return (lessonIds == null || lessonIds.isEmpty()) ? null : lessonIds.get(0);
     }
 
 }

@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -14,23 +15,26 @@ public interface CodingExerciseRepository extends JpaRepository<CodingExercise, 
 
     @Query("""
                 SELECT e
-                FROM CodingExercise e
-                WHERE e.courseLesson.lessonId IN :lessonIds
+                FROM CourseLesson cl
+                JOIN cl.codingExercises e
+                WHERE cl.lessonId IN :lessonIds
             """)
     List<CodingExercise> findExercisesByLessonIds(@Param("lessonIds") List<UUID> lessonIds);
 
     @Query("""
                 SELECT DISTINCT ce
-                FROM CodingExercise ce
+                FROM CourseLesson cl
+                JOIN cl.codingExercises ce
                 LEFT JOIN FETCH ce.exerciseTestCases
-                WHERE ce.courseLesson.slug = :slug
+                WHERE cl.slug = :slug
             """)
     List<CodingExercise> findByLessonSlugWithTestCases(@Param("slug") String slug);
 
     @Query("""
                 SELECT ce
-                FROM CodingExercise ce
-                WHERE ce.courseLesson.slug = :slug
+                FROM CourseLesson cl
+                JOIN cl.codingExercises ce
+                WHERE cl.slug = :slug
             """)
     CodingExercise findDetailByLessonSlug(@Param("slug") String slug);
 
@@ -42,9 +46,12 @@ public interface CodingExerciseRepository extends JpaRepository<CodingExercise, 
     CodingExercise getExerciseEntityById(@Param("exerciseId") UUID exerciseId);
 
     @Query("""
-                SELECT ce.courseLesson.lessonId
-                FROM CodingExercise ce
+                SELECT cl.lessonId
+                FROM CourseLesson cl
+                JOIN cl.codingExercises ce
                 WHERE ce.exerciseId = :exerciseId
             """)
-    UUID getLessonIDByExerciseID(@Param("exerciseId") UUID exerciseId);
+    List<UUID> getLessonIDByExerciseID(@Param("exerciseId") UUID exerciseId);
+
+    Optional<CodingExercise> findByTemplateId(UUID templateId);
 }

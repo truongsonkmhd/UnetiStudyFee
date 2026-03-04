@@ -1,32 +1,26 @@
 package com.truongsonkmhd.unetistudy.service.impl.lesson;
 
-import com.truongsonkmhd.unetistudy.cache.CacheConstants;
 import com.truongsonkmhd.unetistudy.dto.class_dto.ClazzResponse;
 import com.truongsonkmhd.unetistudy.dto.class_dto.CreateClazzRequest;
 import com.truongsonkmhd.unetistudy.dto.contest_lesson.ClassContestResponse;
+import com.truongsonkmhd.unetistudy.mapper.user.UserResponseMapper;
 import com.truongsonkmhd.unetistudy.model.User;
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.ClassContest;
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.Clazz;
+import com.truongsonkmhd.unetistudy.exception.custom_exception.BusinessRuleException;
+import com.truongsonkmhd.unetistudy.exception.custom_exception.ResourceNotFoundException;
 import com.truongsonkmhd.unetistudy.repository.UserRepository;
 import com.truongsonkmhd.unetistudy.repository.clazz.ClassRepository;
 import com.truongsonkmhd.unetistudy.service.ClassService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-/**
- * Service quản lý Lớp học (Clazz) với tích hợp Caching
- * 
- * Cache Patterns áp dụng:
- * 1. Cache-Aside - @Cacheable cho getALlClass
- * 2. Cache Invalidation - @CacheEvict khi saveClass
- * 3. Time-based Expiration - TTL 15 phút
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,14 +28,20 @@ public class ClassServiceImpl implements ClassService {
 
         private final ClassRepository classRepository;
         private final UserRepository userRepository;
+        private final UserResponseMapper userResponseMapper;
 
-        /**
-         * Cache Invalidation: Xóa cache danh sách lớp học khi tạo mới
-         */
+        private String generateInviteCode() {
+                String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                StringBuilder sb = new StringBuilder();
+                Random random = new Random();
+                for (int i = 0; i < 8; i++) {
+                        sb.append(chars.charAt(random.nextInt(chars.length())));
+                }
+                return sb.toString();
+        }
+
         @Override
-        @CacheEvict(cacheNames = CacheConstants.CLASSES, allEntries = true)
         public ClazzResponse saveClass(CreateClazzRequest createClazzRequest) {
-                log.info("Creating new class: {} - Evicting cache", createClazzRequest.getClassName());
 
                 User user = userRepository.findById(createClazzRequest.getInstructorId())
                                 .orElseThrow(() -> new RuntimeException("Instructor not found"));
@@ -53,6 +53,7 @@ public class ClassServiceImpl implements ClassService {
                                 .startDate(createClazzRequest.getStartDate())
                                 .endDate(createClazzRequest.getEndDate())
                                 .maxStudents(createClazzRequest.getMaxStudents())
+                                .inviteCode(generateInviteCode())
                                 .build();
 
                 Clazz clazzSaved = classRepository.save(clazz);
@@ -62,25 +63,69 @@ public class ClassServiceImpl implements ClassService {
                                 .classCode(clazzSaved.getClassCode())
                                 .className(clazzSaved.getClassName())
                                 .instructorName(clazzSaved.getInstructor().getFullName())
+                                .inviteCode(clazzSaved.getInviteCode())
                                 .startDate(clazzSaved.getStartDate())
                                 .endDate(clazzSaved.getEndDate())
-                                .maxStudents(clazzSaved.getMaxStudents())
                                 .isActive(clazzSaved.getIsActive())
                                 .createdAt(clazzSaved.getCreatedAt())
                                 .updatedAt(clazzSaved.getUpdatedAt())
                                 .build();
         }
 
-        /**
-         * Cache-Aside: Lấy tất cả lớp học
-         */
         @Override
-        @Cacheable(cacheNames = CacheConstants.CLASSES, key = "'all'", unless = "#result.isEmpty()")
         public List<ClazzResponse> getALlClass() {
-                log.debug("Cache MISS - Loading all classes from DB");
                 List<Clazz> classes = classRepository.findAll();
 
                 return classes.stream()
+                                .map(this::mapToResponse)
+                                .toList();
+        }
+
+        @Override
+        public ClazzResponse regenerateInviteCode(UUID classId) {
+                Clazz clazz = classRepository.findById(classId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học"));
+                clazz.setInviteCode(generateInviteCode());
+                Clazz saved = classRepository.save(clazz);
+                return mapToResponse(saved);
+        }
+
+        @Override
+        public void joinClass(String inviteCode, UUID studentId) {
+                Clazz clazz = classRepository.findByInviteCode(inviteCode)
+                                .orElseThrow(() -> new ResourceNotFoundException("Mã mời không chính xác"));
+
+                if (clazz.getStudents().size() >= clazz.getMaxStudents()) {
+                        throw new BusinessRuleException("Lớp học đã đầy!");
+                }
+
+                User student = userRepository.findById(studentId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin sinh viên"));
+
+                clazz.addStudent(student);
+                classRepository.save(clazz);
+        }
+
+        @Override
+        public ClazzResponse getClassByInviteCode(String inviteCode) {
+                Clazz clazz = classRepository.findByInviteCode(inviteCode)
+                                .orElseThrow(() -> new ResourceNotFoundException("Mã mời không chính xác"));
+                return mapToResponse(clazz);
+        }
+
+        @Override
+        public List<com.truongsonkmhd.unetistudy.dto.user_dto.UserResponse> getStudentsInClass(UUID classId) {
+                Clazz clazz = classRepository.findById(classId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học"));
+
+                return clazz.getStudents().stream()
+                                .map(userResponseMapper::toDto)
+                                .collect(Collectors.toList());
+        }
+
+        @Override
+        public List<ClazzResponse> getMyClasses(UUID studentId) {
+                return classRepository.findByStudents_Id(studentId).stream()
                                 .map(this::mapToResponse)
                                 .toList();
         }
@@ -92,6 +137,7 @@ public class ClassServiceImpl implements ClassService {
                                 .classId(clazz.getClassId())
                                 .classCode(clazz.getClassCode())
                                 .className(clazz.getClassName())
+                                .inviteCode(clazz.getInviteCode())
                                 .instructorId(instructor.getId())
                                 .instructorName(instructor.getFullName())
                                 .startDate(clazz.getStartDate())
@@ -100,7 +146,6 @@ public class ClassServiceImpl implements ClassService {
                                 .isActive(clazz.getIsActive())
                                 .createdAt(clazz.getCreatedAt())
                                 .updatedAt(clazz.getUpdatedAt())
-                                // contests
                                 .contests(
                                                 clazz.getActiveContests().stream()
                                                                 .map(this::mapContestToResponse)

@@ -1,6 +1,5 @@
 package com.truongsonkmhd.unetistudy.dto.coding_exercise_dto.base;
 
-
 import com.truongsonkmhd.unetistudy.common.Difficulty;
 import com.truongsonkmhd.unetistudy.dto.exercise_test_cases_dto.ExerciseTestCasesDTO;
 import lombok.*;
@@ -18,6 +17,7 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BaseCodingExerciseDTO {
 
+    UUID exerciseId;
     UUID templateId;
 
     String title;

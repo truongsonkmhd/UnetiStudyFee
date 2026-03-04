@@ -15,14 +15,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "tbl_answer",
-        indexes = {
+@Table(name = "tbl_answer", indexes = {
                 @Index(name = "idx_answer_question", columnList = "question_id")
-        })
+})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Answer extends BaseEntityAnswer {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "question_id", nullable = false)
-    Question question;
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "question_id", nullable = false)
+        Question question;
 }

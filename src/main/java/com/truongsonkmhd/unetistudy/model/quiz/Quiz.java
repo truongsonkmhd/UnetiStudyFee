@@ -7,11 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.UuidGenerator;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -22,19 +18,17 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "tbl_quiz", indexes = {
-        @Index(name = "idx_quiz_contest", columnList = "contest_lesson_id")
-})
+@Table(name = "tbl_quiz")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Quiz extends BaseEntityQuiz {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "contest_lesson_id", nullable = true)
-    ContestLesson contestLesson;
+    @ManyToMany(mappedBy = "quizzes")
+    @Builder.Default
+    List<CourseLesson> courseLessons = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lesson_id", nullable = true)
-    CourseLesson courseLesson;
+    @ManyToMany(mappedBy = "quizzes")
+    @Builder.Default
+    List<ContestLesson> contestLessons = new ArrayList<>();
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default

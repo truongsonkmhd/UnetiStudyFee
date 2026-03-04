@@ -10,10 +10,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 
-/**
- * Abstract base class containing common fields for coding exercises
- * Uses @MappedSuperclass to share fields without creating a separate table
- */
 @MappedSuperclass
 @Getter
 @Setter
@@ -50,7 +46,7 @@ public abstract class BaseCodingExercise {
     @Builder.Default
     Integer memoryLimitMb = 256;
 
-    @Column(name = "slug", unique = true, length = 255)
+    @Column(name = "slug", length = 255)
     String slug;
 
     @Column(name = "input_format", columnDefinition = "text")

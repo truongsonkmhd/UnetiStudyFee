@@ -225,9 +225,6 @@ public class JudgeServiceImpl implements JudgeService {
             boolean allPassed = true;
 
             for (ExerciseTestCasesDTO testCase : testCases) {
-                if (Boolean.FALSE.equals(testCase.getIsPublic()))
-                    continue;
-
                 String outputRun = dockerCodeExecutionUtil.runInContainer(
                         workingDir,
                         request.getLanguage(),

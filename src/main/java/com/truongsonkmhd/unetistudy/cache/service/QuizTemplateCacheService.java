@@ -66,6 +66,10 @@ public class QuizTemplateCacheService {
      * Xóa cache của một template cụ thể
      */
     public void evictTemplate(UUID templateId) {
+        evictTemplateById(templateId);
+    }
+
+    public void evictTemplateById(UUID templateId) {
         CacheStrategy<UUID, ?> cache = appCacheService.getCache(CacheConstants.QUIZ_TEMPLATE_BY_ID);
         cache.evict(templateId);
 

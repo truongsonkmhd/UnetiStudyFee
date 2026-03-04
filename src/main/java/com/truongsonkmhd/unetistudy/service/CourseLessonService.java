@@ -23,4 +23,5 @@ public interface CourseLessonService {
 
     UUID delete(UUID theId);
 
+    boolean hasSubmissions(UUID lessonId);
 }

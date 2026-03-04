@@ -3,6 +3,7 @@ package com.truongsonkmhd.unetistudy.controller.course;
 import com.truongsonkmhd.unetistudy.dto.a_common.IResponseMessage;
 import com.truongsonkmhd.unetistudy.dto.a_common.ResponseMessage;
 import com.truongsonkmhd.unetistudy.dto.contest_lesson.CreateClassContestRequest;
+import com.truongsonkmhd.unetistudy.dto.contest_lesson.RescheduleClassContestRequest;
 import com.truongsonkmhd.unetistudy.service.ClassContestService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,7 @@ public class ClassContestController {
         private final ClassContestService classContestService;
 
         // ================= CREATE =================
-
-        @PostMapping
+        @PostMapping("/contests")
         public ResponseEntity<IResponseMessage> createClassContest(
                         @RequestBody CreateClassContestRequest request) {
 
@@ -33,8 +33,15 @@ public class ClassContestController {
                                                 classContestService.createClassContest(request)));
         }
 
-        // ================= GET ALL CONTESTS OF CLASS =================
+        // ================= GET ALL CLASS CONTESTS =================
+        @GetMapping("/contests")
+        public ResponseEntity<IResponseMessage> getAllClassContests() {
+                return ResponseEntity.ok(
+                                ResponseMessage.LoadedSuccess(
+                                                classContestService.getAllClassContests()));
+        }
 
+        // ================= GET ALL CONTESTS OF CLASS =================
         @GetMapping("/{classId}")
         public ResponseEntity<IResponseMessage> getClassContests(
                         @PathVariable UUID classId) {
@@ -45,8 +52,7 @@ public class ClassContestController {
         }
 
         // ================= GET ONGOING =================
-
-        @GetMapping("/{classId}/ongoing")
+        @GetMapping("/{classId}/contests/ongoing")
         public ResponseEntity<IResponseMessage> getOngoingContests(
                         @PathVariable UUID classId) {
 
@@ -56,8 +62,7 @@ public class ClassContestController {
         }
 
         // ================= GET UPCOMING =================
-
-        @GetMapping("/{classId}/upcoming")
+        @GetMapping("/{classId}/contests/upcoming")
         public ResponseEntity<IResponseMessage> getUpcomingContests(
                         @PathVariable UUID classId) {
 
@@ -67,8 +72,7 @@ public class ClassContestController {
         }
 
         // ================= CANCEL =================
-
-        @PutMapping("/{classContestId}/cancel")
+        @PostMapping("/contests/{classContestId}/cancel")
         public ResponseEntity<IResponseMessage> cancelClassContest(
                         @PathVariable UUID classContestId) {
 
@@ -78,20 +82,19 @@ public class ClassContestController {
         }
 
         // ================= RESCHEDULE =================
-
-        @PutMapping("/{classContestId}/reschedule")
+        @PutMapping("/contests/{classContestId}/reschedule")
         public ResponseEntity<IResponseMessage> rescheduleClassContest(
                         @PathVariable UUID classContestId,
-                        @RequestParam Instant newStartTime,
-                        @RequestParam Instant newEndTime) {
+                        @RequestBody RescheduleClassContestRequest request) {
 
                 return ResponseEntity.ok(
                                 ResponseMessage.UpdatedSuccess(
                                                 classContestService.rescheduleClassContest(
-                                                                classContestId, newStartTime, newEndTime)));
+                                                                classContestId, request.getNewStartTime(),
+                                                                request.getNewEndTime())));
         }
 
-        @PutMapping("/{classId}/contest-status")
+        @PostMapping("/{classId}/contests/update-statuses")
         public ResponseEntity<IResponseMessage> updateContestStatuses(
                         @PathVariable UUID classId) {
 

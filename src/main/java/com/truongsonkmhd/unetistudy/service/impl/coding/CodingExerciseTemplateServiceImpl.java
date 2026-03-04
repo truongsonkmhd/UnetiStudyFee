@@ -52,34 +52,60 @@ public class CodingExerciseTemplateServiceImpl implements CodingExerciseTemplate
         });
     }
 
-    /**
-     * Cache Invalidation Programmatic: Xóa cache khi lưu/cập nhật
-     */
     @Override
     @Transactional
     public CodingExerciseTemplate save(CodingExerciseTemplateDTO dto) {
-        log.info("Saving coding exercise template: {} - Programmatic eviction", dto.getTitle());
+        log.info("Creating coding exercise template: {}", dto.getTitle());
 
-        CodingExerciseTemplate template = CodingExerciseTemplate.builder()
-                .category(dto.getCategory())
-                .tags(dto.getTags())
-                .title(dto.getTitle())
-                .description(dto.getDescription())
-                .programmingLanguage(dto.getProgrammingLanguage())
-                .difficulty(dto.getDifficulty())
-                .points(dto.getPoints())
-                .isPublished(dto.getIsPublished())
-                .timeLimitMs(dto.getTimeLimitMs())
-                .memoryLimitMb(dto.getMemoryLimitMb())
-                .initialCode(dto.getInitialCode())
-                .solutionCode(dto.getSolutionCode())
-                .slug(dto.getSlug())
-                .inputFormat(dto.getInputFormat())
-                .outputFormat(dto.getOutputFormat())
-                .constraintName(dto.getConstraintName())
-                .createdAt(dto.getCreatedAt())
-                .updatedAt(dto.getUpdatedAt())
-                .build();
+        CodingExerciseTemplate template = new CodingExerciseTemplate();
+        mapDtoToEntity(dto, template);
+
+        CodingExerciseTemplate saved = repository.save(template);
+
+        // Xóa cache sau khi lưu thành công
+        exerciseCacheService.evictTemplatesList();
+
+        return saved;
+    }
+
+    @Override
+    @Transactional
+    public CodingExerciseTemplate update(UUID id, CodingExerciseTemplateDTO dto) {
+        log.info("Updating coding exercise template: {}", id);
+
+        CodingExerciseTemplate template = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("CodingExerciseTemplate not found: " + id));
+
+        // Clear existing test cases to replace with new ones
+        template.getExerciseTestCases().clear();
+        mapDtoToEntity(dto, template);
+
+        CodingExerciseTemplate saved = repository.save(template);
+
+        // Xóa cache sau khi cập nhật thành công
+        exerciseCacheService.evictTemplatesList();
+        exerciseCacheService.evictTemplateById(id);
+
+        return saved;
+    }
+
+    private void mapDtoToEntity(CodingExerciseTemplateDTO dto, CodingExerciseTemplate template) {
+        template.setCategory(dto.getCategory());
+        template.setTags(dto.getTags());
+        template.setTitle(dto.getTitle());
+        template.setDescription(dto.getDescription());
+        template.setProgrammingLanguage(dto.getProgrammingLanguage());
+        template.setDifficulty(dto.getDifficulty());
+        template.setPoints(dto.getPoints() != null ? dto.getPoints() : 0);
+        template.setIsPublished(Boolean.TRUE.equals(dto.getIsPublished()));
+        template.setTimeLimitMs(dto.getTimeLimitMs() != null ? dto.getTimeLimitMs() : 1000);
+        template.setMemoryLimitMb(dto.getMemoryLimitMb() != null ? dto.getMemoryLimitMb() : 256);
+        template.setInitialCode(dto.getInitialCode());
+        template.setSolutionCode(dto.getSolutionCode());
+        template.setSlug(dto.getSlug());
+        template.setInputFormat(dto.getInputFormat());
+        template.setOutputFormat(dto.getOutputFormat());
+        template.setConstraintName(dto.getConstraintName());
 
         int orderIndex = 1;
         if (dto.getExerciseTestCases() != null) {
@@ -88,20 +114,14 @@ public class CodingExerciseTemplateServiceImpl implements CodingExerciseTemplate
                         .template(template)
                         .input(tcDto.getInput())
                         .expectedOutput(tcDto.getExpectedOutput())
-                        .isSample(Boolean.TRUE.equals(tcDto.getIsPublic()))
-                        .orderIndex(orderIndex++)
+                        .isSample(Boolean.TRUE.equals(tcDto.getIsSample()))
+                        .explanation(tcDto.getExplanation())
+                        .orderIndex(tcDto.getOrderIndex() != null ? tcDto.getOrderIndex() : orderIndex++)
                         .build();
 
                 template.addTestCase(testCase);
             }
         }
-
-        CodingExerciseTemplate saved = repository.save(template);
-
-        // Xóa cache sau khi lưu thành công
-        exerciseCacheService.evictTemplatesList();
-
-        return saved;
     }
 
     /**

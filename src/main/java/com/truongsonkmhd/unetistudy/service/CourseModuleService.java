@@ -12,4 +12,6 @@ public interface CourseModuleService {
     CourseModuleResponse update(UUID theId, CourseModuleRequest request);
 
     UUID delete(UUID theId);
+
+    boolean hasSubmissions(UUID moduleId);
 }

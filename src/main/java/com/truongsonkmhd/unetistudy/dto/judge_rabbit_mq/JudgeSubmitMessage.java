@@ -20,4 +20,3 @@ public class JudgeSubmitMessage {
 
     private Instant createdAt;
 }
-

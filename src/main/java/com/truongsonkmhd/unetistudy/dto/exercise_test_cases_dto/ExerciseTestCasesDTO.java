@@ -11,6 +11,8 @@ import lombok.experimental.FieldDefaults;
 public class ExerciseTestCasesDTO {
     String input;
     String expectedOutput;
-    Boolean isPublic;
+    Boolean isSample;
+    String explanation;
+    Integer orderIndex;
     Integer score;
 }
