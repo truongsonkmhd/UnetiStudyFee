@@ -65,12 +65,6 @@ public final class CacheConstants {
     public static final String CLASSES = "classes";
     public static final String CONTESTS = "contests";
 
-    // Post (blog) caches
-    public static final String POST_BY_ID = "post_by_id";
-    public static final String POST_BY_SLUG = "post_by_slug";
-    public static final String POST_CATALOG = "post_catalog";
-    public static final String POST_PUBLISHED = "post_published";
-
     // ========================
     // CACHE TTL (seconds)
     // ========================
@@ -99,14 +93,4 @@ public final class CacheConstants {
     public static final int SIZE_LARGE = 1000;
     public static final int SIZE_EXTRA_LARGE = 5000;
 
-    // ========================
-    // KEY PREFIXES
-    // ========================
-
-    public static final String PREFIX_USER = "user:";
-    public static final String PREFIX_COURSE = "course:";
-    public static final String PREFIX_QUIZ = "quiz:";
-    public static final String PREFIX_LESSON = "lesson:";
-    public static final String PREFIX_STATS = "stats:";
-    public static final String PREFIX_POST = "post:";
 }

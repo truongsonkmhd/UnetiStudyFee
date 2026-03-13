@@ -145,33 +145,6 @@ public class SecurityConfiguration {
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
                                                                                 AuthoritiesConstants.SYS_ADMIN,
                                                                                 AuthoritiesConstants.TEACHER,
-                                                                                AuthoritiesConstants.STUDENT)
-                                                                .requestMatchers(mvc.pattern(HttpMethod.POST,
-                                                                                "/api/posts/**"))
-                                                                .hasAnyAuthority(AuthoritiesConstants.ADMIN,
-                                                                                AuthoritiesConstants.SYS_ADMIN,
-                                                                                AuthoritiesConstants.TEACHER)
-                                                                .requestMatchers(mvc.pattern(HttpMethod.PUT,
-                                                                                "/api/posts/**"))
-                                                                .hasAnyAuthority(AuthoritiesConstants.ADMIN,
-                                                                                AuthoritiesConstants.SYS_ADMIN,
-                                                                                AuthoritiesConstants.TEACHER)
-                                                                .requestMatchers(mvc.pattern(HttpMethod.PATCH,
-                                                                                "/api/posts/**"))
-                                                                .hasAnyAuthority(AuthoritiesConstants.ADMIN,
-                                                                                AuthoritiesConstants.SYS_ADMIN,
-                                                                                AuthoritiesConstants.TEACHER)
-                                                                .requestMatchers(mvc.pattern(HttpMethod.DELETE,
-                                                                                "/api/posts/**"))
-                                                                .hasAnyAuthority(AuthoritiesConstants.ADMIN,
-                                                                                AuthoritiesConstants.SYS_ADMIN,
-                                                                                AuthoritiesConstants.TEACHER)
-                                                                // /api/class
-                                                                .requestMatchers(mvc.pattern(HttpMethod.GET,
-                                                                                "/api/posts/**"))
-                                                                .hasAnyAuthority(AuthoritiesConstants.ADMIN,
-                                                                                AuthoritiesConstants.SYS_ADMIN,
-                                                                                AuthoritiesConstants.TEACHER,
                                                                                 AuthoritiesConstants.STUDENT))
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
