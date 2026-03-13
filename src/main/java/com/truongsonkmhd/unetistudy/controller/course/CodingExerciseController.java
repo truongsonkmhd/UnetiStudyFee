@@ -1,4 +1,4 @@
-package com.truongsonkmhd.unetistudy.controller;
+package com.truongsonkmhd.unetistudy.controller.course;
 
 import com.truongsonkmhd.unetistudy.context.UserContext;
 

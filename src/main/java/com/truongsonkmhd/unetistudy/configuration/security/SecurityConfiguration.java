@@ -53,11 +53,13 @@ public class SecurityConfiguration {
                                                                 .requestMatchers(mvc.pattern("/api/courses/**"))
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
                                                                                 AuthoritiesConstants.SYS_ADMIN,
-                                                                                AuthoritiesConstants.TEACHER)
+                                                                                AuthoritiesConstants.TEACHER,
+                                                                                AuthoritiesConstants.STUDENT)
                                                                 .requestMatchers(mvc.pattern("/api/course-module/**"))
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
                                                                                 AuthoritiesConstants.SYS_ADMIN,
-                                                                                AuthoritiesConstants.TEACHER)
+                                                                                AuthoritiesConstants.TEACHER,
+                                                                                AuthoritiesConstants.STUDENT)
                                                                 .requestMatchers(mvc.pattern("/api/course-lesson/**"))
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
                                                                                 AuthoritiesConstants.SYS_ADMIN,
@@ -115,6 +117,11 @@ public class SecurityConfiguration {
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
                                                                                 AuthoritiesConstants.SYS_ADMIN,
                                                                                 AuthoritiesConstants.TEACHER)
+                                                                .requestMatchers(mvc.pattern("/api/student/class/**"))
+                                                                .hasAnyAuthority(AuthoritiesConstants.ADMIN,
+                                                                                AuthoritiesConstants.SYS_ADMIN,
+                                                                                AuthoritiesConstants.TEACHER,
+                                                                                AuthoritiesConstants.STUDENT)
                                                                 .requestMatchers(mvc.pattern(
                                                                                 "/api/admin/quiz-templates/**"))
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
@@ -139,7 +146,6 @@ public class SecurityConfiguration {
                                                                                 AuthoritiesConstants.SYS_ADMIN,
                                                                                 AuthoritiesConstants.TEACHER,
                                                                                 AuthoritiesConstants.STUDENT)
-                                                                // Post (blog) - tạo/sửa/xóa: ADMIN, SYS_ADMIN, TEACHER
                                                                 .requestMatchers(mvc.pattern(HttpMethod.POST,
                                                                                 "/api/posts/**"))
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
@@ -160,7 +166,7 @@ public class SecurityConfiguration {
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
                                                                                 AuthoritiesConstants.SYS_ADMIN,
                                                                                 AuthoritiesConstants.TEACHER)
-                                                                // Post (blog) - xem: tất cả role
+                                                                // /api/class
                                                                 .requestMatchers(mvc.pattern(HttpMethod.GET,
                                                                                 "/api/posts/**"))
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,

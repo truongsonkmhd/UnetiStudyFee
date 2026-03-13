@@ -1,4 +1,4 @@
-package com.truongsonkmhd.unetistudy.controller;
+package com.truongsonkmhd.unetistudy.controller.auth;
 
 import com.truongsonkmhd.unetistudy.dto.role_dto.RoleRequest;
 import com.truongsonkmhd.unetistudy.dto.a_common.IResponseMessage;

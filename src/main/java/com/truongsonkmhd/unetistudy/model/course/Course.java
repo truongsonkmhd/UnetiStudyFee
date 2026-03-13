@@ -52,6 +52,7 @@ public class Course {
     User instructor;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
     List<CourseModule> modules = new ArrayList<>();
 
     @Column(name = "level", length = 20)
@@ -70,12 +71,15 @@ public class Course {
     Integer capacity;
 
     @Column(name = "enrolled_count", nullable = false)
+    @Builder.Default
     Integer enrolledCount = 0;
 
     @Column(name = "rating", precision = 3, scale = 2, nullable = false)
+    @Builder.Default
     BigDecimal rating = BigDecimal.ZERO;
 
     @Column(name = "rating_count", nullable = false)
+    @Builder.Default
     Integer ratingCount = 0;
 
     @Column(name = "image_url", length = 255)
@@ -83,6 +87,9 @@ public class Course {
 
     @Column(name = "video_url", length = 255)
     String videoUrl;
+
+    @Column(name = "youtube_video_id", length = 20)
+    String youtubeVideoId;
 
     @Column(name = "requirements", columnDefinition = "text")
     String requirements;
@@ -95,9 +102,11 @@ public class Course {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 30, nullable = false)
+    @Builder.Default
     CourseStatus status = CourseStatus.DRAFT;
 
     @Column(name = "is_published", nullable = false)
+    @Builder.Default
     Boolean isPublished = false;
 
     @Column(name = "published_at")

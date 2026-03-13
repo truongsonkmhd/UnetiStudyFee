@@ -1,9 +1,9 @@
 package com.truongsonkmhd.unetistudy.service.impl.course;
 
 import com.github.slugify.Slugify;
-import com.truongsonkmhd.unetistudy.cache.CacheConstants;
 import com.truongsonkmhd.unetistudy.cache.service.CourseCacheService;
 import com.truongsonkmhd.unetistudy.common.CourseStatus;
+import com.truongsonkmhd.unetistudy.common.YouTubeUtils;
 import com.truongsonkmhd.unetistudy.context.UserContext;
 import com.truongsonkmhd.unetistudy.dto.a_common.PageResponse;
 import com.truongsonkmhd.unetistudy.dto.coding_exercise_dto.CodingExerciseDTO;
@@ -39,11 +39,6 @@ import com.truongsonkmhd.unetistudy.service.infrastructure.PocketBaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -109,12 +104,13 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         Course course = courseRequestMapper.toEntity(req);
         course.setInstructor(instructor);
 
-        // Upload intro video if exists
-        if (req.getVideoFile() != null && !req.getVideoFile().isEmpty()) {
-            String pbUrl = pocketBaseService.uploadFile("course_videos", req.getVideoFile());
-            if (pbUrl != null) {
-                course.setVideoUrl(pbUrl);
-            }
+        // Lưu YouTube URL giới thiệu khóa học
+        if (req.getVideoUrl() != null && !req.getVideoUrl().isBlank()) {
+            String ytVideoId = YouTubeUtils.extractVideoId(req.getVideoUrl());
+            course.setYoutubeVideoId(ytVideoId);
+            course.setVideoUrl(ytVideoId != null
+                    ? YouTubeUtils.toEmbedUrl(ytVideoId) // Lưu embed URL trực tiếp
+                    : req.getVideoUrl()); // Fallback: lưu nguyên URL
         }
 
         // Upload course image if exists
@@ -192,12 +188,13 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         course.setIsPublished(req.getIsPublished());
         course.setPublishedAt(req.getPublishedAt());
 
-        // Upload/Update intro video if exists
-        if (req.getVideoFile() != null && !req.getVideoFile().isEmpty()) {
-            String pbUrl = pocketBaseService.uploadFile("course_videos", req.getVideoFile());
-            if (pbUrl != null) {
-                course.setVideoUrl(pbUrl);
-            }
+        // Cập nhật YouTube URL giới thiệu khóa học
+        if (req.getVideoUrl() != null && !req.getVideoUrl().isBlank()) {
+            String ytVideoId = YouTubeUtils.extractVideoId(req.getVideoUrl());
+            course.setYoutubeVideoId(ytVideoId);
+            course.setVideoUrl(ytVideoId != null
+                    ? YouTubeUtils.toEmbedUrl(ytVideoId)
+                    : req.getVideoUrl());
         }
 
         // Upload/Update course image if exists
@@ -359,22 +356,31 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 .map(m -> mapModule(m, courseLessons, roles, exByLesson, quizByLesson))
                 .toList();
 
-        return new CourseTreeResponse(
-                course.getCourseId(),
-                course.getTitle(),
-                course.getSlug(),
-                course.getDescription(),
-                course.getIsPublished(),
-                course.getStatus(),
-                pocketBaseService.toDisplayUrl(course.getImageUrl()),
-                pocketBaseService.toDisplayUrl(course.getVideoUrl()),
-                modules,
-                course.getEnrolledCount() != null ? course.getEnrolledCount() : 0,
-                course.getRating() != null ? course.getRating().doubleValue() : 0.0,
-                course.getRatingCount() != null ? course.getRatingCount() : 0,
-                course.getUpdatedAt() != null ? course.getUpdatedAt()
+        String videoId = course.getYoutubeVideoId();
+        String embedUrl = YouTubeUtils.toEmbedUrl(videoId);
+        String finalVideoUrl = (embedUrl != null)
+                ? embedUrl
+                : pocketBaseService.toDisplayUrl(course.getVideoUrl());
+
+        return CourseTreeResponse.builder()
+                .courseId(course.getCourseId())
+                .title(course.getTitle())
+                .slug(course.getSlug())
+                .description(course.getDescription())
+                .isPublished(course.getIsPublished())
+                .status(course.getStatus())
+                .imageUrl(pocketBaseService.toDisplayUrl(course.getImageUrl()))
+                .videoUrl(finalVideoUrl)
+                .youtubeVideoId(videoId)
+                .embedUrl(embedUrl)
+                .modules(modules)
+                .enrolledCount(course.getEnrolledCount() != null ? course.getEnrolledCount() : 0)
+                .rating(course.getRating() != null ? course.getRating().doubleValue() : 0.0)
+                .ratingCount(course.getRatingCount() != null ? course.getRatingCount() : 0)
+                .updatedAt(course.getUpdatedAt() != null ? course.getUpdatedAt()
                         : (course.getPublishedAt() != null ? course.getPublishedAt().toInstant(java.time.ZoneOffset.UTC)
-                                : java.time.Instant.now()));
+                                : java.time.Instant.now()))
+                .build();
     }
 
     private CourseModuleResponse mapModule(CourseModule m, List<CourseLesson> courseLessons, Set<Role> roles,
@@ -408,6 +414,15 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 .map(this::mapQuiz)
                 .toList();
 
+        // Xác định cách build video URL:
+        // - Nếu có youtubeVideoId → dùng YouTube embed
+        // - Nếu không → fallback: dùng PocketBase display URL (cũ)
+        String videoId = courseLesson.getYoutubeVideoId();
+        String embedUrl = com.truongsonkmhd.unetistudy.common.YouTubeUtils.toEmbedUrl(videoId);
+        String finalVideoUrl = (embedUrl != null)
+                ? embedUrl
+                : pocketBaseService.toDisplayUrl(courseLesson.getVideoUrl());
+
         return CourseLessonResponse.builder()
                 .lessonId(courseLesson.getLessonId())
                 .title(courseLesson.getTitle())
@@ -415,9 +430,12 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 .lessonType(courseLesson.getLessonType())
                 .isPreview(courseLesson.getIsPreview())
                 .isPublished(courseLesson.getIsPublished())
-                .videoUrl(pocketBaseService.toDisplayUrl(courseLesson.getVideoUrl()))
+                .videoUrl(finalVideoUrl) // Trả về embed URL hoặc PocketBase URL
+                .youtubeVideoId(videoId) // Video ID thuần (nullable)
+                .embedUrl(embedUrl) // Embed URL thuần (nullable)
                 .description(courseLesson.getDescription())
                 .content(courseLesson.getContent())
+                .slug(courseLesson.getSlug())
                 .codingExercises(coding)
                 .quizzes(quizzes)
                 .build();
@@ -568,13 +586,22 @@ public class CourseTreeServiceImpl implements CourseTreeService {
             }
             lesson.setSlug(lessonSlug);
 
-            if (lr.getVideoFile() != null && !lr.getVideoFile().isEmpty()) {
-                String pbUrl = pocketBaseService.uploadFile("lesson_videos", lr.getVideoFile());
-                if (pbUrl != null) {
-                    lesson.setVideoUrl(pbUrl);
+            // === Xử lý YouTube Video URL ===
+            if (lr.getVideoUrl() != null && !lr.getVideoUrl().isBlank()) {
+                String ytVideoId = com.truongsonkmhd.unetistudy.common.YouTubeUtils
+                        .extractVideoId(lr.getVideoUrl().trim());
+                if (ytVideoId != null) {
+                    lesson.setYoutubeVideoId(ytVideoId);
+                    lesson.setVideoUrl(com.truongsonkmhd.unetistudy.common.YouTubeUtils.toEmbedUrl(ytVideoId)); // Lưu
+                                                                                                                // embed
+                                                                                                                // URL
+                                                                                                                // trực
+                                                                                                                // tiếp
+                } else {
+                    // Không phải YouTube URL hợp lệ - có thể báo lỗi hoặc bỏ qua
+                    lesson.setVideoUrl(lr.getVideoUrl().trim());
+                    lesson.setYoutubeVideoId(null);
                 }
-            } else if (lr.getVideoUrl() != null) {
-                lesson.setVideoUrl(lr.getVideoUrl());
             }
 
             syncLessonExercises(lesson, lr.getExerciseTemplateIds());

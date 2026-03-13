@@ -1,11 +1,9 @@
 package com.truongsonkmhd.unetistudy.dto.lesson_dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.truongsonkmhd.unetistudy.common.LessonType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,10 +22,7 @@ public class CourseLessonRequest {
      String title;
      String description;
      String content;
-     String videoUrl;
-
-     @JsonIgnore
-     MultipartFile videoFile;
+     String videoUrl; // YouTube URL, ví dụ: https://www.youtube.com/watch?v=XXX
 
      Integer orderIndex;
 

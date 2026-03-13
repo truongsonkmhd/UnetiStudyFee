@@ -8,7 +8,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Mapper(componentModel = "spring", uses = { CourseModuleResponseMapper.class })
+@Mapper(componentModel = "spring", unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE, imports = {
+        com.truongsonkmhd.unetistudy.common.YouTubeUtils.class }, uses = { CourseModuleResponseMapper.class })
 public abstract class CourseResponseMapper implements EntityMapper<CourseTreeResponse, Course> {
 
     @Autowired
@@ -17,30 +18,16 @@ public abstract class CourseResponseMapper implements EntityMapper<CourseTreeRes
     @Override
     @Mapping(target = "modules", source = "modules")
     @Mapping(target = "imageUrl", expression = "java(pocketBaseService.toDisplayUrl(entity.getImageUrl()))")
-    @Mapping(target = "videoUrl", expression = "java(pocketBaseService.toDisplayUrl(entity.getVideoUrl()))")
+    @Mapping(target = "youtubeVideoId", source = "youtubeVideoId")
+    @Mapping(target = "embedUrl", expression = "java(YouTubeUtils.toEmbedUrl(entity.getYoutubeVideoId()))")
+    @Mapping(target = "videoUrl", expression = "java(entity.getYoutubeVideoId() != null ? YouTubeUtils.toEmbedUrl(entity.getYoutubeVideoId()) : pocketBaseService.toDisplayUrl(entity.getVideoUrl()))")
     @Mapping(target = "rating", expression = "java(entity.getRating() != null ? entity.getRating().doubleValue() : 0.0)")
     public abstract CourseTreeResponse toDto(Course entity);
 
     @Override
-    @Mapping(target = "courseId", ignore = true)
-    @Mapping(target = "slug", ignore = true)
-    @Mapping(target = "shortDescription", ignore = true)
-    @Mapping(target = "instructor", ignore = true)
-    @Mapping(target = "level", ignore = true)
-    @Mapping(target = "category", ignore = true)
-    @Mapping(target = "subCategory", ignore = true)
-    @Mapping(target = "capacity", ignore = true)
-    @Mapping(target = "enrolledCount", ignore = true)
-    @Mapping(target = "rating", ignore = true)
-    @Mapping(target = "ratingCount", ignore = true)
-    @Mapping(target = "imageUrl", ignore = true)
-    @Mapping(target = "videoUrl", ignore = true)
-    @Mapping(target = "requirements", ignore = true)
-    @Mapping(target = "objectives", ignore = true)
-    @Mapping(target = "syllabus", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "publishedAt", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
     public abstract Course toEntity(CourseTreeResponse dto);
+
+    @Override
+    @org.mapstruct.BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE)
+    public abstract void partialUpdate(@org.mapstruct.MappingTarget Course entity, CourseTreeResponse dto);
 }

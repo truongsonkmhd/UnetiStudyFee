@@ -53,23 +53,22 @@ public class CourseLesson {
     String content;
 
     @Column(name = "video_url")
-    String videoUrl;
+    String videoUrl; // Có thể là YouTube URL hoặc PocketBase URL
+
+    @Column(name = "youtube_video_id", length = 20)
+    String youtubeVideoId; // Rút trích từ YouTube URL, dùng để tạo embed URL
 
     @Column(name = "order_index", nullable = false)
     @Builder.Default
     Integer orderIndex = 0;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    @JoinTable(name = "tbl_course_lesson_to_coding_exercise",
-            joinColumns = @JoinColumn(name = "lesson_id"),
-            inverseJoinColumns = @JoinColumn(name = "exercise_id"))
+    @JoinTable(name = "tbl_course_lesson_to_coding_exercise", joinColumns = @JoinColumn(name = "lesson_id"), inverseJoinColumns = @JoinColumn(name = "exercise_id"))
     @Builder.Default
     List<CodingExercise> codingExercises = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    @JoinTable(name = "tbl_course_lesson_to_quiz",
-            joinColumns = @JoinColumn(name = "lesson_id"),
-            inverseJoinColumns = @JoinColumn(name = "quiz_id"))
+    @JoinTable(name = "tbl_course_lesson_to_quiz", joinColumns = @JoinColumn(name = "lesson_id"), inverseJoinColumns = @JoinColumn(name = "quiz_id"))
     @Builder.Default
     List<Quiz> quizzes = new ArrayList<>();
 

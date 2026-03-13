@@ -21,7 +21,9 @@ public class CourseLessonResponse {
     LessonType lessonType;
     Boolean isPreview;
     Boolean isPublished;
-    String videoUrl;
+    String videoUrl; // URL gốc (YouTubeURL hoặc PocketBase URL cũ)
+    String youtubeVideoId; // Video ID từ YouTube, ví dụ: "DjlGte968ko"
+    String embedUrl; // Embed URL sẵn sàng nhúng: "https://www.youtube.com/embed/DjlGte968ko"
     String description;
     String content;
     String slug;

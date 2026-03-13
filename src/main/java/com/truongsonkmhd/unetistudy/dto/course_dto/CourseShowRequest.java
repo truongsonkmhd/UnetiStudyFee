@@ -27,11 +27,11 @@ public class CourseShowRequest {
     String subCategory; // Danh mục phụ
     Integer duration; // Thời lượng (phút)
     Integer capacity; // Sức chứa
+    @Builder.Default
     Integer enrolledCount = 0;
     @JsonIgnore
-    MultipartFile imageFile; // File ảnh mới để upload
-    @JsonIgnore
-    MultipartFile videoFile; // File video mới để upload
+    MultipartFile imageFile; // File ảnh thumbnail (vẫn giữ upload PocketBase)
+    String videoUrl; // YouTube URL giới thiệu khóa học (thay thế videoFile)
     CourseStatus status;
     String requirements; // Yêu cầu đầu vào
     String objectives; // Mục tiêu học tập

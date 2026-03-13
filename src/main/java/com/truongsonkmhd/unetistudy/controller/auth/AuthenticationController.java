@@ -1,4 +1,4 @@
-package com.truongsonkmhd.unetistudy.controller;
+package com.truongsonkmhd.unetistudy.controller.auth;
 
 import com.nimbusds.jose.JOSEException;
 import com.truongsonkmhd.unetistudy.dto.auth_dto.*;

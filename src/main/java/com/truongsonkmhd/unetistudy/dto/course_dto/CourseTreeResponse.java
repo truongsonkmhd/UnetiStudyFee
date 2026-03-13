@@ -22,6 +22,8 @@ public class CourseTreeResponse {
     CourseStatus status;
     String imageUrl;
     String videoUrl;
+    String youtubeVideoId;
+    String embedUrl;
     List<CourseModuleResponse> modules;
 
     Integer enrolledCount;
