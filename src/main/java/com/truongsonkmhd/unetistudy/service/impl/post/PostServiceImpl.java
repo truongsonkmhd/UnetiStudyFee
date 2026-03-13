@@ -15,7 +15,7 @@ import com.truongsonkmhd.unetistudy.model.post.Post;
 import com.truongsonkmhd.unetistudy.repository.UserRepository;
 import com.truongsonkmhd.unetistudy.repository.post.PostRepository;
 import com.truongsonkmhd.unetistudy.service.PostService;
-import com.truongsonkmhd.unetistudy.service.infrastructure.PocketBaseService;
+import com.truongsonkmhd.unetistudy.service.infrastructure.SupabaseStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,7 +36,7 @@ public class PostServiceImpl implements PostService {
     private final UserRepository userRepository;
     private final PostRequestMapper postRequestMapper;
     private final PostResponseMapper postResponseMapper;
-    private final PocketBaseService pocketBaseService;
+    private final SupabaseStorageService storageService;
     private final Slugify slugify;
 
     // =========================
@@ -58,7 +58,7 @@ public class PostServiceImpl implements PostService {
 
         // Upload thumbnail nếu có
         if (request.getThumbnailFile() != null && !request.getThumbnailFile().isEmpty()) {
-            String thumbnailUrl = pocketBaseService.uploadFile("post_images", request.getThumbnailFile());
+            String thumbnailUrl = storageService.uploadFile("post_images", request.getThumbnailFile());
             if (thumbnailUrl != null) {
                 post.setThumbnailUrl(thumbnailUrl);
             }
@@ -102,7 +102,7 @@ public class PostServiceImpl implements PostService {
 
         // Upload thumbnail mới nếu có
         if (request.getThumbnailFile() != null && !request.getThumbnailFile().isEmpty()) {
-            String thumbnailUrl = pocketBaseService.uploadFile("post_images", request.getThumbnailFile());
+            String thumbnailUrl = storageService.uploadFile("post_images", request.getThumbnailFile());
             if (thumbnailUrl != null) {
                 post.setThumbnailUrl(thumbnailUrl);
             }
@@ -254,11 +254,11 @@ public class PostServiceImpl implements PostService {
     }
 
     /**
-     * Map entity → PostDetailResponse, kèm xử lý thumbnailUrl qua PocketBase
+     * Map entity → PostDetailResponse, kèm xử lý thumbnailUrl qua superbase
      */
     private PostDetailResponse mapToDetailResponse(Post post) {
         PostDetailResponse dto = postResponseMapper.toDetailDto(post);
-        dto.setThumbnailUrl(pocketBaseService.toDisplayUrl(post.getThumbnailUrl()));
+        dto.setThumbnailUrl(storageService.toDisplayUrl(post.getThumbnailUrl()));
         return dto;
     }
 
@@ -267,7 +267,7 @@ public class PostServiceImpl implements PostService {
      */
     private PostCardResponse mapToCardResponse(Post post) {
         PostCardResponse dto = postResponseMapper.toCardDto(post);
-        dto.setThumbnailUrl(pocketBaseService.toDisplayUrl(post.getThumbnailUrl()));
+        dto.setThumbnailUrl(storageService.toDisplayUrl(post.getThumbnailUrl()));
         return dto;
     }
 

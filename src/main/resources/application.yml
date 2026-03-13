@@ -6,9 +6,9 @@ spring:
     name: uneti_study
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://postgres:5432/uneti_study}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   liquibase:
@@ -42,8 +42,8 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
       timeout: 2000ms
 
   cache:
@@ -87,11 +87,10 @@ app:
         max-size: 100
         eviction-policy: LFU
 
-pocketbase:
-  url: ${POCKETBASE_URL:http://localhost:8090}
-  external-url: ${POCKETBASE_EXTERNAL_URL:http://localhost:8090}
-  admin-email: ${POCKETBASE_ADMIN_EMAIL:admin@example.com}
-  admin-password: ${POCKETBASE_ADMIN_PASSWORD:password}
+supabase:
+  url: ${SUPABASE_URL}
+  key: ${SUPABASE_KEY}
+  bucket: ${SUPABASE_BUCKET}
 
 security:
   jwt:
@@ -99,7 +98,6 @@ security:
     token-validity-in-seconds: 900000
     refresh-token-validity-in-seconds: 259200000
     refresh-token-validity-in-seconds-for-remember-me: 2592000000
-
 
 jhipster:
   security:

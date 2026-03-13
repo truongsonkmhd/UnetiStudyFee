@@ -35,7 +35,7 @@ import com.truongsonkmhd.unetistudy.repository.course.LessonRepository;
 import com.truongsonkmhd.unetistudy.repository.course.QuizRepository;
 import com.truongsonkmhd.unetistudy.repository.quiz.QuizTemplateRepository;
 import com.truongsonkmhd.unetistudy.service.CourseTreeService;
-import com.truongsonkmhd.unetistudy.service.infrastructure.PocketBaseService;
+import com.truongsonkmhd.unetistudy.service.infrastructure.SupabaseStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -69,17 +69,11 @@ public class CourseTreeServiceImpl implements CourseTreeService {
     private final CourseModuleRequestMapper courseModuleRequestMapper;
     private final CourseModuleResponseMapper courseModuleResponseMapper;
     private final Slugify slugify;
-    private final PocketBaseService pocketBaseService;
+    private final SupabaseStorageService storageService;
     private final CourseCacheService courseCacheService;
 
     private static final Comparator<Integer> NULL_SAFE_INT = Comparator.nullsLast(Integer::compareTo);
 
-    // =========================
-    // BASIC CRUD
-    // =========================
-    /**
-     * Cache-Aside: Lấy course by ID
-     */
     @Override
     @Transactional(readOnly = true)
     public CourseTreeResponse findById(UUID theId) {
@@ -110,12 +104,12 @@ public class CourseTreeServiceImpl implements CourseTreeService {
             course.setYoutubeVideoId(ytVideoId);
             course.setVideoUrl(ytVideoId != null
                     ? YouTubeUtils.toEmbedUrl(ytVideoId) // Lưu embed URL trực tiếp
-                    : req.getVideoUrl()); // Fallback: lưu nguyên URL
+                    : req.getVideoUrl());
         }
 
         // Upload course image if exists
         if (req.getImageFile() != null && !req.getImageFile().isEmpty()) {
-            String pbUrl = pocketBaseService.uploadFile("course_images", req.getImageFile());
+            String pbUrl = storageService.uploadFile("course_images", req.getImageFile());
             if (pbUrl != null) {
                 course.setImageUrl(pbUrl);
             }
@@ -199,7 +193,7 @@ public class CourseTreeServiceImpl implements CourseTreeService {
 
         // Upload/Update course image if exists
         if (req.getImageFile() != null && !req.getImageFile().isEmpty()) {
-            String pbUrl = pocketBaseService.uploadFile("course_images", req.getImageFile());
+            String pbUrl = storageService.uploadFile("course_images", req.getImageFile());
             if (pbUrl != null) {
                 course.setImageUrl(pbUrl);
             }
@@ -360,7 +354,7 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         String embedUrl = YouTubeUtils.toEmbedUrl(videoId);
         String finalVideoUrl = (embedUrl != null)
                 ? embedUrl
-                : pocketBaseService.toDisplayUrl(course.getVideoUrl());
+                : storageService.toDisplayUrl(course.getVideoUrl());
 
         return CourseTreeResponse.builder()
                 .courseId(course.getCourseId())
@@ -369,7 +363,7 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 .description(course.getDescription())
                 .isPublished(course.getIsPublished())
                 .status(course.getStatus())
-                .imageUrl(pocketBaseService.toDisplayUrl(course.getImageUrl()))
+                .imageUrl(storageService.toDisplayUrl(course.getImageUrl()))
                 .videoUrl(finalVideoUrl)
                 .youtubeVideoId(videoId)
                 .embedUrl(embedUrl)
@@ -416,12 +410,12 @@ public class CourseTreeServiceImpl implements CourseTreeService {
 
         // Xác định cách build video URL:
         // - Nếu có youtubeVideoId → dùng YouTube embed
-        // - Nếu không → fallback: dùng PocketBase display URL (cũ)
+        // - Nếu không → fallback: dùng Supabase display URL (cũ)
         String videoId = courseLesson.getYoutubeVideoId();
         String embedUrl = com.truongsonkmhd.unetistudy.common.YouTubeUtils.toEmbedUrl(videoId);
         String finalVideoUrl = (embedUrl != null)
                 ? embedUrl
-                : pocketBaseService.toDisplayUrl(courseLesson.getVideoUrl());
+                : storageService.toDisplayUrl(courseLesson.getVideoUrl());
 
         return CourseLessonResponse.builder()
                 .lessonId(courseLesson.getLessonId())
@@ -430,7 +424,7 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 .lessonType(courseLesson.getLessonType())
                 .isPreview(courseLesson.getIsPreview())
                 .isPublished(courseLesson.getIsPublished())
-                .videoUrl(finalVideoUrl) // Trả về embed URL hoặc PocketBase URL
+                .videoUrl(finalVideoUrl) // Trả về embed URL
                 .youtubeVideoId(videoId) // Video ID thuần (nullable)
                 .embedUrl(embedUrl) // Embed URL thuần (nullable)
                 .description(courseLesson.getDescription())

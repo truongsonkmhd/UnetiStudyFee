@@ -53,7 +53,7 @@ public class CourseLesson {
     String content;
 
     @Column(name = "video_url")
-    String videoUrl; // Có thể là YouTube URL hoặc PocketBase URL
+    String videoUrl; // Có thể là YouTube URL
 
     @Column(name = "youtube_video_id", length = 20)
     String youtubeVideoId; // Rút trích từ YouTube URL, dùng để tạo embed URL

@@ -38,7 +38,7 @@ public class CodingExerciseTemplate extends BaseCodingExercise {
     List<ExerciseTemplateTestCase> exerciseTestCases = new ArrayList<>();
 
     @Column(name = "category", length = 50)
-    String category; // e.g., "Array", "String", "Dynamic Programming"
+    String category;
 
     @Column(name = "tags", columnDefinition = "text")
     String tags;
@@ -57,9 +57,6 @@ public class CodingExerciseTemplate extends BaseCodingExercise {
         testCase.setTemplate(null);
     }
 
-    /**
-     * Create a contest exercise from this template
-     */
     public CodingExercise toContestExercise() {
         CodingExercise exercise = CodingExercise.builder()
                 .title(this.getTitle())

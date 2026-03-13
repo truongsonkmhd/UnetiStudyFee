@@ -3,7 +3,7 @@ package com.truongsonkmhd.unetistudy.mapper.lesson;
 import com.truongsonkmhd.unetistudy.dto.course_dto.CourseLessonResponse;
 import com.truongsonkmhd.unetistudy.mapper.EntityMapper;
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.CourseLesson;
-import com.truongsonkmhd.unetistudy.service.infrastructure.PocketBaseService;
+import com.truongsonkmhd.unetistudy.service.infrastructure.SupabaseStorageService;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import com.truongsonkmhd.unetistudy.common.LessonType;
@@ -18,12 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class CourseLessonResponseMapper implements EntityMapper<CourseLessonResponse, CourseLesson> {
 
     @Autowired
-    protected PocketBaseService pocketBaseService;
+    protected SupabaseStorageService storageService;
 
     @Override
     @Mapping(target = "youtubeVideoId", source = "youtubeVideoId")
     @Mapping(target = "embedUrl", expression = "java(YouTubeUtils.toEmbedUrl(entity.getYoutubeVideoId()))")
-    @Mapping(target = "videoUrl", expression = "java(entity.getYoutubeVideoId() != null ? YouTubeUtils.toEmbedUrl(entity.getYoutubeVideoId()) : pocketBaseService.toDisplayUrl(entity.getVideoUrl()))")
+    @Mapping(target = "videoUrl", expression = "java(entity.getYoutubeVideoId() != null ? YouTubeUtils.toEmbedUrl(entity.getYoutubeVideoId()) : storageService.toDisplayUrl(entity.getVideoUrl()))")
     @Mapping(target = "codingExercises", source = "codingExercises")
     @Mapping(target = "quizzes", source = "quizzes")
     @Mapping(target = "totalPoints", ignore = true)

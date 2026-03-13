@@ -50,7 +50,7 @@ public class Post {
     String summary;
 
     /**
-     * URL ảnh đại diện / thumbnail của bài viết (lưu từ PocketBase)
+     * URL ảnh đại diện / thumbnail của bài viết (lưu từ Supabase)
      */
     @Column(name = "thumbnail_url", length = 500)
     String thumbnailUrl;

@@ -4,26 +4,31 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="63a3f8e6-a53c-489e-abe4-cd8059154f47" name="Changes" comment="">
+    <list default="true" id="63a3f8e6-a53c-489e-abe4-cd8059154f47" name="Changes" comment="change to save video by way use link youtube">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/configuration/security/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/configuration/security/SecurityConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/controller/AuthenticationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/controller/auth/AuthenticationController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/controller/ClassController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/controller/CodingExerciseController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/controller/course/CodingExerciseController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/controller/PermissionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/controller/auth/PermissionController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/controller/RoleController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/controller/auth/RoleController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/common/YouTubeUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/common/YouTubeUtils.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/course_dto/CourseLessonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/course_dto/CourseLessonResponse.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/course_dto/CourseShowRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/course_dto/CourseShowRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/course_dto/CourseTreeResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/course_dto/CourseTreeResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/lesson_dto/CourseLessonRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/lesson_dto/CourseLessonRequest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/mapper/course/CourseResponseMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/mapper/course/CourseResponseMapper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/mapper/lesson/CourseLessonResponseMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/mapper/lesson/CourseLessonResponseMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/course/Course.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/course/Course.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/mapper/post/PostRequestMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/mapper/post/PostRequestMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/coding_template/CodingExerciseTemplate.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/coding_template/CodingExerciseTemplate.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/common/AbstractEntity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/a_common/AbstractEntity.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/lesson/course_lesson/CourseLesson.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/lesson/course_lesson/CourseLesson.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/post/Post.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/post/Post.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/course/CourseTreeServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/course/CourseTreeServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/post/PostServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/post/PostServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/infrastructure/PocketBaseService.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/application-dev.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application-dev.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/generated-sources/annotations/com/truongsonkmhd/unetistudy/mapper/coding_submission/CodingSubmissionMapperImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/generated-sources/annotations/com/truongsonkmhd/unetistudy/mapper/permission/PermissionRequestMapperImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/generated-sources/annotations/com/truongsonkmhd/unetistudy/mapper/permission/PermissionResponseMapperImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/generated-sources/annotations/com/truongsonkmhd/unetistudy/mapper/role/RoleRequestMapperImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/generated-sources/annotations/com/truongsonkmhd/unetistudy/mapper/role/RoleResponseMapperImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/generated-sources/annotations/com/truongsonkmhd/unetistudy/mapper/user/UserRequestMapperImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/generated-sources/annotations/com/truongsonkmhd/unetistudy/mapper/user/UserResponseMapperImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/generated-sources/annotations/com/truongsonkmhd/unetistudy/mapper/user/UserUpdateRequestMapperImpl.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,20 +62,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Remote JVM Debug.Unnamed.executor&quot;: &quot;Debug&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;remove-pocketbase-to-save-video&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/anh-viet-cao/DATN/UnetiStudyBee&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Remote JVM Debug.Unnamed.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "remove-pocketbase-to-save-video",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/anh-viet-cao/DATN/ATTP_MCQG_BYT/Source/attp9_BYT",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="Unnamed" type="Remote" nameIsGenerated="true">
       <module name="UnetiStudyBee" />
@@ -140,8 +145,25 @@
       <workItem from="1772548688314" duration="185000" />
       <workItem from="1772548881826" duration="4846000" />
       <workItem from="1772593488830" duration="12897000" />
-      <workItem from="1773367308837" duration="5768000" />
+      <workItem from="1773367308837" duration="16634000" />
     </task>
+    <task id="LOCAL-00001" summary="change to save video by way use link youtube">
+      <option name="closed" value="true" />
+      <created>1773374252370</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1773374252370</updated>
+    </task>
+    <task id="LOCAL-00002" summary="change to save video by way use link youtube">
+      <option name="closed" value="true" />
+      <created>1773374258175</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1773374258175</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -158,14 +180,13 @@
       </map>
     </option>
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="change to save video by way use link youtube" />
+    <option name="LAST_COMMIT_MESSAGE" value="change to save video by way use link youtube" />
+  </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/course/CourseTreeServiceImpl.java</url>
-          <line>152</line>
-          <option name="timeStamp" value="16" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/auth/AuthenticationServiceImpl.java</url>
           <line>87</line>
@@ -177,14 +198,19 @@
           <option name="timeStamp" value="22" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/course/CourseTreeServiceImpl.java</url>
-          <line>99</line>
-          <option name="timeStamp" value="32" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/quiz/QuizServiceImpl.java</url>
           <line>168</line>
           <option name="timeStamp" value="42" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/course/CourseTreeServiceImpl.java</url>
+          <line>110</line>
+          <option name="timeStamp" value="44" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/infrastructure/SupabaseStorageService.java</url>
+          <line>58</line>
+          <option name="timeStamp" value="46" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -192,6 +218,7 @@
       <pinned-members>
         <PinnedItemInfo parentTag="com.truongsonkmhd.unetistudy.model.quiz.Quiz" memberName="totalQuestions" />
         <PinnedItemInfo parentTag="org.springframework.aop.framework.JdkDynamicAopProxy" memberName="advised" />
+        <PinnedItemInfo parentTag="org.springframework.web.client.ResourceAccessException" memberName="detailMessage" />
         <PinnedItemInfo parentTag="com.truongsonkmhd.unetistudy.model.lesson.course_lesson.ContestLesson" memberName="codingExercises" />
         <PinnedItemInfo parentTag="java.util.concurrent.ConcurrentHashMap$MapEntry" memberName="key" />
         <PinnedItemInfo parentTag="org.springframework.aop.framework.ProxyFactory" memberName="advisorKey" />

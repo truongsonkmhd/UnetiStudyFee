@@ -42,7 +42,6 @@ public class YouTubeUtils {
     /**
      * Tạo URL embed chuẩn từ video_id để nhúng vào iframe.
      * Ví dụ: "DjlGte968ko" → "https://www.youtube.com/embed/DjlGte968ko"
-     *
      * @param videoId YouTube video_id
      * @return embed URL hoặc null nếu videoId rỗng
      */
@@ -50,25 +49,5 @@ public class YouTubeUtils {
         if (videoId == null || videoId.isBlank())
             return null;
         return "https://www.youtube.com/embed/" + videoId;
-    }
-
-    /**
-     * Tạo URL thumbnail (ảnh preview) từ video_id.
-     * Ví dụ: "DjlGte968ko" → "https://i.ytimg.com/vi/DjlGte968ko/hqdefault.jpg"
-     *
-     * @param videoId YouTube video_id
-     * @return thumbnail URL hoặc null
-     */
-    public static String toThumbnailUrl(String videoId) {
-        if (videoId == null || videoId.isBlank())
-            return null;
-        return "https://i.ytimg.com/vi/" + videoId + "/hqdefault.jpg";
-    }
-
-    /**
-     * Kiểm tra xem URL có phải là YouTube URL hợp lệ không.
-     */
-    public static boolean isValidYouTubeUrl(String url) {
-        return extractVideoId(url) != null;
     }
 }

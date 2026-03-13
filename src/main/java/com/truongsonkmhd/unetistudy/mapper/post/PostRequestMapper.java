@@ -18,7 +18,7 @@ public interface PostRequestMapper extends EntityMapper<PostRequest, Post> {
     @Override
     @Mapping(target = "postId", ignore = true)
     @Mapping(target = "slug", ignore = true)
-    @Mapping(target = "thumbnailUrl", ignore = true) // set sau khi upload PocketBase
+    @Mapping(target = "thumbnailUrl", ignore = true) // set sau khi upload Supabase
     @Mapping(target = "author", ignore = true) // set từ UserContext trong service
     @Mapping(target = "viewCount", constant = "0")
     @Mapping(target = "isPublished", expression = "java(dto.getIsPublished() != null ? dto.getIsPublished() : false)")

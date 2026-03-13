@@ -30,7 +30,7 @@ public class CourseShowRequest {
     @Builder.Default
     Integer enrolledCount = 0;
     @JsonIgnore
-    MultipartFile imageFile; // File ảnh thumbnail (vẫn giữ upload PocketBase)
+    MultipartFile imageFile; // File ảnh thumbnail (vẫn giữ upload Supabase)
     String videoUrl; // YouTube URL giới thiệu khóa học (thay thế videoFile)
     CourseStatus status;
     String requirements; // Yêu cầu đầu vào
