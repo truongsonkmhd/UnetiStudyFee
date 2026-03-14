@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { PATHS } from '@/constants/paths';
 import QuizPlayer from './components/QuizPlayer';
+import VideoPlayer from '@/components/common/VideoPlayer';
+
 
 const CourseLearn: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
@@ -158,11 +160,20 @@ const CourseLearn: React.FC = () => {
         }
     };
 
-    const handleVideoTimeUpdate = () => {
-        if (!videoRef.current || !currentLessonId) return;
+    const handleVideoTimeUpdate = (currentTimeParam?: number, durationParam?: number) => {
+        if (!currentLessonId) return;
 
-        const currentTime = videoRef.current.currentTime;
-        const duration = videoRef.current.duration;
+        let currentTime: number;
+        let duration: number;
+
+        if (currentTimeParam !== undefined && durationParam !== undefined) {
+            currentTime = currentTimeParam;
+            duration = durationParam;
+        } else {
+            if (!videoRef.current) return;
+            currentTime = videoRef.current.currentTime;
+            duration = videoRef.current.duration;
+        }
 
         const watchedPercent = duration > 0 ? Math.round((currentTime / duration) * 100) : 0;
 
@@ -177,6 +188,7 @@ const CourseLearn: React.FC = () => {
             saveProgress(currentLessonId, ProgressStatus.DONE, 100);
         }
     };
+
 
     const handleVideoSeeking = () => {
         // Restriction removed
@@ -353,24 +365,22 @@ const CourseLearn: React.FC = () => {
     const renderContent = () => {
         if (!currentLesson) return null;
 
-        if (currentLesson.videoUrl) {
+        // Thử dùng VideoPlayer cho cả YouTube và local video
+        if (currentLesson.youtubeVideoId || currentLesson.videoUrl) {
             return (
-                <div className="w-full bg-black">
-                    <div className="max-w-6xl mx-auto aspect-video bg-black flex items-center justify-center relative">
-                        <video
-                            ref={videoRef}
-                            src={currentLesson.videoUrl}
-                            className="h-full w-full object-contain"
-                            controls
-                            controlsList="nodownload"
+                <div className="w-full bg-black border-b border-white/5 shadow-inner">
+                    <div className="w-full max-h-[70vh] relative overflow-hidden flex justify-center items-center">
+                        <VideoPlayer
+                            videoId={currentLesson.youtubeVideoId}
+                            videoUrl={currentLesson.videoUrl}
                             onTimeUpdate={handleVideoTimeUpdate}
-                            onSeeking={handleVideoSeeking}
-                            onContextMenu={(e) => e.preventDefault()}
-                        >
-                            Your browser does not support the video tag.
-                        </video>
+                            onEnded={() => {
+                                if (currentLessonId) saveProgress(currentLessonId, ProgressStatus.DONE, 100);
+                            }}
+                            className="!aspect-auto h-[70vh] w-full"
+                        />
                         {isCurrentCompleted && (
-                            <div className="absolute top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg pointer-events-none">
+                            <div className="absolute top-4 right-4 bg-green-600/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg pointer-events-none z-10 animate-in fade-in slide-in-from-top-2">
                                 <CheckCircle2 size={20} />
                                 <span className="font-semibold">Đã hoàn thành</span>
                             </div>
@@ -379,6 +389,7 @@ const CourseLearn: React.FC = () => {
                 </div>
             );
         }
+
 
         return null;
     };

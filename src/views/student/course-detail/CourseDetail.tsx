@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import { CourseTreeResponse } from '@/model/course-admin/CourseTreeResponse';
 import webSocketService from '@/services/webSocketService';
 import { EnrollmentResponse } from '@/model/enrollment/EnrollmentResponse';
+import VideoPlayer from '@/components/common/VideoPlayer';
+
 
 const CourseDetail: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
@@ -251,13 +253,10 @@ const CourseDetail: React.FC = () => {
                                 className="relative w-full aspect-video bg-black group cursor-pointer overflow-hidden border-b border-border"
                                 onClick={() => course.videoUrl && setIsPlayingPreview(true)}
                             >
-                                {isPlayingPreview && course.videoUrl ? (
-                                    <video
-                                        src={course.videoUrl}
-                                        className="w-full h-full object-contain"
-                                        controls
-                                        autoPlay
-                                        onContextMenu={(e) => e.preventDefault()}
+                                {isPlayingPreview && (course.youtubeVideoId || course.videoUrl) ? (
+                                    <VideoPlayer
+                                        videoId={course.youtubeVideoId}
+                                        videoUrl={course.videoUrl}
                                     />
                                 ) : (
                                     <>

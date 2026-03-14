@@ -75,6 +75,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
         syllabus: course.syllabus || '',
         isPublished: course.isPublished,
         publishedAt: course.publishedAt || (course.isPublished ? new Date().toISOString() : undefined),
+        videoUrl: (course as any).videoUrl || '',
         modules: course.modules.map(module => ({
           moduleId: module.moduleId,
           title: module.title,
@@ -467,38 +468,24 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Video giới thiệu (Trailer)</label>
-              <div className="relative flex min-h-[160px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-muted/50 transition-all hover:border-accent hover:bg-accent/5 group overflow-hidden">
+              <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <Video className="h-3 w-3" />
+                YouTube URL giới thiệu (Trailer)
+              </label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
+                  <PlayCircle className="h-5 w-5" />
+                </div>
                 <input
-                  type="file"
-                  accept="video/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setFormData(prev => ({ ...prev, videoFile: file }));
-                  }}
-                  className="absolute inset-0 z-10 cursor-pointer opacity-0"
+                  type="text"
+                  name="videoUrl"
+                  value={formData.videoUrl || ''}
+                  onChange={handleInputChange}
+                  className="w-full rounded-2xl border border-border bg-muted/50 pl-12 pr-5 py-4 text-sm font-bold text-foreground transition-all focus:border-primary focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10 placeholder:text-muted-foreground/40"
+                  placeholder="Ví dụ: https://www.youtube.com/watch?v=..."
                 />
-                {formData.videoFile || course?.videoUrl ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900">
-                    <div className="flex items-center gap-2 text-white">
-                      <PlayCircle className="h-6 w-6 text-indigo-400" />
-                      <span className="text-xs font-black uppercase truncate max-w-[200px]">
-                        {formData.videoFile ? formData.videoFile.name : 'Video giới thiệu đã tải'}
-                      </span>
-                    </div>
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className="text-xs font-black uppercase text-white">Đổi video</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-3 text-muted-foreground group-hover:text-accent">
-                    <div className="rounded-full bg-card p-4 shadow-sm group-hover:shadow-md transition-shadow">
-                      <PlayCircle className="h-8 w-8" />
-                    </div>
-                    <span className="text-xs font-bold uppercase tracking-tight">Tải lên Video Trailer</span>
-                  </div>
-                )}
               </div>
+              <p className="text-[10px] text-muted-foreground italic px-1">Dán liên kết YouTube của video giới thiệu lộ trình học này.</p>
             </div>
           </div>
         </div>
@@ -612,25 +599,23 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
 
                           <div className="ml-14 space-y-4">
                             {(lesson.lessonType.includes('VIDEO') || lesson.lessonType === LessonType.ALL) && (
-                              <div className="flex flex-wrap items-center gap-6 p-4 rounded-2xl bg-muted/50 border border-border">
-                                <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-card px-4 py-2 text-[10px] font-black uppercase text-primary transition-all hover:bg-primary hover:text-primary-foreground shadow-sm ring-1 ring-primary/20">
-                                  <Video className="h-3.5 w-3.5" />
-                                  {lesson.videoFile ? lesson.videoFile.name : ((lesson as any).videoUrl ? 'VIDEO ĐÃ CÓ' : 'TẢI LÊN VIDEO')}
-                                  <input
-                                    type="file"
-                                    accept="video/*"
-                                    className="hidden"
-                                    onChange={(e) => {
-                                      const file = e.target.files?.[0];
-                                      if (file) updateLesson(mIdx, lIdx, { videoFile: file });
-                                    }}
-                                  />
+                              <div className="flex flex-col gap-2 p-4 rounded-2xl bg-muted/50 border border-border">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 flex items-center gap-2">
+                                  <Video className="h-3 w-3" />
+                                  YouTube Video URL bài giảng
                                 </label>
-                                {(lesson as any).videoUrl && !lesson.videoFile && (
-                                  <span className="text-[9px] font-bold text-muted-foreground/60 italic truncate max-w-[150px]">
-                                    {(lesson as any).videoUrl.split('/').pop()}
-                                  </span>
-                                )}
+                                <div className="relative group">
+                                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
+                                    <PlayCircle className="h-4 w-4" />
+                                  </div>
+                                  <input
+                                    type="text"
+                                    value={lesson.videoUrl || ''}
+                                    onChange={(e) => updateLesson(mIdx, lIdx, { videoUrl: e.target.value })}
+                                    className="w-full rounded-xl border border-border bg-card pl-10 pr-4 py-2 text-xs font-bold text-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/5 placeholder:text-muted-foreground/30"
+                                    placeholder="Link YouTube video bài giảng..."
+                                  />
+                                </div>
                               </div>
                             )}
 

@@ -7,6 +7,7 @@ export interface JwtClaims {
   userName: string;
   userID: string;
   sub: string;
+  avatar?: string;
   iat: number;
   exp: number;
 }

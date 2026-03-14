@@ -109,42 +109,42 @@ export function AppLayout() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-muted transition">
-                    {/* <img
-                      src={getAvatarSrc(jwtClaims.userInfor?.avatar)}
-                      alt={jwtClaims.userInfor?.fullName}
+                    <img
+                      src={getAvatarSrc(jwtClaims?.avatar)}
+                      alt={jwtClaims?.userName}
                       className="h-9 w-9 rounded-full object-cover ring-1 ring-black/10"
                       draggable={false}
                     />
                     <div className="hidden sm:flex flex-col items-start leading-tight">
                       <span className="text-sm font-semibold text-foreground">
-                        {jwtClaims.userInfor?.fullName}
+                        {jwtClaims?.userName}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {jwtClaims.userInfor?.classId}
+                        {jwtClaims?.classId}
                       </span>
-                    </div> */}
+                    </div>
                   </button>
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuLabel className="py-3">
                     <div className="flex items-center gap-3">
-                      {/* <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-black/10">
+                      <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-black/10">
                         <img
-                          src={getAvatarSrc(jwtClaims.userInfor?.avatar)}
-                          alt={jwtClaims.userInfor?.fullName}
+                          src={getAvatarSrc(jwtClaims?.avatar)}
+                          alt={jwtClaims?.userName}
                           className="h-full w-full object-cover"
                           draggable={false}
                         />
                       </div>
                       <div className="flex flex-col">
                         <span className="font-semibold">
-                          {jwtClaims.userInfor?.fullName}
+                          {jwtClaims?.userName}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          {jwtClaims.userInfor?.classId}
+                          {jwtClaims?.classId}
                         </span>
-                      </div> */}
+                      </div>
                     </div>
                   </DropdownMenuLabel>
 

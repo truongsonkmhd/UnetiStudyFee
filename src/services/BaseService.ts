@@ -13,7 +13,7 @@ interface ServiceResponse<T> {
   status?: number;
 }
 
-export abstract class BaseService {
+export default abstract class BaseService {
   protected apiClient: AxiosInstance;
 
   constructor(basePath: string) {
@@ -39,6 +39,24 @@ export abstract class BaseService {
       },
       (error: AxiosError) => Promise.reject(error)
     );
+  }
+
+  protected async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    try {
+      const response = await this.apiClient.get<T>(url, config);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error as AxiosError);
+    }
+  }
+
+  protected async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    try {
+      const response = await this.apiClient.post<T>(url, data, config);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error as AxiosError);
+    }
   }
 
   // Check if the request is to an authentication endpoint

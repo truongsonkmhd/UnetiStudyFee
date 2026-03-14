@@ -11,7 +11,7 @@ export const PATHS = {
   QUIZ_LIBRARY: "/quizLibrary",
   SETTINGS: "/settings",
   TUTORIAL: "/tutorial",
-  POST_HISTORY: "/posthistory",
+
   CLASS_ATTENDED: "/classattended",
   MANAGER_INTEREST: "/managerinterest",
   MANAGER_PERSONS: "/managerPersons",
@@ -22,6 +22,7 @@ export const PATHS = {
   EDIT_COURSE: "/managerCourses/edit/:id",
   /* Course & Enrollments */
   MY_ENROLLMENTS: "/my-enrollments",
+  MY_CLASSES: "/my-classes",
   COURSE_DETAIL: "/course/:slug",
   COURSE_LEARN: "/course/:slug/learn",
   ENROLLMENT_MANAGER: "/managerCourses/:courseId/enrollments", /* Nested under course manager usually, or separate */
@@ -33,6 +34,6 @@ export const PATHS = {
   PROFILE_PAGE: "/profilePage",
   UNAUTHORIZED: "/unauthorized",
   ADD_CONTEST: "/addContest",
-  CREATE_POST: "/create-post",
+
   JOIN_CLASS: "/join-class",
 };

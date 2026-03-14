@@ -40,7 +40,7 @@ const contestLessonService = {
       `${CONTEST_BASE_ENDPOINT}/${contestLessonId}/status`,
       { status }
     ),
-
+    
   publish: (contestLessonId: string): Promise<ContestLesson> =>
     apiService.post<ContestLesson>(`${CONTEST_BASE_ENDPOINT}/${contestLessonId}/publish`),
 

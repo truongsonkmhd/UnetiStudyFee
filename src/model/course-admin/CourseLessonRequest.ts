@@ -9,7 +9,6 @@ export interface CourseLessonRequest {
   description?: string;
   content?: string;
   videoUrl?: string;
-  videoFile?: File;
   duration?: number;
   orderIndex: number;
   isPreview: boolean;

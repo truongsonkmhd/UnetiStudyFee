@@ -66,7 +66,7 @@ const courseService = {
     ),
 
   /**
-   * Get course tree by slug (for students)
+   * Get course tree by slug
    */
   getCourseTreeBySlug: (slug: string): Promise<CourseTreeResponse> =>
     apiService.get<CourseTreeResponse>(`${COURSE_BASE_ENDPOINT}/${slug}/tree`),

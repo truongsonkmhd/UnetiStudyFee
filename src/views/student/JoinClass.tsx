@@ -28,7 +28,7 @@ const JoinClass = () => {
         const fetchClassInfo = async () => {
             try {
                 setLoading(true);
-                const res = await classService.getByInviteCode(inviteCode);
+                const res = await classService.student.getByInviteCode(inviteCode);
                 if (res) {
                     setClassInfo(res);
                 } else {
@@ -48,10 +48,9 @@ const JoinClass = () => {
     const handleJoin = async () => {
         try {
             setJoining(true);
-            await classService.joinClass(inviteCode, jwtClaims.userID);
+            await classService.student.joinClass(inviteCode, jwtClaims.userID);
             toast.success("Tham gia lớp học thành công!");
-            // Chuyển đến tab lớp học trong trang My Enrollments
-            navigate(`${PATHS.MY_ENROLLMENTS}?tab=classes`);
+            navigate(PATHS.MY_ENROLLMENTS);
         } catch (err: any) {
             console.error("Error joining class:", err);
             toast.error(err.message || "Không thể tham gia lớp học.");

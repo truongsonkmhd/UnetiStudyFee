@@ -36,36 +36,28 @@ const navigationItems: {
   url: string;
   icon: string;
   requiredRoles?: RoleEnum[];
-  requiredPermissions?: PermissionEnum[];
 }[] = [
     { title: "Trang chủ", url: PATHS.HOME, icon: homepageIcon },
-    { title: "Bảng xếp hạng", url: PATHS.RANKING, icon: rankingIcon },
-    // {
-    //   title: "Tạo bài giảng",
-    //   url: PATHS.CREATE_LESSON,
-    //   icon: createLessionIcon,
-    //   requiredPermissions: [PermissionEnum.COURSE_CREATE, PermissionEnum.COURSE_UPDATE],
-    // },
+    {
+      title: "Kho bài lập trình",
+      url: PATHS.CODING_EXERCISE_LIBRARY,
+      icon: createTestIcon,
+      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
+    },
+    {
+      title: "Kho bài trắc nghiệm",
+      url: PATHS.QUIZ_LIBRARY,
+      icon: createTestIcon,
+      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
+    },
     {
       title: "Tạo bài thi",
       url: PATHS.CREATE_TEST,
       icon: createTestIcon,
-      requiredPermissions: [PermissionEnum.QUIZ_CREATE, PermissionEnum.QUIZ_UPDATE],
+      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
     },
     {
-      title: "Kho bài code",
-      url: PATHS.CODING_EXERCISE_LIBRARY,
-      icon: createTestIcon,
-      requiredPermissions: [PermissionEnum.EXERCISE_MANAGE],
-    },
-    {
-      title: "Kho bài quiz",
-      url: PATHS.QUIZ_LIBRARY,
-      icon: createTestIcon,
-      requiredPermissions: [PermissionEnum.QUIZ_MANAGE],
-    },
-    {
-      title: "Quản lý lớp thi",
+      title: "Quản lý lớp học",
       url: PATHS.MANAGER_CLASS,
       icon: createTestIcon,
       requiredRoles: [
@@ -74,51 +66,50 @@ const navigationItems: {
         RoleEnum.ROLE_TEACHER,
       ],
     },
-    {
-      title: "Quản lý sinh viên và giáo viên",
-      url: PATHS.MANAGER_PERSONS,
-      icon: managerIcon,
-      requiredPermissions: [PermissionEnum.USER_MANAGE],
-    },
-    {
-      title: "Quản lý Cache",
-      url: PATHS.MANAGER_CACHE,
-      icon: smartIcon,
-      requiredPermissions: [PermissionEnum.CACHE_MANAGE],
-    },
-    {
-      title: "Quản lý quyền",
-      url: PATHS.MANAGER_INTEREST,
-      icon: quyenIcon,
-      requiredPermissions: [PermissionEnum.SYSTEM_CONFIG],
-    },
+
     {
       title: "Quản lý khóa học",
       url: PATHS.MANAGER_COURSES,
       icon: classIcon,
-      requiredPermissions: [PermissionEnum.COURSE_VIEW, PermissionEnum.COURSE_UPDATE],
+      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
     },
     {
       title: "Quản lý đăng ký học",
       url: PATHS.MY_ENROLLMENTS,
       icon: classIcon,
       requiredRoles: [
-        RoleEnum.ROLE_ADMIN,
-        RoleEnum.ROLE_SYS_ADMIN,
-        RoleEnum.ROLE_TEACHER,
+        RoleEnum.ROLE_STUDENT,
       ],
     },
     {
-      title: "Học tập của tôi",
+      title: "Khóa học của tôi",
       url: PATHS.MY_ENROLLMENTS,
       icon: classIcon,
       requiredRoles: [RoleEnum.ROLE_STUDENT],
     },
     {
-      title: "Quản lý bài viết",
-      url: PATHS.CREATE_POST,
-      icon: createLessionIcon,
-      requiredPermissions: [PermissionEnum.POST_CREATE, PermissionEnum.POST_UPDATE],
+      title: "Lớp học của tôi",
+      url: PATHS.MY_CLASSES,
+      icon: classIcon,
+      requiredRoles: [RoleEnum.ROLE_STUDENT],
+    },
+    {
+      title: "Quản lý sinh viên và giáo viên",
+      url: PATHS.MANAGER_PERSONS,
+      icon: managerIcon,
+      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
+    },
+    {
+      title: "Quản lý quyền",
+      url: PATHS.MANAGER_INTEREST,
+      icon: quyenIcon,
+      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
+    },
+    {
+      title: "Quản lý Cache",
+      url: PATHS.MANAGER_CACHE,
+      icon: smartIcon,
+      requiredRoles: [RoleEnum.ROLE_SYS_ADMIN],
     },
   ];
 
@@ -127,26 +118,7 @@ const history: {
   url: string;
   icon: string;
   requiredRoles?: RoleEnum[];
-}[] = [
-    {
-      title: "Lớp học của tôi",
-      url: `${PATHS.MY_ENROLLMENTS}?tab=classes`,
-      icon: classIcon,
-      requiredRoles: [
-        RoleEnum.ROLE_STUDENT,
-      ],
-    },
-    {
-      title: "Lịch sử bài",
-      url: PATHS.POST_HISTORY,
-      icon: historyTestIcon,
-      requiredRoles: [
-        RoleEnum.ROLE_STUDENT,
-        RoleEnum.ROLE_ADMIN,
-        RoleEnum.ROLE_SYS_ADMIN,
-      ],
-    },
-  ];
+}[] = [];
 
 const toolsItems: {
   title: string;
@@ -220,14 +192,7 @@ export function AppSidebar() {
   const theme = pickThemeByRoles(userRoles);
 
   const isActive = (path: string) => {
-    const [pathName, queryStr] = path.split('?');
-    if (queryStr) {
-      const params = new URLSearchParams(queryStr);
-      const currentParams = new URLSearchParams(location.search);
-      return currentPath === pathName &&
-        [...params.entries()].every(([k, v]) => currentParams.get(k) === v);
-    }
-    return currentPath === pathName;
+    return currentPath === path;
   };
 
   const getNavClassName = (path: string) =>
@@ -237,13 +202,7 @@ export function AppSidebar() {
     ].join(" ");
 
   const visibleNavItems = navigationItems.filter((i) =>
-    hasAnyRole(jwtClaims, i.requiredRoles) &&
-    hasAnyPermission(jwtClaims, i.requiredPermissions)
-  );
-
-  const visibleHistory = history.filter((i) =>
-    hasAnyRole(jwtClaims, i.requiredRoles)
-  );
+    hasAnyRole(jwtClaims, i.requiredRoles));
 
   const visibleTools = toolsItems.filter((i) =>
     hasAnyRole(jwtClaims, i.requiredRoles)
@@ -298,9 +257,6 @@ export function AppSidebar() {
               <span className="font-semibold text-sm text-foreground">
                 {APP_NAME}
               </span>
-              <span className="text-xs text-muted-foreground">
-                Học để làm chủ tri thức
-              </span>
             </div>
           )}
         </div>
@@ -329,29 +285,6 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <div className="mx-2 my-2 border-t rounded-full border-gray-300" />
-
-        <SidebarGroup>
-          <SidebarGroupLabel className={theme.groupLabel}>
-            Học tập của tôi
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleHistory.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className={getNavClassName(item.url)}
-                    >
-                      <img src={item.icon} alt="" className="w-4 h-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
 
         <SidebarGroup>
           <SidebarGroupLabel className={theme.groupLabel}>

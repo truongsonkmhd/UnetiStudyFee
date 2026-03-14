@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Users, Trophy, Clock, Search, Edit2, Trash2, Eye, AlertCircle, CheckCircle, XCircle, PlayCircle, Link, Copy, RefreshCw, ExternalLink } from 'lucide-react';
+import { Calendar, Plus, Users, Trophy, Clock, Search, Edit2, Trash2, Eye, AlertCircle, CheckCircle, XCircle, PlayCircle, Link, Copy, RefreshCw, ExternalLink, Brain } from 'lucide-react';
 import { ClazzResponse } from '@/model/class/ClazzResponse';
 import classService from '@/services/classService';
 import classContestService from '@/services/classContestService';
@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { ClassContestResponse } from '@/model/class-contest/ClassContestResponse';
 import AddContestModal from './components/AddContestModal';
 import RescheduleContestModal from './components/RescheduleContestModal';
+import ClassAiInsights from './components/ClassAiInsights';
 
 
 const ClassManagementDashboard = () => {
@@ -25,6 +26,7 @@ const ClassManagementDashboard = () => {
   const [contestToReschedule, setContestToReschedule] = useState<ClassContestResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { jwtClaims } = actionAuth();
+  const [detailTab, setDetailTab] = useState<'contests' | 'ai-insights'>('contests');
 
   const [createForm, setCreateForm] = useState({
     classCode: "",
@@ -39,7 +41,7 @@ const ClassManagementDashboard = () => {
 
       setLoading(true);
 
-      await classService.create({
+      await classService.admin.create({
         classCode: createForm.classCode,
         className: createForm.className,
         instructorId: jwtClaims.userID,
@@ -51,7 +53,7 @@ const ClassManagementDashboard = () => {
       });
 
       // reload danh sách lớp
-      const data = await classService.getAllClasses();
+      const data = await classService.admin.getAll();
       setClasses(data);
 
       // đóng modal + reset form
@@ -78,7 +80,7 @@ const ClassManagementDashboard = () => {
     const fetchClasses = async () => {
       try {
         setLoading(true);
-        const data = await classService.getAllClasses();
+        const data = await classService.admin.getAll();
         setClasses(data);
       } catch (err) {
         console.error(err);
@@ -132,7 +134,7 @@ const ClassManagementDashboard = () => {
   const handleRegenerateInviteCode = async (classId: string) => {
     if (!window.confirm("Bạn có chắc chắn muốn tạo mã mời mới? Mã cũ sẽ không còn hiệu lực.")) return;
     try {
-      const res = await classService.regenerateInviteCode(classId);
+      const res = await classService.admin.regenerateInviteCode(classId);
       if (res) {
         setClasses(classes.map(c => c.classId === classId ? { ...c, inviteCode: res.inviteCode } : c));
         if (selectedClass?.classId === classId) {
@@ -361,90 +363,112 @@ const ClassManagementDashboard = () => {
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="font-bold text-foreground">Bài thi của lớp</h4>
+                    <div className="flex gap-4 mb-6 border-b border-border">
                       <button
-                        onClick={() => setIsAddContestModalOpen(true)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground text-sm rounded-lg hover:opacity-90 transition-colors"
+                        onClick={() => setDetailTab('contests')}
+                        className={`pb-2 text-sm font-medium transition-colors border-b-2 ${detailTab === 'contests' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                       >
-                        <Plus className="w-4 h-4" />
-                        Thêm bài thi
+                        Bài thi của lớp
+                      </button>
+                      <button
+                        onClick={() => setDetailTab('ai-insights')}
+                        className={`flex items-center gap-2 pb-2 text-sm font-medium transition-colors border-b-2 ${detailTab === 'ai-insights' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                      >
+                        <Brain className="w-4 h-4" />
+                        AI Insights
                       </button>
                     </div>
 
-                    {selectedClassContests.length === 0 ? (
-                      <div className="text-center py-8 bg-muted/20 rounded-lg border border-dashed border-border">
-                        <p className="text-sm text-muted-foreground">Chưa có bài thi nào được gán cho lớp này</p>
-                      </div>
+                    {detailTab === 'ai-insights' ? (
+                      <ClassAiInsights classId={cls.classId || ''} className={cls.className || ''} />
                     ) : (
-                      <div className="space-y-3">
-                        {selectedClassContests.map((contest) => (
-                          <div
-                            key={contest.classContestId}
-                            className="p-4 bg-muted/30 rounded-lg border border-border"
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-bold text-foreground">Bài thi của lớp</h4>
+                          <button
+                            onClick={() => setIsAddContestModalOpen(true)}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground text-sm rounded-lg hover:opacity-90 transition-colors"
                           >
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1">
-                                <h5 className="font-bold text-foreground mb-1">
-                                  {contest.contestInfo.title}
-                                </h5>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                  {contest.contestInfo.description}
-                                </p>
-                                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="w-3.5 h-3.5" />
-                                    {formatDateTime(contest.scheduledStartTime)} - {formatDateTime(contest.scheduledEndTime)}
-                                  </span>
+                            <Plus className="w-4 h-4" />
+                            Thêm bài thi
+                          </button>
+                        </div>
+
+                        {selectedClassContests.length === 0 ? (
+                          <div className="text-center py-8 bg-muted/20 rounded-lg border border-dashed border-border">
+                            <p className="text-sm text-muted-foreground">Chưa có bài thi nào được gán cho lớp này</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {selectedClassContests.map((contest) => (
+                              <div
+                                key={contest.classContestId}
+                                className="p-4 bg-muted/30 rounded-lg border border-border"
+                              >
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex-1">
+                                    <h5 className="font-bold text-foreground mb-1">
+                                      {contest.contestInfo.title}
+                                    </h5>
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                      {contest.contestInfo.description}
+                                    </p>
+                                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        {formatDateTime(contest.scheduledStartTime)} - {formatDateTime(contest.scheduledEndTime)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {getStatusBadge(contest.status)}
+                                </div>
+
+                                <div className="grid grid-cols-5 gap-3 text-xs">
+                                  <div className="bg-background p-2 rounded border border-border">
+                                    <div className="text-muted-foreground mb-1">Tổng điểm</div>
+                                    <div className="font-bold text-foreground">{contest.effectiveConfig.totalPoints}</div>
+                                  </div>
+                                  <div className="bg-background p-2 rounded border border-border">
+                                    <div className="text-muted-foreground mb-1">Điểm đạt</div>
+                                    <div className="font-bold text-foreground">{contest.effectiveConfig.passingScore}</div>
+                                  </div>
+                                  <div className="bg-background p-2 rounded border border-border">
+                                    <div className="text-muted-foreground mb-1">Hệ số</div>
+                                    <div className="font-bold text-foreground">{contest.weight}x</div>
+                                  </div>
+                                  <div className="bg-background p-2 rounded border border-border">
+                                    <div className="text-muted-foreground mb-1">Số lần thử</div>
+                                    <div className="font-bold text-foreground">{contest.effectiveConfig.maxAttempts}</div>
+                                  </div>
+                                  <div className="bg-background p-2 rounded border border-border">
+                                    <div className="text-muted-foreground mb-1">Nội dung</div>
+                                    <div className="font-bold text-foreground">{contest.contestInfo.codingExerciseCount}C | {contest.contestInfo.quizQuestionCount}Q</div>
+                                  </div>
+                                </div>
+
+                                <div className="flex gap-2 mt-3 pt-3 border-t border-border">
+                                  {(contest.status === 'SCHEDULED' || contest.status === 'ONGOING') && (
+                                    <button
+                                      onClick={() => handleRescheduleClick(contest)}
+                                      className="px-3 py-1.5 text-sm bg-card text-foreground border border-border rounded hover:bg-muted transition-colors"
+                                    >
+                                      Edit Schedule
+                                    </button>
+                                  )}
+                                  {contest.status === 'SCHEDULED' && (
+                                    <button
+                                      onClick={() => handleCancelContest(contest.classContestId)}
+                                      className="px-3 py-1.5 text-sm bg-card text-destructive border border-destructive/20 rounded hover:bg-destructive/10 transition-colors"
+                                    >
+                                      Cancel Contest
+                                    </button>
+                                  )}
                                 </div>
                               </div>
-                              {getStatusBadge(contest.status)}
-                            </div>
-
-                            <div className="grid grid-cols-5 gap-3 text-xs">
-                              <div className="bg-background p-2 rounded border border-border">
-                                <div className="text-muted-foreground mb-1">Tổng điểm</div>
-                                <div className="font-bold text-foreground">{contest.effectiveConfig.totalPoints}</div>
-                              </div>
-                              <div className="bg-background p-2 rounded border border-border">
-                                <div className="text-muted-foreground mb-1">Điểm đạt</div>
-                                <div className="font-bold text-foreground">{contest.effectiveConfig.passingScore}</div>
-                              </div>
-                              <div className="bg-background p-2 rounded border border-border">
-                                <div className="text-muted-foreground mb-1">Hệ số</div>
-                                <div className="font-bold text-foreground">{contest.weight}x</div>
-                              </div>
-                              <div className="bg-background p-2 rounded border border-border">
-                                <div className="text-muted-foreground mb-1">Số lần thử</div>
-                                <div className="font-bold text-foreground">{contest.effectiveConfig.maxAttempts}</div>
-                              </div>
-                              <div className="bg-background p-2 rounded border border-border">
-                                <div className="text-muted-foreground mb-1">Nội dung</div>
-                                <div className="font-bold text-foreground">{contest.contestInfo.codingExerciseCount}C | {contest.contestInfo.quizQuestionCount}Q</div>
-                              </div>
-                            </div>
-
-                            <div className="flex gap-2 mt-3 pt-3 border-t border-border">
-                              {(contest.status === 'SCHEDULED' || contest.status === 'ONGOING') && (
-                                <button
-                                  onClick={() => handleRescheduleClick(contest)}
-                                  className="px-3 py-1.5 text-sm bg-card text-foreground border border-border rounded hover:bg-muted transition-colors"
-                                >
-                                  Edit Schedule
-                                </button>
-                              )}
-                              {contest.status === 'SCHEDULED' && (
-                                <button
-                                  onClick={() => handleCancelContest(contest.classContestId)}
-                                  className="px-3 py-1.5 text-sm bg-card text-destructive border border-destructive/20 rounded hover:bg-destructive/10 transition-colors"
-                                >
-                                  Cancel Contest
-                                </button>
-                              )}
-                            </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
@@ -453,22 +477,24 @@ const ClassManagementDashboard = () => {
           ))}
         </div>
 
-        {filteredClasses.length === 0 && (
-          <div className="bg-card rounded-xl shadow-sm border border-border p-12 text-center">
-            <AlertCircle className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-foreground mb-2">Không tìm thấy lớp học</h3>
-            <p className="text-muted-foreground mb-4">Hãy thử điều chỉnh tìm kiếm hoặc bộ lọc của bạn</p>
-            <button
-              onClick={() => {
-                setSearchTerm('');
-                setFilterActive('all');
-              }}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors"
-            >
-              Làm mới
-            </button>
-          </div>
-        )}
+        {
+          filteredClasses.length === 0 && (
+            <div className="bg-card rounded-xl shadow-sm border border-border p-12 text-center">
+              <AlertCircle className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-foreground mb-2">Không tìm thấy lớp học</h3>
+              <p className="text-muted-foreground mb-4">Hãy thử điều chỉnh tìm kiếm hoặc bộ lọc của bạn</p>
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setFilterActive('all');
+                }}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors"
+              >
+                Làm mới
+              </button>
+            </div>
+          )
+        }
       </div>
 
       {/* Create Class Modal (simplified for demo) */}

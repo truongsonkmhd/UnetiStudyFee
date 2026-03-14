@@ -348,10 +348,6 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
 
                 {/* Card Meta Content */}
                 <div className="flex flex-1 flex-col p-5">
-                  <div className="mb-2.5 flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-widest text-primary">Premium Course</span>
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  </div>
 
                   <h3 className="mb-2 line-clamp-1 text-lg font-bold text-foreground" title={course.title}>
                     {course.title}

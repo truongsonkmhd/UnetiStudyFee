@@ -12,7 +12,9 @@ export interface CourseLessonResponse {
   lessonType: LessonType;
   isPreview: boolean;
   isPublished: boolean;
-  videoUrl?: string;
+  videoUrl?: string;       // Embed URL (YouTube) hoặc PocketBase URL (cũ)
+  youtubeVideoId?: string; // Video ID thuần, ví dụ: "DjlGte968ko"
+  embedUrl?: string;       // Embed URL sẵn sàng nhúng iframe
   codingExercises: CodingExerciseDTO[];
   quizzes: QuizDTO[];
 

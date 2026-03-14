@@ -11,6 +11,8 @@ export interface CourseTreeResponse {
   status: CourseStatus;
   imageUrl?: string;
   videoUrl?: string;
+  youtubeVideoId?: string;
+  embedUrl?: string;
   level?: string;
   category?: string;
   subCategory?: string;

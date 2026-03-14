@@ -3,7 +3,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import NotFound from "../views/common/NotFound";
 import { HomePage } from "@/views/pages/HomePage";
-import CourseLessonsAndExercises from "@/views/pages/CourseLessonsAndExercises";
 import LeaderboardPage from "@/views/pages/LeaderboardPage";
 import { PATHS } from "@/constants/paths";
 import AuthScreen from "@/views/login-and-registor/AuthScreen";
@@ -27,10 +26,10 @@ import { ThemeProvider } from "@/components/theme-provider";
 import ContestManager from "@/views/contest/ContestManager";
 import CourseManager from "@/views/course_admin/CourseManager";
 import EnrollmentManager from "@/views/teacher/enrollment-manager/EnrollmentManager";
-import MyEnrollments from "@/views/student/my-learning/MyEnrollments";
+import MyCourses from "@/views/student/my-learning/MyCourses";
+import MyClasses from "@/views/student/my-learning/MyClasses";
 import CourseDetail from "@/views/student/course-detail/CourseDetail";
 import CourseLearn from "@/views/student/course-learn/CourseLearn";
-import PostCreate from "@/views/teacher/post/PostCreate";
 import JoinClass from "@/views/student/JoinClass";
 
 const queryClient = new QueryClient();
@@ -92,7 +91,6 @@ const App = () => (
                   RoleEnum.ROLE_ADMIN,
                   RoleEnum.ROLE_SYS_ADMIN,
                   RoleEnum.ROLE_TEACHER,
-                  RoleEnum.ROLE_STUDENT,
                 ]}
               >
                 <CodingExerciseView />
@@ -160,21 +158,7 @@ const App = () => (
             }
           />
 
-          <Route
-            path={PATHS.CREATE_POST}
-            element={
-              <ProtectedRoute
-                requiredRoles={[
-                  RoleEnum.ROLE_ADMIN,
-                  RoleEnum.ROLE_SYS_ADMIN,
-                  RoleEnum.ROLE_TEACHER,
-                ]}
-              >
-                <WebSocketSubmission />
 
-              </ProtectedRoute>
-            }
-          />
 
           <Route path={PATHS.COURSE_DETAIL} element={<CourseDetail />} />
           <Route path={PATHS.COURSE_LEARN} element={<CourseLearn />} />
@@ -245,13 +229,16 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+
             <Route
               path={PATHS.MANAGER_PERSONS}
               element={
                 <ProtectedRoute
-                  requiredPermissions={[PermissionEnum.USER_MANAGE]}
+                  requiredRoles={[
+                    RoleEnum.ROLE_ADMIN,
+                    RoleEnum.ROLE_SYS_ADMIN,
+                  ]}
                 >
-
                   <ContestManager />
                 </ProtectedRoute>
               }
@@ -276,7 +263,9 @@ const App = () => (
               path={PATHS.MANAGER_CACHE}
               element={
                 <ProtectedRoute
-                  requiredPermissions={[PermissionEnum.CACHE_MANAGE]}
+                  requiredRoles={[
+                    RoleEnum.ROLE_SYS_ADMIN
+                  ]}
                 >
                   <CacheManagementPage />
                 </ProtectedRoute>
@@ -286,7 +275,7 @@ const App = () => (
               path={PATHS.MANAGER_INTEREST}
               element={
                 <ProtectedRoute
-                  requiredPermissions={[PermissionEnum.SYSTEM_CONFIG]}
+                  requiredRoles={[RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_ADMIN]}
                 >
 
                   <WebSocketSubmission />
@@ -301,14 +290,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
-              path={PATHS.POST_HISTORY}
-              element={
-                <ProtectedRoute requiredRoles={[RoleEnum.ROLE_STUDENT]}>
-                  <div>Lịch sử bài (Sắp Ra Mắt)</div>
-                </ProtectedRoute>
-              }
-            />
+
             <Route
               path={PATHS.TUTORIAL}
               element={<div>Hướng dẫn (Sắp Ra Mắt)</div>}
@@ -322,7 +304,19 @@ const App = () => (
                   RoleEnum.ROLE_ADMIN,
                   RoleEnum.ROLE_TEACHER,
                   RoleEnum.ROLE_STUDENT]}>
-                  <MyEnrollments />
+                  <MyCourses />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={PATHS.MY_CLASSES}
+              element={
+                <ProtectedRoute requiredRoles={[
+                  RoleEnum.ROLE_ADMIN,
+                  RoleEnum.ROLE_TEACHER,
+                  RoleEnum.ROLE_STUDENT]}>
+                  <MyClasses />
                 </ProtectedRoute>
               }
             />

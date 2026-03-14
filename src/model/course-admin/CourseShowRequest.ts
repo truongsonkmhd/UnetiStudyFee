@@ -11,7 +11,7 @@ export interface CourseShowRequest {
   capacity?: number;
   enrolledCount?: number;
   imageFile?: File;
-  videoFile?: File;
+  videoUrl?: string;
   status: CourseStatus;
   requirements?: string;
   objectives?: string;
