@@ -21,7 +21,8 @@ public final class SecurityUtils {
 
     public static final String AUTHORITIES_KEY = "auth";
 
-    private SecurityUtils() {}
+    private SecurityUtils() {
+    }
 
     /**
      * Get the login of the current user.
@@ -54,8 +55,8 @@ public final class SecurityUtils {
     public static Optional<String> getCurrentUserJWT() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         return Optional.ofNullable(securityContext.getAuthentication())
-            .filter(authentication -> authentication.getCredentials() instanceof String)
-            .map(authentication -> (String) authentication.getCredentials());
+                .filter(authentication -> authentication.getCredentials() instanceof String)
+                .map(authentication -> (String) authentication.getCredentials());
     }
 
     /**
@@ -65,7 +66,8 @@ public final class SecurityUtils {
      */
     public static boolean isAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && getAuthorities(authentication).noneMatch(AuthoritiesConstants.SYS_ADMIN::equals);
+        return authentication != null
+                && getAuthorities(authentication).noneMatch(AuthoritiesConstants.SYS_ADMIN::equals);
     }
 
     /**
@@ -76,16 +78,16 @@ public final class SecurityUtils {
      */
     public static boolean hasCurrentUserAnyOfAuthorities(String... authorities) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (
-            authentication != null && getAuthorities(authentication).anyMatch(authority -> Arrays.asList(authorities).contains(authority))
-        );
+        return (authentication != null && getAuthorities(authentication)
+                .anyMatch(authority -> Arrays.asList(authorities).contains(authority)));
     }
 
     /**
      * Checks if the current user has none of the authorities.
      *
      * @param authorities the authorities to check.
-     * @return true if the current user has none of the authorities, false otherwise.
+     * @return true if the current user has none of the authorities, false
+     *         otherwise.
      */
     public static boolean hasCurrentUserNoneOfAuthorities(String... authorities) {
         return !hasCurrentUserAnyOfAuthorities(authorities);

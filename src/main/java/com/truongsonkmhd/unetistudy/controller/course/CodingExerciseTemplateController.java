@@ -27,8 +27,6 @@ public class CodingExerciseTemplateController {
 
         private final CodingExerciseTemplateService codingExerciseTemplateService;
 
-        // ========== CREATE ==========
-
         @PostMapping("")
         @Operation(summary = "Create new coding exercise template")
         public ResponseEntity<IResponseMessage> createTemplate(

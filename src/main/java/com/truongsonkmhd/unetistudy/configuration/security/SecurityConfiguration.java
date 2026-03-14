@@ -129,8 +129,7 @@ public class SecurityConfiguration {
                                                                                 AuthoritiesConstants.TEACHER)
                                                                 .requestMatchers(mvc.pattern(
                                                                                 "/api/admin/managerment-cache/**"))
-                                                                .hasAnyAuthority(AuthoritiesConstants.ADMIN,
-                                                                                AuthoritiesConstants.SYS_ADMIN)
+                                                                .hasAuthority(AuthoritiesConstants.SYS_ADMIN)
                                                                 .requestMatchers(mvc.pattern("/api/enrollments/**"))
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
                                                                                 AuthoritiesConstants.SYS_ADMIN,
