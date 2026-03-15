@@ -24,82 +24,65 @@ import java.util.*;
 
 public class User implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id")
-    UUID id;
+        @Id
+        @GeneratedValue(strategy = GenerationType.UUID)
+        @Column(name = "id")
+        UUID id;
 
-    @Column(name = "full_name", length = 255)
-    String fullName;
+        @Column(name = "full_name", length = 255)
+        String fullName;
 
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "gender", length = 255)
-    Gender gender;
+        @Enumerated(EnumType.STRING)
+        @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+        @Column(name = "gender", length = 255)
+        Gender gender;
 
-    @Column(name = "date_of_birth", length = 255)
-    Date birthday;
+        @Column(name = "date_of_birth", length = 255)
+        Date birthday;
 
-    @Column(name = "email", length = 255)
-    String email;
+        @Column(name = "email", length = 255)
+        String email;
 
-    @Column(name = "phone", length = 15)
-    String phone;
+        @Column(name = "phone", length = 15)
+        String phone;
 
-    @Column(name = "username",unique = true,nullable = false, length = 255)
-    String username;
+        @Column(name = "username", unique = true, nullable = false, length = 255)
+        String username;
 
-    @Column(name = "password", length = 255)
-    String password;
+        @Column(name = "password", length = 255)
+        String password;
 
-    @Column(name = "avatar")
-    String avatar;
+        @Column(name = "avatar")
+        String avatar;
 
-    @NotBlank
-    @Pattern(regexp = "\\d{11}", message = "Student ID must be exactly 11 digits")
-    @Column(name = "student_id", length = 11, nullable = false, unique = true)
-    String studentId;
+        @Column(name = "student_id", length = 20, unique = true)
+        String studentId;
 
-    @Column(name = "contactAddress")
-    String contactAddress;
+        @Column(name = "contactAddress")
+        String contactAddress;
 
-    @Column(name = "currentResidence")
-    String currentResidence;
+        @Column(name = "currentResidence")
+        String currentResidence;
 
-    @NotBlank
-    @Pattern(
-            regexp = "^(DH|CD|LT|VB2|VLVH|TX)(TI|KT|QTKD|TC|CK|DD|OT|XD|TM)\\d{2}[A-Z]\\d(HN|ND|TH)$",
-            message = "Invalid UNETI classID format (e.g. DHTI16A3HN)"
-    )
-    @Column(
-            name = "class_id",
-            length = 10,
-            nullable = false
-    )
-    String classId;
+        @Column(name = "class_id", length = 20)
+        String classId;
 
+        @Column(name = "is_deleted")
+        Boolean isDeleted;
 
-    @Column(name = "is_deleted")
-    Boolean isDeleted;
+        @Enumerated(EnumType.STRING)
+        @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+        @Column(name = "status", nullable = false)
+        UserStatus status;
 
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "status", nullable = false)
-    //insertable = false → Hibernate sẽ không đưa cột status vào câu lệnh insert nếu bạn không set ⇒ DB dùng DEFAULT 'ACTIVE'.
-    UserStatus status;
+        @ManyToMany
+        @JoinTable(name = "tbl_user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+        Set<Role> roles;
 
-//    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "user", orphanRemoval = true) //orphanRemoval: nếu xóa user => address cũng sẽ mất
-//    Set<Address> addresses = new HashSet<>();
+        @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+        Token token;
 
-    @ManyToMany
-    @JoinTable(
-            name = "tbl_user_role",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    Set<Role> roles;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    Token token;
+        @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+        TeacherProfile teacherProfile;
 
 }

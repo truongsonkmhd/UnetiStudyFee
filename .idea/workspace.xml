@@ -6,22 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="63a3f8e6-a53c-489e-abe4-cd8059154f47" name="Changes" comment="change to save video by way use link youtube">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/cache/CacheConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/cache/CacheConstants.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/configuration/security/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/configuration/security/SecurityConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/controller/course/PostController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/post_dto/PostCardResponse.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/post_dto/PostDetailResponse.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/post_dto/PostRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/mapper/post/PostRequestMapper.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/mapper/post/PostResponseMapper.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/lesson/LessonPrerequisite.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/lesson/LessonSkillTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/post/Post.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/repository/course/LessonPrerequisiteRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/repository/post/PostRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/PostService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/Ai/AiLearningPathServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/Ai/AiLearningPathServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/post/PostServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/controller/UserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/course_dto/CourseLessonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/dto/course_dto/CourseLessonResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/model/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/repository/auth/RoleRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/repository/auth/RoleRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/UserServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/truongsonkmhd/unetistudy/service/impl/UserServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,20 +46,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Remote JVM Debug.Unnamed.executor": "Debug",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "git-widget-placeholder": "delete-post",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/anh-viet-cao/DATN/ATTP_MCQG_BYT/Source/attp9_BYT",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Remote JVM Debug.Unnamed.executor&quot;: &quot;Debug&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/anh-viet-cao/DATN/ATTP_MCQG_BYT/Source/attp9_BYT&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="Unnamed" type="Remote" nameIsGenerated="true">
       <module name="UnetiStudyBee" />
@@ -139,6 +130,7 @@
       <workItem from="1772548881826" duration="4846000" />
       <workItem from="1772593488830" duration="12897000" />
       <workItem from="1773367308837" duration="16634000" />
+      <workItem from="1773544726820" duration="2159000" />
     </task>
     <task id="LOCAL-00001" summary="change to save video by way use link youtube">
       <option name="closed" value="true" />

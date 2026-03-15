@@ -35,4 +35,6 @@ public interface UserService {
     UUID delete(UUID id);
 
     UUID findUserIDByUserName(String userName);
+
+    void promoteToTeacher(UUID userId, String teacherId, String department);
 }

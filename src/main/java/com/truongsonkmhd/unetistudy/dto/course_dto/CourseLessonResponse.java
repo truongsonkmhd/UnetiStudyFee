@@ -21,8 +21,8 @@ public class CourseLessonResponse {
     LessonType lessonType;
     Boolean isPreview;
     Boolean isPublished;
-    String videoUrl; // URL gốc (YouTubeURL hoặc Supabase URL cũ)
-    String youtubeVideoId; // Video ID từ YouTube, ví dụ: "DjlGte968ko"
+    String videoUrl;
+    String youtubeVideoId;
     String embedUrl; // Embed URL sẵn sàng nhúng: "https://www.youtube.com/embed/DjlGte968ko"
     String description;
     String content;
