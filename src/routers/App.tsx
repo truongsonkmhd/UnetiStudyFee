@@ -17,6 +17,7 @@ import { PermissionEnum } from "@/components/enum/PermissionEnum";
 import ClassManagementDashboard from "@/views/class_managerment/ClassManagementDashboard";
 import QuizTemplateManager from "@/views/quiz_storage/QuizTemplateManager";
 import WebSocketSubmission from "@/views/submission/WebSocketSubmission";
+import PermissionManagement from "@/views/pages/permission/PermissionManagement";
 import CodingExerciseLibrary from "@/views/coding-template-exercise/CodingExerciseLibrary";
 import TemplateCreate from "@/views/coding-template-exercise/TemplateCreate";
 import CodingExerciseView from "@/views/coding-template-exercise/CodingExerciseView";
@@ -278,7 +279,7 @@ const App = () => (
                   requiredRoles={[RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_ADMIN]}
                 >
 
-                  <WebSocketSubmission />
+                  <PermissionManagement />
                 </ProtectedRoute>
               }
             />
