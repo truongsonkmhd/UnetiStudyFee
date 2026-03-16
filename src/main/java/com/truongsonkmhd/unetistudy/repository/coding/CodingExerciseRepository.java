@@ -34,6 +34,7 @@ public interface CodingExerciseRepository extends JpaRepository<CodingExercise, 
                 SELECT ce
                 FROM CourseLesson cl
                 JOIN cl.codingExercises ce
+                LEFT JOIN FETCH ce.exerciseTestCases
                 WHERE cl.slug = :slug
             """)
     CodingExercise findDetailByLessonSlug(@Param("slug") String slug);
@@ -41,6 +42,7 @@ public interface CodingExerciseRepository extends JpaRepository<CodingExercise, 
     @Query("""
                 SELECT ce
                 FROM CodingExercise ce
+                LEFT JOIN FETCH ce.exerciseTestCases
                 WHERE ce.exerciseId = :exerciseId
             """)
     CodingExercise getExerciseEntityById(@Param("exerciseId") UUID exerciseId);

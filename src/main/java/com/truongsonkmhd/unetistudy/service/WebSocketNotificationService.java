@@ -9,5 +9,9 @@ public interface WebSocketNotificationService {
 
     void notifySubmissionStatus(UUID userId, UUID submissionId, String status);
 
+    void notifyRunResult(UUID userId, Object result);
+
+    void notifyRunStatus(UUID userId, java.util.UUID runId, String status);
+
     void broadcastSubmission(CodingSubmissionResponseDTO submission);
 }

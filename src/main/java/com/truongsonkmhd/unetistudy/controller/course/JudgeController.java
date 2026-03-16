@@ -48,74 +48,93 @@ public class JudgeController {
 
     @PostMapping("/run")
     public ResponseEntity<IResponseMessage> handleRunCode(@RequestBody JudgeRequestDTO request) {
-        return ResponseEntity.ok().body(ResponseMessage.CreatedSuccess(judgeService.runUserCode(request)));
+        UUID userId = UserContext.getUserID();
+        judgeService.publishRunJob(request, userId);
+        return ResponseEntity.ok().body(
+                ResponseMessage.CreatedSuccess("Yêu cầu chạy mã đã được gửi. Kết quả sẽ hiển thị qua WebSocket."));
     }
 
-//    @PostMapping("/submit")
-//    public ResponseEntity<IResponseMessage> handleSubmitCode(
-//            @RequestBody JudgeRequestDTO request) {
-//        // 1) Call judge -> nhận kết quả
-//        CodingSubmissionResponseDTO submission = judgeService.submitUserCode(request);
-//
-//        // 2) Ensure IDs (nếu judgeService chưa set)
-//        submission.setExerciseID(request.getExerciseId());
-//
-//        // 3) Load entities
-//        User userEntity = userService.findById(submission.getUserID());
-//        CodingExercise codingExercise = codingExerciseService.getExerciseEntityByID(request.getExerciseId());
-//
-//        // 4) Build entity để lưu DB (đúng theo entity CodingSubmission của UNETI)
-//        CodingSubmission codingSubmission = CodingSubmission.builder()
-//                .exercise(codingExercise)
-//                .user(userEntity)
-//                .code(submission.getCode())
-//                .language(submission.getLanguage() != null ? submission.getLanguage() : request.getLanguage())
-//                .verdict(submission.getVerdict())
-//                .passedTestcases(submission.getPassedTestcases() != null ? submission.getPassedTestcases() : 0)
-//                .totalTestcases(submission.getTotalTestcases() != null ? submission.getTotalTestcases() : 0)
-//                .runtimeMs(submission.getRuntimeMs())
-//                .memoryKb(submission.getMemoryKb())
-//                .score(submission.getScore() != null ? submission.getScore() : 0)
-//                .build();
-//
-//        CodingSubmission saved = codingSubmissionService.save(codingSubmission);
-//
-//        // 5) Trả submissionId + submittedAt về client (nếu cần)
-//        submission.setSubmittedAt(saved.getSubmittedAt());
-//
-//        // 6) Contest attempt (fix time type theo entity Attempt của bạn)
-//        AttemptInfoDTO attemptInfo = contestExerciseAttemptService
-//                .getAttemptInfoDTOByUserIDAndExerciseID(UserContext.getUserID(), request.getExerciseId(), "coding");
-//
-//        if (attemptInfo == null) {
-//            attemptInfo = new AttemptInfoDTO();
-//            attemptInfo.setAttemptNumber(0);
-//            attemptInfo.setExerciseType("coding");
-//            attemptInfo.setLessonID(codingExerciseService.getLessonIDByExerciseID(request.getExerciseId()));
-//        }
-//
-//        int currentAttempt = attemptInfo.getAttemptNumber() == null ? 0 : attemptInfo.getAttemptNumber();
-//
-//        ContestExerciseAttempt exerciseAttempt = new ContestExerciseAttempt();
-//        exerciseAttempt.setExerciseID(request.getExerciseId());
-//
-//        CourseLesson lesson = lessonService.findById(attemptInfo.getLessonID())
-//                .orElseThrow(() -> new RuntimeException("Lesson not found"));
-//        exerciseAttempt.setLesson(lesson);
-//
-//        User user = new User();
-//        user.setId(UserContext.getUserID());
-//        exerciseAttempt.setUser(user);
-//
-//        exerciseAttempt.setSubmittedAt(LocalDateTime.now());
-//
-//        exerciseAttempt.setExerciseType(attemptInfo.getExerciseType());
-//        exerciseAttempt.setAttemptNumber(currentAttempt + 1);
-//        exerciseAttempt.setScore(submission.getScore() != null ? submission.getScore().doubleValue() : 0.0);
-//
-//        contestExerciseAttemptService.save(exerciseAttempt);
-//        return ResponseEntity.ok().body(ResponseMessage.CreatedSuccess(submission));
-//    }
+    @PostMapping("/run-single")
+    public ResponseEntity<IResponseMessage> handleRunSingleTestCase(@RequestBody JudgeRequestDTO request) {
+        UUID userId = UserContext.getUserID();
+        judgeService.publishRunSingleTestCase(request, userId);
+        return ResponseEntity.ok().body(ResponseMessage
+                .CreatedSuccess("Yêu cầu chạy thử testcase đã được gửi. Kết quả sẽ hiển thị qua WebSocket."));
+    }
+
+    // @PostMapping("/submit")
+    // public ResponseEntity<IResponseMessage> handleSubmitCode(
+    // @RequestBody JudgeRequestDTO request) {
+    // // 1) Call judge -> nhận kết quả
+    // CodingSubmissionResponseDTO submission =
+    // judgeService.submitUserCode(request);
+    //
+    // // 2) Ensure IDs (nếu judgeService chưa set)
+    // submission.setExerciseID(request.getExerciseId());
+    //
+    // // 3) Load entities
+    // User userEntity = userService.findById(submission.getUserID());
+    // CodingExercise codingExercise =
+    // codingExerciseService.getExerciseEntityByID(request.getExerciseId());
+    //
+    // // 4) Build entity để lưu DB (đúng theo entity CodingSubmission của UNETI)
+    // CodingSubmission codingSubmission = CodingSubmission.builder()
+    // .exercise(codingExercise)
+    // .user(userEntity)
+    // .code(submission.getCode())
+    // .language(submission.getLanguage() != null ? submission.getLanguage() :
+    // request.getLanguage())
+    // .verdict(submission.getVerdict())
+    // .passedTestcases(submission.getPassedTestcases() != null ?
+    // submission.getPassedTestcases() : 0)
+    // .totalTestcases(submission.getTotalTestcases() != null ?
+    // submission.getTotalTestcases() : 0)
+    // .runtimeMs(submission.getRuntimeMs())
+    // .memoryKb(submission.getMemoryKb())
+    // .score(submission.getScore() != null ? submission.getScore() : 0)
+    // .build();
+    //
+    // CodingSubmission saved = codingSubmissionService.save(codingSubmission);
+    //
+    // // 5) Trả submissionId + submittedAt về client (nếu cần)
+    // submission.setSubmittedAt(saved.getSubmittedAt());
+    //
+    // // 6) Contest attempt (fix time type theo entity Attempt của bạn)
+    // AttemptInfoDTO attemptInfo = contestExerciseAttemptService
+    // .getAttemptInfoDTOByUserIDAndExerciseID(UserContext.getUserID(),
+    // request.getExerciseId(), "coding");
+    //
+    // if (attemptInfo == null) {
+    // attemptInfo = new AttemptInfoDTO();
+    // attemptInfo.setAttemptNumber(0);
+    // attemptInfo.setExerciseType("coding");
+    // attemptInfo.setLessonID(codingExerciseService.getLessonIDByExerciseID(request.getExerciseId()));
+    // }
+    //
+    // int currentAttempt = attemptInfo.getAttemptNumber() == null ? 0 :
+    // attemptInfo.getAttemptNumber();
+    //
+    // ContestExerciseAttempt exerciseAttempt = new ContestExerciseAttempt();
+    // exerciseAttempt.setExerciseID(request.getExerciseId());
+    //
+    // CourseLesson lesson = lessonService.findById(attemptInfo.getLessonID())
+    // .orElseThrow(() -> new RuntimeException("Lesson not found"));
+    // exerciseAttempt.setLesson(lesson);
+    //
+    // User user = new User();
+    // user.setId(UserContext.getUserID());
+    // exerciseAttempt.setUser(user);
+    //
+    // exerciseAttempt.setSubmittedAt(LocalDateTime.now());
+    //
+    // exerciseAttempt.setExerciseType(attemptInfo.getExerciseType());
+    // exerciseAttempt.setAttemptNumber(currentAttempt + 1);
+    // exerciseAttempt.setScore(submission.getScore() != null ?
+    // submission.getScore().doubleValue() : 0.0);
+    //
+    // contestExerciseAttemptService.save(exerciseAttempt);
+    // return ResponseEntity.ok().body(ResponseMessage.CreatedSuccess(submission));
+    // }
 
     @PostMapping("/submitMQ")
     public ResponseEntity<IResponseMessage> handleSubmitCodeMQ(@RequestBody JudgeRequestDTO request) {
@@ -205,6 +224,7 @@ public class JudgeController {
                 .exerciseTestCases(exercise.getExerciseTestCases().stream()
                         .map(tc -> ExerciseTestCasesDTO
                                 .builder()
+                                .testCaseId(tc.getTestCaseId())
                                 .input(tc.getInput())
                                 .expectedOutput(tc.getExpectedOutput())
                                 .isSample(tc.getIsSample())

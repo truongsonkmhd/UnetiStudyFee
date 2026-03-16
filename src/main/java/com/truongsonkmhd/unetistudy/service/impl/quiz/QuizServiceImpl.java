@@ -54,10 +54,16 @@ public class QuizServiceImpl implements QuizService {
                 if (!quiz.getIsPublished()) {
                         throw new RuntimeException("Quiz is not published");
                 }
+                List<UserQuizAttempt> activeAttempts = attemptRepository.findActiveAttemptsByUserAndQuiz(userId, quiz);
+                if (!activeAttempts.isEmpty()) {
+
+                        return activeAttempts.get(0);
+                }
 
                 if (quiz.getMaxAttempts() != null && quiz.getMaxAttempts() > 0) {
-                        long attemptCount = attemptRepository.countByUserIdAndQuiz(userId, quiz);
-                        if (attemptCount >= quiz.getMaxAttempts()) {
+                        long completedCount = attemptRepository.countByUserIdAndQuizAndStatus(userId, quiz,
+                                        AttemptStatus.COMPLETED);
+                        if (completedCount >= quiz.getMaxAttempts()) {
                                 throw new RuntimeException("Maximum attempts reached for this quiz ("
                                                 + quiz.getMaxAttempts() + ")");
                         }

@@ -20,6 +20,9 @@ public class JudgeRabbitConfig {
     public static final String RK_SUBMIT_RETRY = "judge.submit.retry";
     public static final String RK_SUBMIT_DLQ = "judge.submit.dlq";
 
+    public static final String QUEUE_RUN = "judge.run.queue";
+    public static final String RK_RUN = "judge.run";
+
     // retry delay (ms)
     public static final int RETRY_TTL_MS = 5000;
 
@@ -77,6 +80,16 @@ public class JudgeRabbitConfig {
     @Bean
     public Binding submitDlqBinding() {
         return BindingBuilder.bind(submitDlq()).to(judgeExchange()).with(RK_SUBMIT_DLQ);
+    }
+
+    @Bean
+    public Queue runQueue() {
+        return QueueBuilder.durable(QUEUE_RUN).build();
+    }
+
+    @Bean
+    public Binding runBinding() {
+        return BindingBuilder.bind(runQueue()).to(judgeExchange()).with(RK_RUN);
     }
 
     // JSON converter (giống bạn đã làm)

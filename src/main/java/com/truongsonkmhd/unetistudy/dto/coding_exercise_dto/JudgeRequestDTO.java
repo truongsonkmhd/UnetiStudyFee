@@ -16,4 +16,6 @@ public class JudgeRequestDTO {
     String sourceCode;
     String language;
     UUID exerciseId;
+    String testCaseInput;
+    String testCaseId;
 }

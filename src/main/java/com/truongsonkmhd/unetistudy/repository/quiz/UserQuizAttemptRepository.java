@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import com.truongsonkmhd.unetistudy.common.AttemptStatus;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,6 +19,8 @@ public interface UserQuizAttemptRepository extends JpaRepository<UserQuizAttempt
             @Param("quiz") Quiz quiz);
 
     long countByUserIdAndQuiz(UUID userId, Quiz quiz);
+
+    long countByUserIdAndQuizAndStatus(UUID userId, Quiz quiz, AttemptStatus status);
 
     @Query("SELECT a FROM UserQuizAttempt a WHERE a.userId = :userId AND a.quiz = :quiz AND a.status = 'IN_PROGRESS'")
     List<UserQuizAttempt> findActiveAttemptsByUserAndQuiz(UUID userId, Quiz quiz);

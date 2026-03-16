@@ -14,6 +14,7 @@ import com.truongsonkmhd.unetistudy.model.lesson.CodingSubmission;
 import com.truongsonkmhd.unetistudy.model.lesson.ContestExerciseAttempt;
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.CourseLesson;
 import com.truongsonkmhd.unetistudy.dto.judge_rabbit_mq.JudgeInternalResult;
+import com.truongsonkmhd.unetistudy.dto.judge_rabbit_mq.JudgeRunMessage;
 import com.truongsonkmhd.unetistudy.dto.judge_rabbit_mq.JudgeSubmitMessage;
 import com.truongsonkmhd.unetistudy.repository.coding.ExerciseTestCaseRepository;
 import com.truongsonkmhd.unetistudy.service.*;
@@ -22,6 +23,7 @@ import com.truongsonkmhd.unetistudy.strategy.coding.LanguageRunnerFactory;
 import com.truongsonkmhd.unetistudy.utils.DockerCodeExecutionUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +73,46 @@ public class JudgeServiceImpl implements JudgeService {
 
         log.info("Published judge job: submissionId={}, exerciseId={}",
                 saved.getSubmissionId(), saved.getExercise().getExerciseId());
+    }
+
+    @Override
+    public void publishRunJob(JudgeRequestDTO request, UUID userId) {
+        JudgeRunMessage msg = JudgeRunMessage.builder()
+                .runId(UUID.randomUUID())
+                .exerciseId(request.getExerciseId())
+                .userId(userId)
+                .code(request.getSourceCode())
+                .language(request.getLanguage())
+                .createdAt(Instant.now())
+                .build();
+
+        rabbitTemplate.convertAndSend(
+                JudgeRabbitConfig.JUDGE_EXCHANGE,
+                JudgeRabbitConfig.RK_RUN,
+                msg);
+
+        log.info("Published run job: userId={}, exerciseId={}", userId, request.getExerciseId());
+    }
+
+    @Override
+    public void publishRunSingleTestCase(JudgeRequestDTO request, UUID userId) {
+        JudgeRunMessage msg = JudgeRunMessage.builder()
+                .runId(UUID.randomUUID())
+                .exerciseId(request.getExerciseId())
+                .userId(userId)
+                .code(request.getSourceCode())
+                .language(request.getLanguage())
+                .testCaseInput(request.getTestCaseInput())
+                .testCaseId(request.getTestCaseId())
+                .createdAt(Instant.now())
+                .build();
+
+        rabbitTemplate.convertAndSend(
+                JudgeRabbitConfig.JUDGE_EXCHANGE,
+                JudgeRabbitConfig.RK_RUN,
+                msg);
+
+        log.info("Published single run job: userId={}, exerciseId={}", userId, request.getExerciseId());
     }
 
     @Override
@@ -132,7 +174,7 @@ public class JudgeServiceImpl implements JudgeService {
         Integer runtimeMs = null;
         Integer memoryKb = null;
 
-        SubmissionVerdict verdict = SubmissionVerdict.PENDING;
+        SubmissionVerdict verdict;
         String message = null;
 
         try {
@@ -198,7 +240,7 @@ public class JudgeServiceImpl implements JudgeService {
     }
 
     @Override
-    public JudgeRunResponseDTO runUserCode(JudgeRequestDTO request) {
+    public JudgeRunResponseDTO runUserCode(@NonNull JudgeRequestDTO request) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
         String folderName = "run-" + request.getExerciseId() + "-" + timestamp;
         Path workingDir = hostBaseDir().resolve(folderName);
@@ -262,88 +304,97 @@ public class JudgeServiceImpl implements JudgeService {
     }
 
     @Override
-    @Deprecated
-    public CodingSubmissionResponseDTO submitUserCode(JudgeRequestDTO request) {
-        Set<ExerciseTestCasesDTO> exerciseTestCases = getListExerciseTestCase(request.getExerciseId());
-
-        String userName = safeFilePart(UserContext.getUsername());
-        UUID userId = userService.findUserIDByUserName(userName);
-
+    public JudgeRunResponseDTO runSingleTestCase(JudgeRequestDTO request) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
-        String folderName = userName + "-ex" + request.getExerciseId() + "-" + timestamp;
-
+        String folderName = "single-" + request.getExerciseId() + "-" + timestamp;
         Path workingDir = hostBaseDir().resolve(folderName);
 
-        int passed = 0;
-        int total = (exerciseTestCases == null) ? 0 : exerciseTestCases.size();
-        int score = 0;
-
-        Integer runtimeMs = null;
-        Integer memoryKb = null;
-
-        SubmissionVerdict verdict = SubmissionVerdict.PENDING;
-
         try {
-
             Files.createDirectories(hostBaseDir());
             Files.createDirectories(workingDir);
 
             LanguageRunner runner = runnerFactory.getRunnerOrThrow(request.getLanguage());
             Path sourceFile = workingDir.resolve(runner.getSourceFileName());
+
             Files.writeString(sourceFile, request.getSourceCode());
 
             dockerCodeExecutionUtil.compileInContainer(workingDir, request.getLanguage());
 
-            if (total == 0) {
-                dockerCodeExecutionUtil.runInContainer(workingDir, request.getLanguage(), "");
-                verdict = SubmissionVerdict.ACCEPTED;
-                score = 0;
-            } else {
-                boolean allPassed = true;
+            String userProvidedInput = safeString(request.getTestCaseInput()).trim();
+            String inputToUse = userProvidedInput;
+            String expectedOutput = "";
+            boolean isKnownTestCase = false;
 
-                for (ExerciseTestCasesDTO tc : exerciseTestCases) {
-                    String outputRun = dockerCodeExecutionUtil.runInContainer(
-                            workingDir,
-                            request.getLanguage(),
-                            safeString(tc.getInput()));
+            // 1. Tìm Expected Output và Verify Input từ Database
+            Set<ExerciseTestCasesDTO> testCases = getListExerciseTestCase(request.getExerciseId());
+            if (testCases != null) {
+                for (ExerciseTestCasesDTO tc : testCases) {
+                    boolean matchById = request.getTestCaseId() != null
+                            && tc.getTestCaseId() != null
+                            && tc.getTestCaseId().toString().equals(request.getTestCaseId());
+                    boolean matchByInput = userProvidedInput.equals(safeString(tc.getInput()).trim());
 
-                    String expected = safeTrim(tc.getExpectedOutput());
-                    String actual = safeTrim(outputRun);
-
-                    boolean ok = expected.equals(actual);
-                    if (!ok) {
-                        allPassed = false;
-                    } else {
-                        passed++;
-                        score += (tc.getScore() != null ? tc.getScore() : 0);
+                    if (matchById || matchByInput) {
+                        expectedOutput = safeTrim(tc.getExpectedOutput());
+                        inputToUse = safeString(tc.getInput()).trim();
+                        isKnownTestCase = true;
+                        break;
                     }
                 }
-
-                verdict = allPassed ? SubmissionVerdict.ACCEPTED : SubmissionVerdict.WRONG_ANSWER;
             }
 
+            // 2. Chạy Code lần đầu với test case đã chọn
+            String outputRun = dockerCodeExecutionUtil.runInContainer(workingDir, request.getLanguage(), inputToUse);
+            String actual = safeTrim(outputRun);
+
+            // 3. Kiểm tra kết quả ban đầu
+            boolean passed = isKnownTestCase && expectedOutput.equals(actual);
+
+            String verdict = passed ? "ACCEPTED" : (isKnownTestCase ? "WRONG_ANSWER" : "SUCCESS");
+            String statusLabel = passed ? "Vượt qua (Passed)"
+                    : (isKnownTestCase ? "Sai kết quả (Wrong Answer)" : "Thực thi thành công");
+
+            String summary = statusLabel + "\n" +
+                    "Đầu vào lọc: " + inputToUse + "\n" +
+                    "Mong đợi: " + (isKnownTestCase ? expectedOutput : "(Tùy chỉnh)") + "\n" +
+                    "Thực tế: " + actual;
+
+            return new JudgeRunResponseDTO(actual, verdict, summary);
+
         } catch (DockerCodeExecutionUtil.CompilationException e) {
-            verdict = SubmissionVerdict.COMPILATION_ERROR;
-        } catch (IOException | InterruptedException | RuntimeException e) {
-            verdict = SubmissionVerdict.RUNTIME_ERROR;
+            return new JudgeRunResponseDTO(e.getOutput(), "COMPILATION_ERROR", "Lỗi biên dịch: \n" + e.getOutput());
+        } catch (IOException | InterruptedException e) {
+            return new JudgeRunResponseDTO("", "ERROR", "Lỗi hệ thống: " + e.getMessage());
+        } catch (RuntimeException e) {
+            return new JudgeRunResponseDTO("", "RUNTIME_ERROR", "Lỗi thực thi: " + e.getMessage());
         } finally {
             try {
                 DockerCodeExecutionUtil.deleteDirectoryRecursively(workingDir);
             } catch (Exception ignored) {
             }
         }
+    }
+
+    @Override
+    @Deprecated
+    public CodingSubmissionResponseDTO submitUserCode(JudgeRequestDTO request) {
+        log.info("Submitting user code via consolidated judgeCode method");
+        JudgeInternalResult result = judgeCode(request);
+
+        String userName = safeFilePart(UserContext.getUsername());
+        UUID userId = userService.findUserIDByUserName(userName);
 
         return CodingSubmissionResponseDTO.builder()
                 .exerciseID(request.getExerciseId())
                 .userID(userId)
                 .code(request.getSourceCode())
                 .language(request.getLanguage())
-                .verdict(verdict)
-                .passedTestcases(passed)
-                .totalTestcases(total)
-                .runtimeMs(runtimeMs)
-                .memoryKb(memoryKb)
-                .score(score)
+                .verdict(result.getVerdict())
+                .passedTestcases(result.getPassed())
+                .totalTestcases(result.getTotal())
+                .runtimeMs(result.getRuntimeMs())
+                .memoryKb(result.getMemoryKb())
+                .score(result.getScore())
                 .submittedAt(Instant.now())
                 .build();
     }
