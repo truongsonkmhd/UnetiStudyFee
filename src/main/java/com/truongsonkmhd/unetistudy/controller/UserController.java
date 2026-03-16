@@ -100,4 +100,13 @@ public class UserController {
         return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(userService.changePassword(request)));
     }
 
+    @Operation(summary = "Promote to Teacher", description = "API promote a student to a teacher role")
+    @PostMapping("/promote-teacher/{userId}")
+    ResponseEntity<IResponseMessage> promoteToTeacher(@PathVariable UUID userId,
+            @RequestBody com.truongsonkmhd.unetistudy.dto.user_dto.TeacherPromotionRequest request) {
+        log.info("Promoting user {} to teacher", userId);
+        userService.promoteToTeacher(userId, request.getTeacherId(), request.getDepartment());
+        return ResponseEntity.ok().body(ResponseMessage.UpdatedSuccess("User promoted to teacher successfully"));
+    }
+
 }

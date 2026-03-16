@@ -10,8 +10,10 @@ import com.truongsonkmhd.unetistudy.mapper.user.UserResponseMapper;
 import com.truongsonkmhd.unetistudy.mapper.user.UserUpdateRequestMapper;
 import com.truongsonkmhd.unetistudy.model.Role;
 import com.truongsonkmhd.unetistudy.model.User;
+import com.truongsonkmhd.unetistudy.model.TeacherProfile;
 import com.truongsonkmhd.unetistudy.repository.auth.RoleRepository;
 import com.truongsonkmhd.unetistudy.repository.UserRepository;
+import com.truongsonkmhd.unetistudy.repository.TeacherProfileRepository;
 import com.truongsonkmhd.unetistudy.security.MyUserDetail;
 import com.truongsonkmhd.unetistudy.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +54,7 @@ public class UserServiceImpl implements UserService {
     private final UserResponseMapper userResponseMapper;
     private final UserRequestMapper userRequestMapper;
     private final UserUpdateRequestMapper userUpdateRequestMapper;
+    private final TeacherProfileRepository teacherProfileRepository;
 
     @Override
     public UserDetailsService userDetailsService() {
@@ -273,5 +276,33 @@ public class UserServiceImpl implements UserService {
     @Override
     public UUID findUserIDByUserName(String userName) {
         return userRepository.getUserIDByUserName(userName);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConstants.USER_BY_ID, key = "#userId"),
+            @CacheEvict(cacheNames = CacheConstants.USER_BY_ID, key = "'entity:' + #userId"),
+            @CacheEvict(cacheNames = CacheConstants.USER_BY_USERNAME, allEntries = true)
+    })
+    public void promoteToTeacher(UUID userId, String teacherId, String department) {
+        User user = getUserEntityNoCache(userId);
+
+        // 1. Thêm Role giáo viên
+        Role teacherRole = roleRepository.findByCode(UserType.TEACHER.getValue())
+                .orElseThrow(() -> new ResourceNotFoundException("Role TEACHER not found"));
+        user.getRoles().add(teacherRole);
+
+        // 2. Tạo Profile giáo viên
+        TeacherProfile profile = TeacherProfile.builder()
+                .teacherId(teacherId)
+                .department(department)
+                .user(user)
+                .build();
+
+        teacherProfileRepository.save(profile);
+        userRepository.save(user);
+
+        log.info("User {} has been promoted to TEACHER with ID: {}", userId, teacherId);
     }
 }
