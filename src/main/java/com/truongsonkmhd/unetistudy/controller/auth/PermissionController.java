@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PermissionController {
 
-    PermissionService permissionService;
+    private final PermissionService permissionService;
 
     @PostMapping("/create")
     ResponseEntity<IResponseMessage> create(@RequestBody PermissionRequest request) {
