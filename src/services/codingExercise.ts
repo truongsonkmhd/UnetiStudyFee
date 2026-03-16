@@ -351,6 +351,18 @@ You can return the answer in any order.`,
             sourceCode,
             language: language.toLowerCase(),
         }),
+
+    /**
+     * Run code against a single specific test case by its input
+     */
+    runSingleTestCase: (exerciseId: string, sourceCode: string, language: string, testCaseInput: string, testCaseId?: string): Promise<any> =>
+        apiService.post<any>('/judge/run-single', {
+            exerciseId,
+            sourceCode,
+            language: language.toLowerCase(),
+            testCaseInput,
+            testCaseId,
+        }),
 };
 
 // ===== Helper Functions =====

@@ -12,6 +12,7 @@ import historyTestIcon from "@/assets/ic/ic_history_test.png";
 import smartIcon from "@/assets/ic/ic_smart.png";
 import settingIcon from "@/assets/ic/ic_setting.png";
 import chatboxCuImg from "@/assets/img/chatboxcu.png";
+import emptyIcon from "@/assets/ic/ic_empty.png";
 
 export {
   logoIcon,
@@ -28,4 +29,5 @@ export {
   smartIcon,
   settingIcon,
   chatboxCuImg,
+  emptyIcon,
 };

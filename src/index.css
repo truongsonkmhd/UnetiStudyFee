@@ -138,7 +138,7 @@ All colors MUST be HSL. Inspired by modern construction/engineering aesthetics.
 
 @layer base {
   html {
-    font-size: 19px;
+    font-size: 21px;
   }
 
   * {

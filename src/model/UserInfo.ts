@@ -12,6 +12,8 @@ export interface UserInfo {
   username: string;
   classId: string;
   studentId: string | null;
+  teacherId?: string | null;
+  department?: string | null;
   contactAddress: string | null;
   currentResidence: string | null;
 }

@@ -4,6 +4,8 @@ import { ClazzResponse } from '@/model/class/ClazzResponse';
 import classService from '@/services/classService';
 import classContestService from '@/services/classContestService';
 import { actionAuth } from '@/components/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { ClassContestResponse } from '@/model/class-contest/ClassContestResponse';
 import AddContestModal from './components/AddContestModal';
@@ -200,28 +202,34 @@ const ClassManagementDashboard = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b border-border sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Quản lý lớp học </h1>
-              <p className="text-sm text-muted-foreground mt-1">Quản lý lớp học và bài thi của bạn</p>
-            </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
-            >
-              <Plus className="w-4 h-4" />
-              Thêm lớp học
-            </button>
+    <div className="min-h-screen bg-background pb-12">
+      <div className="max-w-[2000px] mx-auto px-6 py-8 space-y-10">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        >
+          <div className="space-y-1">
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+              Quản lý Lớp học
+            </h1>
+            <p className="text-muted-foreground font-medium flex items-center gap-2">
+              <Users size={16} />
+              Quản lý danh sách lớp học và bài thi của bạn
+            </p>
           </div>
-        </div>
-      </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
+          >
+            <Plus size={20} />
+            Thêm lớp học
+          </button>
+        </motion.div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* Search & Filter Bar */}
+
         <div className="bg-card rounded-xl shadow-sm border border-border p-4 mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
@@ -615,9 +623,6 @@ const ClassManagementDashboard = () => {
         onSuccess={() => selectedClass?.classId && fetchClassContests(selectedClass.classId)}
       />
     </div>
-
-
-
   );
 };
 

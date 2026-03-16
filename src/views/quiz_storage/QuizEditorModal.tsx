@@ -312,7 +312,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
           {/* Quiz Basic Info */}
           <div className="space-y-6 mb-8 bg-muted/10 p-6 rounded-3xl border border-border/50">
             <div>
-              <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+              <label className="block text-sm font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
                 Tên mẫu <span className="text-destructive">*</span>
               </label>
               <input
@@ -325,7 +325,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+              <label className="block text-sm font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
                 Mô tả
               </label>
               <textarea
@@ -339,7 +339,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                <label className="block text-sm font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
                   Danh mục <span className="text-destructive">*</span>
                 </label>
                 <input
@@ -351,7 +351,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                <label className="block text-sm font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
                   Điểm đạt (%)
                 </label>
                 <input
@@ -364,7 +364,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                <label className="block text-sm font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
                   Số lượt làm tối đa
                 </label>
                 <input
@@ -420,7 +420,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
               </div>
               <div>
                 <p className="text-foreground font-bold tracking-wide">Chưa có câu hỏi nào</p>
-                <p className="text-muted-foreground text-sm uppercase tracking-tighter font-black opacity-60">Nhấn "Thêm câu hỏi" để bắt đầu</p>
+                <p className="text-muted-foreground text-base uppercase tracking-tighter font-black opacity-60">Nhấn "Thêm câu hỏi" để bắt đầu</p>
               </div>
             </div>
           )}
@@ -442,7 +442,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 bg-muted/50 px-2.5 py-1 rounded-lg">
+                    <span className="text-[15px] font-black uppercase tracking-widest text-muted-foreground/50 bg-muted/50 px-2.5 py-1 rounded-lg">
                       {question.answers.length} options
                     </span>
                     {expandedQuestion === qIdx ? (
@@ -457,7 +457,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
                   <div className="p-6 border-t border-border/50">
                     <div className="space-y-6 mb-8">
                       <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                        <label className="block text-[14px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
                           Nội dung câu hỏi <span className="text-destructive">*</span>
                         </label>
                         <textarea
@@ -471,7 +471,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                          <label className="block text-[15px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
                             Thời gian làm (giây)
                           </label>
                           <input
@@ -483,7 +483,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+                          <label className="block text-[15px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
                             Điểm số
                           </label>
                           <input
@@ -500,12 +500,12 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
 
                     <div className="mb-6">
                       <div className="flex justify-between items-center mb-4">
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-primary ml-1">
+                        <label className="block text-[15px] font-black uppercase tracking-widest text-primary ml-1">
                           Danh sách đáp án (Tick để chọn đúng)
                         </label>
                         <button
                           onClick={() => addAnswer(qIdx)}
-                          className="flex items-center gap-1.5 text-xs font-black px-4 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-xl hover:bg-primary/20 transition-all"
+                          className="flex items-center gap-1.5 text-sm font-black px-4 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-xl hover:bg-primary/20 transition-all"
                         >
                           <Plus className="w-4 h-4" />
                           Thêm phương án
@@ -528,7 +528,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
                                 <Circle className="w-6 h-6" />
                               )}
                             </button>
-                            <span className={`text-xs font-black w-8 text-center px-1 py-1 rounded-md transition-colors ${answer.isCorrect ? 'bg-emerald-500/10 text-emerald-500' : 'text-muted-foreground'}`}>
+                            <span className={`text-sm font-black w-8 text-center px-1 py-1 rounded-md transition-colors ${answer.isCorrect ? 'bg-emerald-500/10 text-emerald-500' : 'text-muted-foreground'}`}>
                               {String.fromCharCode(65 + aIdx)}
                             </span>
                             <div className="flex-1 relative">
@@ -556,7 +556,7 @@ const QuizEditorModal: React.FC<QuizEditorModalProps> = ({
                     <div className="flex justify-end pt-6 border-t border-border mt-6">
                       <button
                         onClick={() => deleteQuestion(qIdx)}
-                        className="flex items-center gap-2 px-6 py-2.5 text-destructive font-black text-xs uppercase tracking-widest hover:bg-destructive/10 rounded-xl transition-all"
+                        className="flex items-center gap-2 px-6 py-2.5 text-destructive font-black text-sm uppercase tracking-widest hover:bg-destructive/10 rounded-xl transition-all"
                       >
                         <Trash2 className="w-4 h-4" />
                         Xóa câu hỏi

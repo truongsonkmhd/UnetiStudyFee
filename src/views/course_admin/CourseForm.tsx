@@ -320,7 +320,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                             `}>
                   {isCompleted ? <CheckCircle2 className="h-6 w-6" /> : <Icon className="h-6 w-6" />}
                 </div>
-                <span className={`text-[11px] font-black uppercase tracking-widest hidden sm:block ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                <span className={`text-[13px] font-black uppercase tracking-widest hidden sm:block ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
                   {section.label}
                 </span>
 
@@ -350,13 +350,13 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
       {activeSection === 'basic' && (
         <div className="space-y-6 rounded-3xl border border-border bg-card p-8 shadow-sm animate-in fade-in slide-in-from-bottom-6 duration-500">
           <div className="space-y-1">
-            <h2 className="text-2xl font-black text-foreground tracking-tight">Cơ sở dữ liệu khóa học</h2>
-            <p className="text-sm text-muted-foreground italic">Vui lòng điền thông tin định danh và thuộc tính cơ bản của học phần.</p>
+            <h2 className="text-3xl font-black text-foreground tracking-tight">Cơ sở dữ liệu khóa học</h2>
+            <p className="text-base text-muted-foreground italic">Vui lòng điền thông tin định danh và thuộc tính cơ bản của học phần.</p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-2">
             <div className="md:col-span-2 space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Tiêu đề khóa học <span className="text-destructive">*</span></label>
+              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground">Tiêu đề khóa học <span className="text-destructive">*</span></label>
               <input
                 type="text"
                 name="title"
@@ -369,7 +369,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
             </div>
 
             <div className="md:col-span-2 space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Mô tả tóm tắt <span className="text-destructive">*</span></label>
+              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground">Mô tả tóm tắt <span className="text-destructive">*</span></label>
               <textarea
                 name="shortDescription"
                 value={formData.shortDescription}
@@ -389,7 +389,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Chuyên mục <span className="text-destructive">*</span></label>
+              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground">Chuyên mục <span className="text-destructive">*</span></label>
               <select
                 name="category"
                 value={formData.category}
@@ -407,7 +407,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Tiểu mục </label>
+              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground">Tiểu mục </label>
               <input
                 type="text"
                 name="subCategory"
@@ -419,7 +419,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
             </div>
 
             <div className="md:col-span-2 space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Cấp độ tiếp cận <span className="text-destructive">*</span></label>
+              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground">Cấp độ tiếp cận <span className="text-destructive">*</span></label>
               <select
                 name="level"
                 value={formData.level}
@@ -434,7 +434,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Ảnh bìa </label>
+              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground">Ảnh bìa </label>
               <div className="relative flex min-h-[160px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-muted/50 transition-all hover:border-primary hover:bg-primary/5 group overflow-hidden">
                 <input
                   type="file"
@@ -468,7 +468,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                 <Video className="h-3 w-3" />
                 YouTube URL giới thiệu (Trailer)
               </label>
@@ -495,13 +495,13 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-500">
           <div className="flex items-center justify-between gap-4 rounded-3xl bg-foreground p-8 shadow-xl">
             <div className="space-y-1">
-              <h3 className="text-2xl font-black text-background italic tracking-tight">Thiết kế chương trình giảng dạy</h3>
-              <p className="text-xs font-medium text-background/60">Thiết lập cấu trúc chương và bài giảng chi tiết.</p>
+              <h3 className="text-3xl font-black text-background italic tracking-tight">Thiết kế chương trình giảng dạy</h3>
+              <p className="text-sm font-medium text-background/60">Thiết lập cấu trúc chương và bài giảng chi tiết.</p>
             </div>
             <button
               type="button"
               onClick={addModule}
-              className="flex items-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-sm font-black text-primary-foreground transition-all hover:bg-primary/90 hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+              className="flex items-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-base font-black text-primary-foreground transition-all hover:bg-primary/90 hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
             >
               <Plus className="h-5 w-5" />
               Tạo chương mới
@@ -530,14 +530,14 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                       type="text"
                       value={module.title}
                       onChange={(e) => updateModule(mIdx, { title: e.target.value })}
-                      className="flex-1 bg-transparent text-lg font-black tracking-tight text-slate-900 focus:outline-none"
+                      className="flex-1 bg-transparent text-xl font-black tracking-tight text-slate-900 focus:outline-none"
                       placeholder="Chapter Title..."
                     />
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
                         onClick={() => addLesson(mIdx)}
-                        className="flex items-center gap-2 rounded-xl bg-card border border-border px-3 py-2 text-xs font-black text-primary shadow-sm transition-all hover:bg-primary hover:text-primary-foreground hover:scale-105"
+                        className="flex items-center gap-2 rounded-xl bg-card border border-border px-3 py-2 text-sm font-black text-primary shadow-sm transition-all hover:bg-primary hover:text-primary-foreground hover:scale-105"
                       >
                         <Plus className="h-4 w-4" />
                         LESSON
@@ -563,21 +563,21 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                         <div key={lIdx} className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 transition-all hover:shadow-md hover:border-primary/20">
                           <div className="flex items-center gap-4">
                             <GripVertical className="h-4 w-4 text-muted-foreground/30 cursor-grab active:cursor-grabbing" />
-                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-muted text-[10px] font-black text-muted-foreground">
+                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-muted text-[12px] font-black text-muted-foreground">
                               {lIdx + 1}
                             </div>
                             <input
                               type="text"
                               value={lesson.title}
                               onChange={(e) => updateLesson(mIdx, lIdx, { title: e.target.value })}
-                              className="flex-1 bg-transparent text-sm font-black text-foreground focus:outline-none placeholder:text-muted-foreground/30"
+                              className="flex-1 bg-transparent text-base font-black text-foreground focus:outline-none placeholder:text-muted-foreground/30"
                               placeholder="Lesson Name..."
                             />
                             <div className="flex items-center gap-2">
                               <select
                                 value={lesson.lessonType}
                                 onChange={(e) => updateLesson(mIdx, lIdx, { lessonType: e.target.value as LessonType })}
-                                className="rounded-xl border border-border bg-muted/50 px-3 py-1.5 text-[10px] font-black uppercase text-muted-foreground outline-none transition-all focus:border-primary"
+                                className="rounded-xl border border-border bg-muted/50 px-3 py-1.5 text-[12px] font-black uppercase text-muted-foreground outline-none transition-all focus:border-primary"
                               >
                                 <option value={LessonType.VIDEO}>Video bài giảng</option>
                                 <option value={LessonType.CODE}>Lập trình (CODE)</option>
@@ -600,7 +600,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                           <div className="ml-14 space-y-4">
                             {(lesson.lessonType.includes('VIDEO') || lesson.lessonType === LessonType.ALL) && (
                               <div className="flex flex-col gap-2 p-4 rounded-2xl bg-muted/50 border border-border">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 flex items-center gap-2">
+                                <label className="text-[13px] font-black uppercase tracking-widest text-muted-foreground/60 flex items-center gap-2">
                                   <Video className="h-3 w-3" />
                                   YouTube Video URL bài giảng
                                 </label>
@@ -623,11 +623,11 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                             {(lesson.lessonType.includes('CODE') || lesson.lessonType === LessonType.ALL) && (
                               <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Bài tập lập trình</span>
+                                  <span className="text-[13px] font-black uppercase tracking-widest text-muted-foreground">Bài tập lập trình</span>
                                   <button
                                     type="button"
                                     onClick={() => setSelectorConfig({ type: 'CODE', mIdx, lIdx, selectedIds: lesson.exerciseTemplateIds || [] })}
-                                    className="flex items-center gap-2 rounded-xl bg-card border border-primary/20 px-4 py-2 text-[10px] font-black text-primary transition-all hover:bg-primary hover:text-primary-foreground shadow-sm active:scale-95"
+                                    className="flex items-center gap-2 rounded-xl bg-card border border-primary/20 px-4 py-2 text-[13px] font-black text-primary transition-all hover:bg-primary hover:text-primary-foreground shadow-sm active:scale-95"
                                   >
                                     <Plus className="h-3.5 w-3.5" /> CHỌN BÀI TẬP
                                   </button>
@@ -641,8 +641,8 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                                             <Trophy className="h-4 w-4 text-primary" />
                                           </div>
                                           <div className="min-w-0">
-                                            <p className="text-[10px] font-black text-foreground truncate uppercase tracking-tighter">{template.title}</p>
-                                            <p className="text-[9px] font-bold text-muted-foreground/60 italic">Mẫu bài tập lập trình</p>
+                                            <p className="text-[13px] font-black text-foreground truncate uppercase tracking-tighter">{template.title}</p>
+                                            <p className="text-[11px] font-bold text-muted-foreground/60 italic">Mẫu bài tập lập trình</p>
                                           </div>
                                         </div>
                                         <button
@@ -676,12 +676,12 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <HelpCircle className="h-4 w-4 text-amber-500" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Bộ câu hỏi trắc nghiệm</span>
+                                    <span className="text-[13px] font-black uppercase tracking-widest text-muted-foreground">Bộ câu hỏi trắc nghiệm</span>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() => setSelectorConfig({ type: 'QUIZ', mIdx, lIdx, selectedIds: lesson.quizTemplateIds || [] })}
-                                    className="flex items-center gap-2 rounded-xl bg-card border border-amber-500/20 px-4 py-2 text-[10px] font-black text-amber-500 transition-all hover:bg-amber-500 hover:text-white shadow-sm active:scale-95"
+                                    className="flex items-center gap-2 rounded-xl bg-card border border-amber-500/20 px-4 py-2 text-[13px] font-black text-amber-500 transition-all hover:bg-amber-500 hover:text-white shadow-sm active:scale-95"
                                   >
                                     <Plus className="h-3.5 w-3.5" /> CHỌN TRẮC NGHIỆM
                                   </button>
@@ -695,8 +695,8 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                                             <HelpCircle className="h-4 w-4 text-amber-500" />
                                           </div>
                                           <div className="min-w-0">
-                                            <p className="text-[10px] font-black text-foreground truncate uppercase tracking-tighter">{template.title}</p>
-                                            <p className="text-[9px] font-bold text-muted-foreground/60 italic">Mẫu trắc nghiệm</p>
+                                            <p className="text-[13px] font-black text-foreground truncate uppercase tracking-tighter">{template.title}</p>
+                                            <p className="text-[11px] font-bold text-muted-foreground/60 italic">Mẫu trắc nghiệm</p>
                                           </div>
                                         </div>
                                         <button
@@ -726,7 +726,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                             {/* Description & Content */}
                             <div className="grid gap-4 md:grid-cols-2">
                               <div className="space-y-1">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Mô tả ngắn bài học</label>
+                                <label className="text-[13px] font-black uppercase tracking-widest text-muted-foreground/60">Mô tả ngắn bài học</label>
                                 <textarea
                                   value={lesson.description || ''}
                                   onChange={(e) => updateLesson(mIdx, lIdx, { description: e.target.value })}
@@ -736,7 +736,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Nội dung chi tiết (Markdown)</label>
+                                <label className="text-[13px] font-black uppercase tracking-widest text-muted-foreground/60">Nội dung chi tiết (Markdown)</label>
                                 <textarea
                                   value={lesson.content || ''}
                                   onChange={(e) => updateLesson(mIdx, lIdx, { content: e.target.value })}
@@ -748,7 +748,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                             </div>
 
                             <div className="flex flex-wrap items-center gap-6 pt-2">
-                              <label className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground cursor-pointer group">
+                              <label className="flex items-center gap-3 text-[14px] font-black uppercase tracking-widest text-muted-foreground cursor-pointer group">
                                 <input
                                   type="checkbox"
                                   checked={lesson.isPreview}
@@ -758,7 +758,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                                 <span className="group-hover:text-foreground">Xem thử (Preview)</span>
                               </label>
 
-                              <label className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground cursor-pointer group">
+                              <label className="flex items-center gap-3 text-[14px] font-black uppercase tracking-widest text-muted-foreground cursor-pointer group">
                                 <input
                                   type="checkbox"
                                   checked={lesson.isPublished}
@@ -783,8 +783,8 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
       {activeSection === 'extra' && (
         <div className="space-y-8 rounded-[2.5rem] border border-border bg-card p-10 shadow-sm animate-in fade-in slide-in-from-bottom-6 duration-500">
           <div className="space-y-1">
-            <h2 className="text-2xl font-black text-foreground tracking-tight">Kỳ vọng & Mô tả chi tiết</h2>
-            <p className="text-sm text-muted-foreground italic">Mô tả chi tiết những gì học viên sẽ học và các yêu cầu tiên quyết.</p>
+            <h2 className="text-3xl font-black text-foreground tracking-tight">Kỳ vọng & Mô tả chi tiết</h2>
+            <p className="text-base text-muted-foreground italic">Mô tả chi tiết những gì học viên sẽ học và các yêu cầu tiên quyết.</p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-2">
@@ -800,7 +800,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
               />
             </div>
             <div className="md:col-span-2 space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground italic">Yêu cầu tham gia (Requirements)</label>
+              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground italic">Yêu cầu tham gia (Requirements)</label>
               <textarea
                 name="requirements"
                 value={formData.requirements}
@@ -813,7 +813,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
           </div>
 
           <div className="space-y-2">
-            <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground italic">Mục tiêu học tập (Objectives)</label>
+            <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground italic">Mục tiêu học tập (Objectives)</label>
             <textarea
               name="objectives"
               value={formData.objectives}
@@ -825,7 +825,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
           </div>
 
           <div className="space-y-2">
-            <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground italic">Đề cương chi tiết (Markdown)</label>
+            <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground italic">Đề cương chi tiết (Markdown)</label>
             <textarea
               name="syllabus"
               value={formData.syllabus}
@@ -855,7 +855,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
 
           <div className="grid gap-12 md:grid-cols-2 mt-8">
             <div className="space-y-3">
-              <label className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">Trạng thái quản lý</label>
+              <label className="text-[14px] font-black uppercase tracking-[0.2em] text-primary">Trạng thái quản lý</label>
               <select
                 name="status"
                 value={formData.status}
@@ -881,7 +881,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-xl font-bold group-hover:text-emerald-400 transition-colors text-foreground">Công khai ngay!</span>
-                  <span className="text-xs text-muted-foreground italic">Kích hoạt để người học có thể tìm thấy khóa học này.</span>
+                  <span className="text-sm text-muted-foreground italic">Kích hoạt để người học có thể tìm thấy khóa học này.</span>
                 </div>
               </label>
             </div>
@@ -897,7 +897,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
               <button
                 type="button"
                 onClick={onCancel}
-                className="rounded-full px-8 py-3.5 text-xs font-black uppercase tracking-widest text-background/60 transition-all hover:text-background hover:bg-background/10"
+                className="rounded-full px-8 py-3.5 text-sm font-black uppercase tracking-widest text-background/60 transition-all hover:text-background hover:bg-background/10"
                 disabled={loading}
               >
                 Hủy thay đổi
@@ -909,7 +909,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="flex items-center gap-2 rounded-full border border-background/10 bg-background/5 px-8 py-3.5 text-xs font-black uppercase tracking-widest text-background transition-all hover:bg-background/10 active:scale-95"
+                  className="flex items-center gap-2 rounded-full border border-background/10 bg-background/5 px-8 py-3.5 text-sm font-black uppercase tracking-widest text-background transition-all hover:bg-background/10 active:scale-95"
                   disabled={loading}
                 >
                   <ChevronDown className="h-4 w-4 rotate-90" />
@@ -921,7 +921,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="flex items-center gap-2 rounded-full bg-background px-10 py-3.5 text-xs font-black uppercase tracking-widest text-foreground shadow-xl transition-all hover:bg-muted hover:scale-105 active:scale-95"
+                  className="flex items-center gap-2 rounded-full bg-background px-10 py-3.5 text-sm font-black uppercase tracking-widest text-foreground shadow-xl transition-all hover:bg-muted hover:scale-105 active:scale-95"
                 >
                   Tiếp tục
                   <ChevronDown className="h-4 w-4 -rotate-90" />
@@ -930,7 +930,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex items-center gap-3 rounded-full bg-emerald-500 px-12 py-3.5 text-xs font-black uppercase tracking-widest text-white shadow-xl shadow-emerald-500/20 transition-all hover:bg-emerald-400 hover:scale-105 active:scale-95 disabled:opacity-50"
+                  className="flex items-center gap-3 rounded-full bg-emerald-500 px-12 py-3.5 text-sm font-black uppercase tracking-widest text-white shadow-xl shadow-emerald-500/20 transition-all hover:bg-emerald-400 hover:scale-105 active:scale-95 disabled:opacity-50"
                 >
                   {loading ? (
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

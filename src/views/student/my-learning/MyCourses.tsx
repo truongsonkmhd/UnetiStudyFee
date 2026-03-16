@@ -192,7 +192,7 @@ const MyCourses: React.FC = () => {
             <div className="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[160px] pointer-events-none animate-pulse" />
             <div className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 rounded-full blur-[160px] pointer-events-none" />
 
-            <div className="max-w-[1800px] mx-auto px-4 sm:px-10 py-12 md:py-20 relative z-10">
+            <div className="max-w-[2000px] mx-auto px-4 sm:px-10 py-12 md:py-20 relative z-10">
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

@@ -73,7 +73,7 @@ export function AppLayout() {
 
         <div className="flex-1 flex flex-col">
           {/* HEADER */}
-          <header className="sticky top-0 z-50 h-16 bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 border-b flex items-center gap-4 pl-4 pr-6">
+          <header className="sticky top-0 z-50 h-20 bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 border-b flex items-center gap-4 pl-4 pr-6">
             {/* left */}
             <div className="flex items-center gap-2">
               <SidebarTrigger />
@@ -84,13 +84,13 @@ export function AppLayout() {
               onSubmit={onSearchSubmit}
               className="flex-1 flex justify-center"
             >
-              <div className="flex items-center gap-2 rounded-full border border-muted-foreground/20 px-3 py-2 shadow-sm w-full max-w-md">
-                <Search className="w-5 h-5 opacity-60" />
+              <div className="flex items-center gap-3 rounded-2xl border border-muted-foreground/20 px-5 py-3 shadow-sm w-full max-w-xl transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500/50 bg-muted/30">
+                <Search className="w-6 h-6 opacity-60" />
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="Tìm kiếm khóa học, bài viết, video, ..."
-                  className="bg-transparent outline-none text-sm flex-1 placeholder:text-muted-foreground"
+                  className="bg-transparent outline-none text-base font-medium flex-1 placeholder:text-muted-foreground/60"
                 />
               </div>
             </form>

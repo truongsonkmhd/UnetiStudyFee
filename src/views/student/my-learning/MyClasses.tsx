@@ -35,7 +35,7 @@ const MyClasses: React.FC = () => {
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
 
-            <div className="max-w-[1400px] mx-auto px-6 py-12 md:py-20 relative z-10">
+            <div className="max-w-[2000px] mx-auto px-6 py-12 md:py-20 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {loading ? (
                         [1, 2].map(i => (

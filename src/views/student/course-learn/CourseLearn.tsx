@@ -365,7 +365,6 @@ const CourseLearn: React.FC = () => {
     const renderContent = () => {
         if (!currentLesson) return null;
 
-        // Thử dùng VideoPlayer cho cả YouTube và local video
         if (currentLesson.youtubeVideoId || currentLesson.videoUrl) {
             return (
                 <div className="w-full bg-black border-b border-white/5 shadow-inner">

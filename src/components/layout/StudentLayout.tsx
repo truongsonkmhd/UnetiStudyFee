@@ -91,7 +91,7 @@ export function StudentLayout() {
     return (
         <div className="min-h-screen flex flex-col w-full bg-background text-foreground">
             <header className="sticky top-0 z-50 h-20 bg-background/80 backdrop-blur-xl border-b border-border/50 flex items-center shadow-sm dark:shadow-2xl dark:shadow-black/20">
-                <div className="mx-auto max-w-[1800px] w-full flex items-center justify-between px-4 sm:px-10">
+                <div className="mx-auto max-w-[2000px] w-full flex items-center justify-between px-4 sm:px-10">
                     <div className="flex items-center gap-10">
                         <div className="flex items-center gap-3 shrink-0">
                             <NavLink to={PATHS.HOME} className="flex items-center gap-2 group">

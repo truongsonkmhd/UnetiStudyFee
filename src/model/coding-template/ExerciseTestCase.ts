@@ -2,7 +2,7 @@ export interface ExerciseTestCase {
   testCaseId?: string;
   input: string;
   expectedOutput: string;
-  isPublic: boolean;
+  isSample: boolean;
   explanation?: string;
   orderIndex?: number;
 }

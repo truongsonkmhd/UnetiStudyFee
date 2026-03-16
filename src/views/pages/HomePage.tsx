@@ -4,6 +4,7 @@ import { ArrowRight, Users, Loader2, Zap, ChevronRight } from "lucide-react";
 import { CourseCardResponse } from "@/model/course-admin/CourseCardResponse";
 import courseCatalogService from "@/services/courseCatalogService";
 import CourseCard from "./component/CourseCard";
+import { EmptyState } from "@/components/common/EmptyState";
 import {
   Pagination,
   PaginationContent,
@@ -38,10 +39,12 @@ const SectionHeader: React.FC<{
   rightSlot?: React.ReactNode;
 }> = ({ title, count, rightSlot }) => (
   <div className="mb-6 mt-12 flex items-end justify-between">
-    <div className="flex items-baseline gap-3">
-      <h2 className="text-2xl font-black tracking-tight text-white">{title}</h2>
+    <div className="flex items-center gap-3">
+      <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{title}</h2>
       {count !== undefined && (
-        <span className="text-sm font-bold text-slate-500">({count} bài học)</span>
+        <span className="px-2.5 py-0.5 text-xs font-bold bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg border border-blue-100/50 dark:border-blue-800/50">
+          {count} khóa học
+        </span>
       )}
     </div>
     {rightSlot || (
@@ -63,13 +66,13 @@ const MajorTags: React.FC<{
           key={k}
           onClick={() => onChange(k as Major)}
           className={[
-            "px-5 py-2 text-[13px] font-black rounded-full border transition-all duration-300 transform active:scale-95",
+            "px-8 py-3 text-base font-bold rounded-2xl border transition-all duration-300 transform active:scale-95 shadow-sm",
             value === k
-              ? "bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-500/20"
-              : "bg-muted/40 border-border text-muted-foreground hover:border-slate-600 hover:text-foreground"
+              ? "bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-500/30"
+              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50/10"
           ].join(" ")}
         >
-          # {MAJOR_LABEL[k as Major]}
+          {MAJOR_LABEL[k as Major]}
         </button>
       ))}
     </div>
@@ -120,30 +123,58 @@ export function HomePage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1800px] px-4 sm:px-10 py-8 mb-20">
-      {/* Major Filter Tags */}
-      <MajorTags value={major} onChange={setMajor} />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="mx-auto max-w-[2000px] px-4 sm:px-10 py-8 mb-20"
+    >
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        <MajorTags value={major} onChange={setMajor} />
+      </motion.div>
 
       <AnimatePresence mode="wait">
         {loading && courses.length === 0 ? (
-          <div key="loading" className="py-20 flex flex-col items-center justify-center gap-4">
-            <Loader2 size={48} className="text-blue-500 animate-spin" />
-            <p className="text-lg font-black text-slate-500 uppercase tracking-widest">Đang khởi tạo bài học...</p>
-          </div>
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="py-20 flex flex-col items-center justify-center gap-4"
+          >
+            <div className="relative w-20 h-20">
+              <div className="absolute inset-0 border-4 border-blue-100 dark:border-blue-900/30 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <p className="text-lg font-bold text-slate-500 uppercase tracking-widest animate-pulse mt-4">Đang chuẩn bị bài học...</p>
+          </motion.div>
         ) : courses.length === 0 ? (
-          <div key="empty" className="py-20 text-center bg-slate-900/40 rounded-[3rem] border-2 border-dashed border-slate-800">
-            <h3 className="text-3xl font-black text-slate-300">Sắp ra mắt bài học mới</h3>
-            <p className="text-slate-500 mt-4 max-w-sm mx-auto font-bold tracking-tight">Chúng tôi đang biên soạn nội dung chất lượng nhất cho chuyên ngành này. Quay lại sau nhé!</p>
-            <button
-              onClick={() => setMajor('all')}
-              className="mt-10 px-10 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all"
-            >
-              XEM BÀI HỌC CÓ SẴN
-            </button>
-          </div>
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="py-12 bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-2xl relative overflow-hidden group"
+          >
+            <div className="absolute top-0 right-0 w-80 h-80 bg-blue-400/10 rounded-full blur-[100px] -mr-40 -mt-40"></div>
+            <EmptyState
+              title="Sắp ra mắt khóa học mới"
+              description="Đội ngũ giáo viên sẽ thêm khóa học sớm nhất !!!"
+              className="py-12"
+            />
+          </motion.div>
         ) : (
-          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            {/* Split courses into sections for visual variety like the screenshot */}
+          <motion.div
+            key="content"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+          >
             <SectionHeader title={major === 'all' ? "Khóa học mới nhất" : MAJOR_LABEL[major]} count={totalElements} />
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {courses.map((c, i) => (
@@ -151,7 +182,6 @@ export function HomePage() {
               ))}
             </div>
 
-            {/* Pagination at the bottom */}
             {!loading && totalPages > 1 && (
               <div className="pt-20 pb-10">
                 <Pagination>
@@ -163,7 +193,6 @@ export function HomePage() {
                         className={currentPage === 0 ? "pointer-events-none opacity-20" : "cursor-pointer text-slate-400 font-bold"}
                       />
                     </PaginationItem>
-                    {/* ... page items ... */}
                     {Array.from({ length: totalPages }, (_, i) => (
                       (i === 0 || i === totalPages - 1 || (i >= currentPage - 1 && i <= currentPage + 1)) ? (
                         <PaginationItem key={i}>
@@ -192,7 +221,7 @@ export function HomePage() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
 

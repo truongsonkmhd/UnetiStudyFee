@@ -197,8 +197,8 @@ export function AppSidebar() {
 
   const getNavClassName = (path: string) =>
     [
-      "flex items-center gap-2 rounded-md px-3 py-2",
-      isActive(path) ? theme.activeItem : "hover:bg-muted transition-colors",
+      "flex items-center gap-4 rounded-xl px-4 py-3",
+      isActive(path) ? theme.activeItem : "hover:bg-muted transition-all duration-200",
     ].join(" ");
 
   const visibleNavItems = navigationItems.filter((i) =>
@@ -243,18 +243,18 @@ export function AppSidebar() {
       >
         <div
           className={[
-            "h-16 border-b flex items-center",
-            isCollapsed ? "justify-center px-0" : "justify-start px-4",
+            "h-20 border-b flex items-center",
+            isCollapsed ? "justify-center px-0" : "justify-start px-5",
           ].join(" ")}
         >
           <img
             src={logoIcon}
             alt="Logo"
-            className="w-10 h-10 object-contain shrink-0"
+            className="w-12 h-12 object-contain shrink-0"
           />
           {!isCollapsed && (
-            <div className="flex flex-col ml-3">
-              <span className="font-semibold text-sm text-foreground">
+            <div className="flex flex-col ml-4">
+              <span className="font-black text-xl text-foreground tracking-tight">
                 {APP_NAME}
               </span>
             </div>
@@ -262,7 +262,7 @@ export function AppSidebar() {
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel className={theme.groupLabel}>
+          <SidebarGroupLabel className={`${theme.groupLabel} text-sm font-bold uppercase tracking-widest mb-2`}>
             Tổng quan
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -274,8 +274,12 @@ export function AppSidebar() {
                       to={item.url}
                       className={getNavClassName(item.url)}
                     >
-                      <img src={item.icon} alt="" className="w-4 h-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
+                      <img src={item.icon} alt="" className="w-7 h-7" />
+                      {!isCollapsed && (
+                        <span className="text-base font-medium">
+                          {item.title}
+                        </span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -287,7 +291,7 @@ export function AppSidebar() {
         <div className="mx-2 my-2 border-t rounded-full border-gray-300" />
 
         <SidebarGroup>
-          <SidebarGroupLabel className={theme.groupLabel}>
+          <SidebarGroupLabel className={`${theme.groupLabel} text-sm font-bold uppercase tracking-widest mb-2`}>
             Công cụ
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -299,8 +303,12 @@ export function AppSidebar() {
                       to={item.url}
                       className={getNavClassName(item.url)}
                     >
-                      <img src={item.icon} alt="" className="w-4 h-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
+                      <img src={item.icon} alt="" className="w-7 h-7" />
+                      {!isCollapsed && (
+                        <span className="text-base font-medium">
+                          {item.title}
+                        </span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

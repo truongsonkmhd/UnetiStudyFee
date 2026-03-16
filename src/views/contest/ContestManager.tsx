@@ -20,6 +20,7 @@ import {
   Zap,
 } from 'lucide-react';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { PATHS } from '@/constants/paths';
 import codingExerciseTemplateService from '@/services/codingExerciseTemplateService';
@@ -361,7 +362,7 @@ const ContestManager = () => {
     <div className="flex p-1.5 bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl w-fit border border-slate-200 dark:border-slate-800 shadow-inner">
       <button
         onClick={() => setView('library_coding')}
-        className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 ${view === 'library_coding'
+        className={`px-8 py-3 rounded-xl font-black text-[13px] uppercase tracking-widest transition-all duration-300 ${view === 'library_coding'
           ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-lg shadow-indigo-500/10'
           : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'
           }`}
@@ -370,7 +371,7 @@ const ContestManager = () => {
       </button>
       <button
         onClick={() => setView('library_quiz')}
-        className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 ${view === 'library_quiz'
+        className={`px-8 py-3 rounded-xl font-black text-[13px] uppercase tracking-widest transition-all duration-300 ${view === 'library_quiz'
           ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-lg shadow-indigo-500/10'
           : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'
           }`}
@@ -398,7 +399,7 @@ const ContestManager = () => {
           <select
             value={filters.difficulty}
             onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
-            className="px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300 outline-none focus:border-indigo-500 transition-all shadow-sm cursor-pointer"
+            className="px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl font-black text-[13px] uppercase tracking-widest text-slate-600 dark:text-slate-300 outline-none focus:border-indigo-500 transition-all shadow-sm cursor-pointer"
           >
             <option value="">Độ khó</option>
             <option value="EASY">Dễ</option>
@@ -408,7 +409,7 @@ const ContestManager = () => {
           <select
             value={filters.language}
             onChange={(e) => setFilters({ ...filters, language: e.target.value })}
-            className="px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300 outline-none focus:border-indigo-500 transition-all shadow-sm cursor-pointer"
+            className="px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl font-black text-[13px] uppercase tracking-widest text-slate-600 dark:text-slate-300 outline-none focus:border-indigo-500 transition-all shadow-sm cursor-pointer"
           >
             <option value="">Ngôn ngữ</option>
             <option value="JAVA">Java</option>
@@ -421,38 +422,40 @@ const ContestManager = () => {
   );
 
   const CodingLibraryView = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-8 bg-white dark:bg-slate-900 p-8 md:p-10 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-2xl shadow-slate-200/40 dark:shadow-none relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-50 dark:bg-indigo-900/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-
-        <div className="relative z-10 flex flex-wrap gap-3">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+      >
+        <div className="space-y-1">
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            Lựa chọn Bài tập Lập trình
+          </h1>
+          <p className="text-muted-foreground font-medium flex items-center gap-2">
+            <Code size={16} />
+            Chọn các bài tập lập trình mẫu từ thư viện để đưa vào bài thi
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
           <button
             onClick={handleCreateNewExercise}
-            className="group flex items-center gap-2.5 px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xs transition-all shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5 active:scale-95"
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground hover:bg-muted rounded-lg transition-colors font-medium shadow-sm"
           >
-            <Plus size={18} strokeWidth={3} className="group-hover:rotate-90 transition-transform" />
-            TẠO BÀI MỚI
+            <Plus size={18} />
+            Tạo bài mới
           </button>
-
           <button
             onClick={() => setView('create-class')}
             disabled={selectedExercises.size + selectedQuizzes.size === 0}
-            className={`group flex items-center gap-3 px-8 py-3.5 rounded-2xl font-black text-xs transition-all shadow-2xl ${selectedExercises.size + selectedQuizzes.size > 0
-              ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-2 border-indigo-500 shadow-indigo-500/10 hover:-translate-y-0.5'
-              : 'bg-slate-50 dark:bg-slate-800/50 text-slate-300 dark:text-slate-600 cursor-not-allowed border border-slate-200 dark:border-slate-800'
-              }`}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium disabled:opacity-50"
           >
-            XÁC NHẬN CHỌN
-            <div className={`px-2 py-0.5 rounded-lg text-[9px] border shadow-inner transition-colors ${selectedExercises.size + selectedQuizzes.size > 0
-              ? 'bg-indigo-600 border-indigo-500 text-white'
-              : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400'
-              }`}>
-              {selectedExercises.size + selectedQuizzes.size}
-            </div>
-            <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+            Xác nhận lựa chọn ({selectedExercises.size + selectedQuizzes.size})
+            <ChevronRight size={18} />
           </button>
         </div>
-      </div>
+      </motion.div>
 
       <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <LibraryTabs />
@@ -484,10 +487,10 @@ const ContestManager = () => {
 
             <div className="flex-grow">
               <div className="flex items-center gap-2 mb-4">
-                <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${getDifficultyColor(ex.difficulty)}`}>
+                <span className={`px-3 py-1 rounded-lg text-[12px] font-black uppercase tracking-widest ${getDifficultyColor(ex.difficulty)}`}>
                   {ex.difficulty}
                 </span>
-                <span className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500">
+                <span className="px-3 py-1 rounded-lg text-[12px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500">
                   {ex.category}
                 </span>
               </div>
@@ -497,13 +500,13 @@ const ContestManager = () => {
               </h3>
 
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-tighter">
+                <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 font-bold text-sm uppercase tracking-tighter">
                   <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg">
                     <Code size={14} className="text-indigo-500" />
                   </div>
                   {ex.programmingLanguage}
                 </div>
-                <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-tighter">
+                <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 font-bold text-sm uppercase tracking-tighter">
                   <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg">
                     <Trophy size={14} className="text-orange-400" />
                   </div>
@@ -518,7 +521,7 @@ const ContestManager = () => {
                   e.stopPropagation();
                   handleViewExercise(ex.templateId);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-black
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-black
                           text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-900/50 transition-all uppercase tracking-widest"
               >
                 <Eye size={14} strokeWidth={3} />
@@ -529,7 +532,7 @@ const ContestManager = () => {
                   e.stopPropagation();
                   handleEditExercise(ex.templateId);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-black text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-900/50 transition-all uppercase tracking-widest"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-black text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-900/50 transition-all uppercase tracking-widest"
               >
                 <Edit size={14} strokeWidth={3} />
                 SỬA
@@ -539,7 +542,7 @@ const ContestManager = () => {
                   e.stopPropagation();
                   handleDeleteExercise(ex.templateId);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-black text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50 transition-all uppercase tracking-widest"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-black text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50 transition-all uppercase tracking-widest"
               >
                 <Trash2 size={14} strokeWidth={3} />
                 XÓA
@@ -562,47 +565,40 @@ const ContestManager = () => {
   );
 
   const QuizLibraryView = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-8 bg-white dark:bg-slate-900 p-8 md:p-10 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-2xl shadow-slate-200/40 dark:shadow-none relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-50 dark:bg-indigo-900/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-4 border border-emerald-100 dark:border-emerald-800/50">
-            <Zap size={12} className="fill-emerald-400" />
-            Knowledge Systems
-          </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight uppercase">Thư viện Quiz</h1>
-          <p className="text-slate-500 font-medium text-lg mt-1 max-w-xl">Lựa chọn các bài trắc nghiệm thông minh để kiểm duyệt nhanh kiến thức.</p>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+      >
+        <div className="space-y-1">
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            Lựa chọn Câu hỏi Trắc nghiệm
+          </h1>
+          <p className="text-muted-foreground font-medium flex items-center gap-2">
+            <BookOpen size={16} />
+            Chọn các mẫu trắc nghiệm từ thư viện để đưa vào kỳ thi của bạn
+          </p>
         </div>
-
-        <div className="relative z-10 flex flex-wrap gap-3">
+        <div className="flex items-center gap-3">
           <button
             onClick={handleCreateNewQuiz}
-            className="group flex items-center gap-2.5 px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xs transition-all shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5 active:scale-95"
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground hover:bg-muted rounded-lg transition-colors font-medium shadow-sm"
           >
-            <Plus size={18} strokeWidth={3} className="group-hover:rotate-90 transition-transform" />
-            KIẾN TẠO QUIZ
+            <Plus size={18} />
+            Kiến tạo Quiz
           </button>
-
           <button
             onClick={() => setView('create-class')}
             disabled={selectedExercises.size + selectedQuizzes.size === 0}
-            className={`group flex items-center gap-3 px-8 py-3.5 rounded-2xl font-black text-xs transition-all shadow-2xl ${selectedExercises.size + selectedQuizzes.size > 0
-              ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-2 border-indigo-500 shadow-indigo-500/10 hover:-translate-y-0.5'
-              : 'bg-slate-50 dark:bg-slate-800/50 text-slate-300 dark:text-slate-600 cursor-not-allowed border border-slate-200 dark:border-slate-800'
-              }`}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium disabled:opacity-50"
           >
-            XÁC NHẬN CHỌN
-            <div className={`px-2 py-0.5 rounded-lg text-[9px] border shadow-inner transition-colors ${selectedExercises.size + selectedQuizzes.size > 0
-              ? 'bg-indigo-600 border-indigo-500 text-white'
-              : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400'
-              }`}>
-              {selectedExercises.size + selectedQuizzes.size}
-            </div>
-            <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+            Xác nhận lựa chọn ({selectedExercises.size + selectedQuizzes.size})
+            <ChevronRight size={18} />
           </button>
         </div>
-      </div>
+      </motion.div>
 
       <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <LibraryTabs />
@@ -635,7 +631,7 @@ const ContestManager = () => {
             <div className="flex-grow">
               <div className="flex flex-wrap gap-2 mb-4">
                 <span
-                  className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${quiz.isActive ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20' : 'text-amber-600 bg-amber-50 dark:bg-amber-900/20'
+                  className={`px-3 py-1 rounded-lg text-[12px] font-black uppercase tracking-widest ${quiz.isActive ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20' : 'text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     }`}
                 >
                   {quiz.isActive ? 'HOẠT ĐỘNG' : 'BẢN NHÁP'}
@@ -652,12 +648,12 @@ const ContestManager = () => {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="flex flex-col gap-1 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 transition-colors group-hover:border-indigo-100">
                   <BookOpen size={16} className="text-indigo-500 mb-1" />
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Số câu</p>
+                  <p className="text-[12px] text-slate-400 font-bold uppercase tracking-widest">Số câu</p>
                   <p className="text-lg font-black text-slate-900 dark:text-white">{quiz.totalQuestions}</p>
                 </div>
                 <div className="flex flex-col gap-1 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 transition-colors group-hover:border-emerald-100">
                   <Trophy size={16} className="text-emerald-500 mb-1" />
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Đạt mức</p>
+                  <p className="text-[12px] text-slate-400 font-bold uppercase tracking-widest">Đạt mức</p>
                   <p className="text-lg font-black text-slate-900 dark:text-white">{quiz.passScore}%</p>
                 </div>
               </div>
@@ -669,7 +665,7 @@ const ContestManager = () => {
                   e.stopPropagation();
                   handleViewQuiz(quiz.templateId);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-black
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-black
                           text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-900/50 transition-all uppercase tracking-widest"
               >
                 <Eye size={14} strokeWidth={3} />
@@ -680,7 +676,7 @@ const ContestManager = () => {
                   e.stopPropagation();
                   handleEditQuiz(quiz.templateId);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-black text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-900/50 transition-all uppercase tracking-widest"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-black text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-900/50 transition-all uppercase tracking-widest"
               >
                 <Edit size={14} strokeWidth={3} />
                 SỬA
@@ -690,7 +686,7 @@ const ContestManager = () => {
                   e.stopPropagation();
                   handleDeleteQuiz(quiz.templateId);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-black text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50 transition-all uppercase tracking-widest"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-black text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50 transition-all uppercase tracking-widest"
               >
                 <Trash2 size={14} strokeWidth={3} />
                 XÓA
@@ -713,56 +709,49 @@ const ContestManager = () => {
   );
 
   const ClassesView = () => (
-    <div className="space-y-8 animate-in fade-in slide-in-from-top-6 duration-700">
-      {/* Harmonious Header */}
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-indigo-600 p-10 md:p-14 shadow-2xl shadow-indigo-500/20 dark:shadow-none">
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 h-80 w-80 rounded-full bg-white/5 blur-3xl transition-transform duration-700 hover:scale-110" />
-        <div className="absolute bottom-0 left-0 -ml-10 -mb-10 h-48 w-48 rounded-full bg-indigo-400/10 blur-2xl" />
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-10">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2 uppercase leading-none">
-              Bài thi của tôi
-            </h1>
-            <p className="text-indigo-100/70 text-lg font-medium max-w-lg leading-relaxed">
-              Quản lý và điều phối các bài kiểm tra đánh giá năng lực lập trình của sinh viên.
-            </p>
-          </div>
-
-          <button
-            onClick={() => {
-              setNewClass({
-                contestLessonId: '',
-                title: '',
-                description: '',
-                durationMinutes: 60,
-                passingScore: 70,
-                maxAttempts: 3,
-                totalPoints: 100,
-                showLeaderboardDefault: true,
-              });
-              setSelectedExercises(new Set());
-              setSelectedQuizzes(new Set());
-              setView('library_coding');
-            }}
-            className="group relative flex items-center justify-center gap-3 px-10 py-5 bg-white text-indigo-600 rounded-2xl font-black text-lg transition-all shadow-2xl hover:shadow-indigo-500/30 hover:-translate-y-1 active:scale-95 overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-indigo-50 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-            <span className="relative z-10 flex items-center gap-2">
-              <Plus size={24} strokeWidth={3} />
-              TẠO BÀI THI MỚI
-            </span>
-          </button>
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+      >
+        <div className="space-y-1">
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            Quản lý Bài thi
+          </h1>
+          <p className="text-muted-foreground font-medium flex items-center gap-2">
+            <Trophy size={16} />
+            Quản lý các kỳ thi của bạn
+          </p>
         </div>
-      </div>
+        <button
+          onClick={() => {
+            setNewClass({
+              contestLessonId: '',
+              title: '',
+              description: '',
+              durationMinutes: 60,
+              passingScore: 70,
+              maxAttempts: 3,
+              totalPoints: 100,
+              showLeaderboardDefault: true,
+            });
+            setSelectedExercises(new Set());
+            setSelectedQuizzes(new Set());
+            setView('library_coding');
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
+        >
+          <Plus size={20} />
+          Thiết lập bài thi mới
+        </button>
+      </motion.div>
 
       {isLoading && (
         <div className="flex flex-col items-center justify-center py-32 space-y-4">
-          <div className="relative h-16 w-16">
-            <div className="absolute inset-0 rounded-full border-4 border-indigo-200 dark:border-indigo-900 opacity-25"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
-          </div>
-          <p className="text-indigo-600/60 font-bold animate-pulse uppercase tracking-widest text-xs">Đang tải dữ liệu...</p>
+          <Loader2 className="h-10 w-10 text-primary animate-spin" />
+          <p className="text-muted-foreground font-medium animate-pulse">Đang tải dữ liệu...</p>
         </div>
       )}
 
@@ -771,11 +760,11 @@ const ContestManager = () => {
           {classes.map((cls) => (
             <div
               key={cls.contestLessonId}
-              className="bg-white dark:bg-slate-900 rounded-[2rem] border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 overflow-hidden group flex flex-col"
+              className="bg-card rounded-[2rem] border border-border shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 overflow-hidden group flex flex-col"
             >
               <div className="p-8 flex-grow">
                 <div className="flex justify-between items-start mb-6">
-                  <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm ${getStatusColor(cls.status)}`}>
+                  <div className={`px-4 py-1.5 rounded-xl text-[12px] font-black uppercase tracking-widest shadow-sm ${getStatusColor(cls.status)}`}>
                     {cls.status}
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0">
@@ -784,7 +773,7 @@ const ContestManager = () => {
                         e.stopPropagation();
                         handleEditContest(cls.contestLessonId);
                       }}
-                      className="p-3 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-xl transition-all shadow-sm"
+                      className="p-3 text-muted-foreground hover:text-primary hover:bg-muted rounded-xl transition-all shadow-sm"
                       title="Chỉnh sửa"
                     >
                       <Edit size={20} />
@@ -794,7 +783,7 @@ const ContestManager = () => {
                         e.stopPropagation();
                         handleDeleteContest(cls.contestLessonId);
                       }}
-                      className="p-3 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-all shadow-sm"
+                      className="p-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all shadow-sm"
                       title="Xóa"
                     >
                       <Trash2 size={20} />
@@ -802,78 +791,67 @@ const ContestManager = () => {
                   </div>
                 </div>
 
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors line-clamp-1 mb-2 uppercase tracking-tight">
+                <h3 className="text-2xl font-black text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-2 uppercase tracking-tight">
                   {cls.title}
                 </h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium line-clamp-2 h-10 mb-8 leading-relaxed">
+                <p className="text-muted-foreground text-sm font-medium line-clamp-2 h-10 mb-8 leading-relaxed">
                   {cls.description || 'Hệ thống bài tập đánh giá năng lực lập trình và tư duy thuật toán nâng cao.'}
                 </p>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 transition-colors group-hover:border-indigo-100 dark:group-hover:border-indigo-900/50">
-                    <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-2">
+                  <div className="flex flex-col gap-1 bg-muted/30 p-4 rounded-2xl border border-border transition-colors group-hover:border-primary/20">
+                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-2">
                       <BookOpen size={18} />
                     </div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Nội dung</p>
-                    <p className="text-lg font-black text-slate-900 dark:text-white">
-                      {(cls.codingExerciseCount || 0) + (cls.quizQuestionCount || 0)} <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Bài</span>
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Nội dung</p>
+                    <p className="text-lg font-black text-foreground">
+                      {(cls.codingExerciseCount || 0) + (cls.quizQuestionCount || 0)} <span className="text-xs font-bold text-muted-foreground uppercase tracking-tighter">Bài</span>
                     </p>
                   </div>
-                  <div className="flex flex-col gap-1 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 transition-colors group-hover:border-orange-100 dark:group-hover:border-orange-900/50">
-                    <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center text-orange-600 dark:text-orange-400 mb-2">
+                  <div className="flex flex-col gap-1 bg-muted/30 p-4 rounded-2xl border border-border transition-colors group-hover:border-primary/20">
+                    <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 mb-2">
                       <Clock size={18} />
                     </div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Thời gian</p>
-                    <p className="text-lg font-black text-slate-900 dark:text-white">
-                      {cls.defaultDurationMinutes || cls.durationMinutes || 60}<span className="text-xs font-bold text-slate-400 uppercase tracking-tighter"> PHÚT</span>
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Thời gian</p>
+                    <p className="text-lg font-black text-foreground">
+                      {cls.defaultDurationMinutes || cls.durationMinutes || 60}<span className="text-xs font-bold text-muted-foreground uppercase tracking-tighter"> PHÚT</span>
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="px-8 py-6 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="px-8 py-6 bg-muted/30 border-t border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                     {new Date(cls.updatedAt || Date.now()).toLocaleDateString('vi-VN')}
                   </span>
                 </div>
                 <button
-                  onClick={() => handleManageContest(cls.contestLessonId)}
-                  className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-sm font-black transition-all shadow-lg shadow-indigo-200 dark:shadow-none"
+                  onClick={() => handleManageContest(cls)}
+                  className="flex items-center gap-2 text-xs font-black text-primary uppercase tracking-widest hover:gap-3 transition-all"
                 >
-                  QUẢN LÝ
-                  <ChevronRight size={18} strokeWidth={3} />
+                  Chi tiết
+                  <ChevronRight size={16} strokeWidth={3} />
                 </button>
               </div>
             </div>
           ))}
 
           {classes.length === 0 && (
-            <div className="col-span-full py-20 px-4">
-              <div className="max-w-xl mx-auto text-center space-y-8 bg-white dark:bg-slate-900 p-12 rounded-[3rem] shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 dark:bg-indigo-900/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-orange-50 dark:bg-orange-900/20 rounded-full blur-2xl -ml-12 -mb-12"></div>
-
-                <div className="relative">
-                  <div className="w-28 h-28 bg-indigo-50 dark:bg-indigo-900/30 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 transform -rotate-6 group-hover:rotate-0 transition-transform duration-500 shadow-inner">
-                    <Trophy size={48} className="text-indigo-600 dark:text-indigo-400 drop-shadow-xl" />
-                  </div>
-                  <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Sẵn sàng tạo bài thi mới?</h3>
-                  <p className="text-slate-500 dark:text-slate-400 mt-3 font-medium text-lg leading-relaxed max-w-sm mx-auto">
-                    Bài thi đang trống , hãy bắt đầu tạo bài thi đầu tiên của bạn.
-                  </p>
-                  <button
-                    onClick={() => setView('library_coding')}
-                    className="mt-10 group relative px-10 py-5 bg-indigo-600 text-white rounded-2xl font-black text-lg transition-all shadow-xl hover:shadow-indigo-500/40 hover:-translate-y-1 active:scale-95 overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
-                    <span className="flex items-center gap-3">
-                      BẮT ĐẦU NGAY
-                      <Plus size={24} strokeWidth={3} />
-                    </span>
-                  </button>
+            <div className="col-span-full py-20">
+              <div className="max-w-xl mx-auto text-center space-y-4 bg-muted/10 p-12 rounded-[3rem] border border-dashed border-border">
+                <Archive size={48} className="mx-auto text-muted-foreground/30" />
+                <div>
+                  <h3 className="text-xl font-bold text-foreground uppercase">Dữ liệu trống</h3>
+                  <p className="text-muted-foreground font-medium">Bạn chưa thiết lập bất kỳ kỳ thi nào.</p>
                 </div>
+                <button
+                  onClick={() => setView('library_coding')}
+                  className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+                >
+                  Khởi tạo ngay
+                </button>
               </div>
             </div>
           )}
@@ -882,28 +860,32 @@ const ContestManager = () => {
     </div>
   );
 
-
   const CreateClassView = () => (
-    <div className="max-w-5xl mx-auto space-y-10 animate-in slide-in-from-bottom-8 fade-in duration-700">
+    <div className="max-w-[2000px] mx-auto space-y-10 animate-in slide-in-from-bottom-8 fade-in duration-700">
       {/* Premium Header */}
-      <div className="flex flex-col md:flex-row md:items-center gap-6 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none">
-        <button
-          onClick={() => setView('library_coding')}
-          className="w-14 h-14 flex items-center justify-center bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-2xl transition-all group shadow-inner"
-        >
-          <X size={24} className="group-hover:rotate-90 transition-transform text-slate-500" />
-        </button>
-        <div className="flex-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-widest mb-2 border border-indigo-100 dark:border-indigo-900/50">
-            <Edit size={12} strokeWidth={3} />
-            Configurator
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-6"
+      >
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setView('classes')}
+              className="p-2 hover:bg-muted rounded-full transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+              {newClass.contestLessonId ? 'Hiệu chỉnh Bài thi' : 'Thiết lập Bài thi Mới'}
+            </h1>
           </div>
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">
-            {newClass.contestLessonId ? 'Hiệu chỉnh bài thi' : 'Thiết lập bài thi'}
-          </h1>
-          <p className="text-slate-500 font-medium">Hoàn thiện kiến trúc và tham số hóa bài thi của bạn.</p>
+          <p className="text-muted-foreground font-medium ml-10">
+            Cấu hình thời gian, thang điểm và nội dung cho kỳ thi của bạn
+          </p>
         </div>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Main Configuration */}
@@ -1090,60 +1072,61 @@ const ContestManager = () => {
   );
 
   const ManageContestView = () => (
-    <div className="max-w-6xl mx-auto space-y-10 animate-in slide-in-from-bottom-8 fade-in duration-700">
-      {/* Premium Header */}
-      <div className="flex flex-col xl:flex-row xl:items-center gap-8 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-50 dark:bg-indigo-900/20 rounded-full blur-3xl -mr-20 -mt-20"></div>
-
-        <button
-          onClick={() => setView('classes')}
-          className="w-14 h-14 flex items-center justify-center bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-2xl transition-all group shadow-inner shrink-0"
-        >
-          <X size={24} className="group-hover:rotate-90 transition-transform text-slate-500" />
-        </button>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-3 mb-3">
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase truncate leading-tight">
+    <div className="space-y-10 animate-in fade-in duration-700">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-6"
+      >
+        <div className="space-y-1 flex-1">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setView('classes')}
+              className="p-2 hover:bg-muted rounded-full transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl text-foreground">
               {selectedContest?.title}
             </h1>
             <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm ${getStatusColor(selectedContest?.status)}`}>
               {selectedContest?.status}
             </span>
           </div>
-          <p className="text-slate-500 font-medium text-lg line-clamp-1 max-w-2xl">
+          <p className="text-muted-foreground font-medium ml-10 line-clamp-1">
             {selectedContest?.description || 'Hệ thống đánh giá chuyên sâu đang trong trạng thái vận hành.'}
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3 shrink-0 relative z-10">
+        <div className="flex flex-wrap gap-3 shrink-0">
           {selectedContest?.status === 'DRAFT' && (
             <button
               onClick={() => handlePublishContest(selectedContest.contestLessonId)}
-              className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 font-black text-sm shadow-lg shadow-emerald-200 dark:shadow-none transition-all hover:-translate-y-0.5"
+              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium text-sm transition-all shadow-sm"
             >
-              <Check size={20} strokeWidth={3} />
-              XUẤT BẢN
+              <Check size={18} />
+              Xuất bản
             </button>
           )}
           {selectedContest?.status === 'READY' && (
             <button
               onClick={() => handleArchiveContest(selectedContest.contestLessonId)}
-              className="flex items-center gap-2 px-6 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-black text-sm shadow-lg shadow-amber-200 dark:shadow-none transition-all hover:-translate-y-0.5"
+              className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium text-sm transition-all shadow-sm"
             >
-              <Archive size={20} strokeWidth={3} />
-              LƯU TRỮ
+              <Archive size={18} />
+              Lưu trữ
             </button>
           )}
           <button
             onClick={() => handleDeleteContest(selectedContest?.contestLessonId || '')}
-            className="flex items-center gap-2 px-6 py-3 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/30 font-black text-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 bg-destructive/10 text-destructive border border-destructive/20 rounded-lg hover:bg-destructive/20 font-medium text-sm transition-all"
           >
-            <Trash2 size={20} strokeWidth={3} />
-            XÓA BỎ
+            <Trash2 size={18} />
+            Xóa bỏ
           </button>
         </div>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Statistics & Parameters */}
@@ -1246,11 +1229,11 @@ const ContestManager = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 
   return (
-    <div className="min-h-full bg-slate-50 dark:bg-slate-950 p-6 md:p-10 transition-colors duration-300">
+    <div className="min-h-screen bg-background pb-12">
       {isLoading && !selectedContest && (
         <div className="flex flex-col items-center justify-center py-20 min-h-[60vh]">
           <div className="relative w-16 h-16 mb-6">
@@ -1263,7 +1246,7 @@ const ContestManager = () => {
         </div>
       )}
       {!isLoading && (
-        <div className="max-w-[1440px] mx-auto space-y-10">
+        <div className="max-w-[2000px] mx-auto px-6 py-8 space-y-10">
           {view === 'classes' && <ClassesView />}
           {view === 'library_coding' && <CodingLibraryView />}
           {view === 'library_quiz' && <QuizLibraryView />}

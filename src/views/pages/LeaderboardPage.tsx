@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 
 // ================= Types =================
 interface Player {
@@ -199,8 +200,13 @@ export default function LeaderboardPage() {
   const rawTop3 = ranked.slice(0, 3);
 
   return (
-    <div className="min-h-screen w-full bg-background py-6">
-      <div className="max-w-6xl mx-auto px-4">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="min-h-screen w-full bg-background py-6"
+    >
+      <div className="max-w-[2000px] mx-auto px-4">
         <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Bảng xếp hạng</h1>
 
         {/* Podium: center highest */}
@@ -334,8 +340,8 @@ export default function LeaderboardPage() {
                     <button
                       onClick={() => goTo(p)}
                       className={`h-9 w-9 rounded-xl border text-xs font-bold transition-all ${p === currentPage
-                          ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
-                          : "bg-background border-border hover:bg-muted text-muted-foreground"
+                        ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
+                        : "bg-background border-border hover:bg-muted text-muted-foreground"
                         }`}
                     >
                       {p}
@@ -354,6 +360,6 @@ export default function LeaderboardPage() {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -178,28 +178,33 @@ const CodingExerciseLibrary: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background p-4 md:p-8">
-            <div className="max-w-[1700px] mx-auto space-y-10">
+        <div className="min-h-screen bg-background pb-12">
+            <div className="max-w-[2000px] mx-auto px-6 py-8 space-y-10">
 
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+                >
+                    <div className="space-y-1">
+                        <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
                             Thư viện Bài tập Lập trình
                         </h1>
-                        <p className="text-muted-foreground mt-1 flex items-center gap-2">
+                        <p className="text-muted-foreground font-medium flex items-center gap-2">
                             <Layers size={16} />
-                            Quản lý và thiết lập kho đề bài tập lập trình mẫu
+                            Xây dựng và tối ưu kho đề bài tập lập trình mẫu của bạn
                         </p>
                     </div>
                     <button
                         onClick={() => navigate('/templates/create')}
-                        className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-indigo-200 active:scale-95"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
                     >
                         <Plus size={20} />
                         Tạo bài tập mới
                     </button>
-                </div>
+                </motion.div>
 
                 {/* Stats Grid */}
                 <motion.div
@@ -235,7 +240,12 @@ const CodingExerciseLibrary: React.FC = () => {
                 </motion.div>
 
                 {/* Filters Section */}
-                <div className="bg-card p-6 rounded-2xl border border-border shadow-sm space-y-4">
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    className="bg-card p-6 rounded-2xl border border-border shadow-sm space-y-4"
+                >
                     <div className="flex items-center gap-2 text-foreground font-semibold mb-2">
                         <Filter size={20} className="text-indigo-600" />
                         Bộ lọc tìm kiếm
@@ -284,7 +294,7 @@ const CodingExerciseLibrary: React.FC = () => {
                             <option value="false">Bản nháp</option>
                         </select>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Content Section */}
                 <AnimatePresence mode="wait">
@@ -335,7 +345,7 @@ const CodingExerciseLibrary: React.FC = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{
                                         duration: 0.3,
-                                        delay: Math.min(index * 0.05, 0.5)
+                                        delay: Math.min(index * 0.05, 0.4)
                                     }}
                                     className="group bg-card rounded-3xl border border-border shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300 overflow-hidden flex flex-col"
                                 >

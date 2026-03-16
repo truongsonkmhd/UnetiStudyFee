@@ -82,10 +82,10 @@ const CourseManager: React.FC = () => {
     };
 
     return (
-        <div className={`min-height-screen w-full bg-background transition-colors duration-300 ${(isCreate || isEdit || isView) ? '' : 'p-6'}`}>
+        <div className="max-w-[2000px] mx-auto min-h-screen bg-background transition-colors duration-300">
             {(isCreate || isEdit || isView) && (
                 <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
-                    <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8">
+                    <div className="flex h-16 w-full items-center justify-between px-6">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={handleBack}
@@ -95,17 +95,15 @@ const CourseManager: React.FC = () => {
                                 Quay lại danh sách
                             </button>
                             <div className="h-6 w-px bg-border" />
-                            <h1 className="text-lg font-bold tracking-tight text-foreground">
+                            <h1 className="text-xl font-bold tracking-tight text-foreground">
                                 {isCreate ? 'Tạo khóa học mới' : isEdit ? 'Thiết lập khóa học' : 'Chi tiết khóa học'}
                             </h1>
                         </div>
-
-
                     </div>
                 </header>
             )}
 
-            <main className={`w-full ${(isCreate || isEdit || isView) ? 'py-8 px-4 sm:px-10' : ''}`}>
+            <main className={`w-full p-6 lg:p-10 ${(isCreate || isEdit || isView) ? '' : ''}`}>
                 <AnimatePresence mode="wait">
                     {!isCreate && !isEdit && !isView && !selectedCourseId && (
                         <motion.div

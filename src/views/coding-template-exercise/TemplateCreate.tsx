@@ -98,16 +98,16 @@ const TemplateCreate: React.FC = () => {
     }
   };
 
-  const addTestCase = (isPublic: boolean = true) => {
+  const addTestCase = (isSample: boolean = true) => {
     const newTestCase: ExerciseTestCase = {
       input: '',
       expectedOutput: '',
-      isPublic,
+      isSample,
       explanation: '',
       orderIndex: exerciseTestCases.length + 1
     };
     setExerciseTestCases([...exerciseTestCases, newTestCase]);
-    toast.success(`Đã thêm test case ${isPublic ? 'mẫu' : 'ẩn'}`);
+    toast.success(`Đã thêm test case ${isSample ? 'mẫu' : 'ẩn'}`);
   };
 
   const removeTestCase = (index: number) => {
@@ -231,12 +231,11 @@ const TemplateCreate: React.FC = () => {
             {/* Header Info */}
             <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden transition-all">
               <div className="bg-muted/50 px-6 py-4 border-b border-border flex items-center gap-2 font-bold text-foreground">
-                <FileText size={20} className="text-primary" />
                 Thông tin cơ bản
               </div>
               <div className="p-10 space-y-10">
                 <div>
-                  <label className="block text-sm font-bold text-foreground mb-2">Tiêu đề bài tập <span className="text-destructive">*</span></label>
+                  <label className="block text-base font-bold text-foreground mb-2">Tiêu đề bài tập <span className="text-destructive">*</span></label>
                   <input
                     type="text"
                     name="title"
@@ -250,7 +249,7 @@ const TemplateCreate: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-foreground mb-2">Slug định danh <span className="text-destructive">*</span></label>
+                    <label className="block text-base font-bold text-foreground mb-2">Slug định danh <span className="text-destructive">*</span></label>
                     <input
                       type="text"
                       name="slug"
@@ -261,7 +260,7 @@ const TemplateCreate: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-foreground mb-2">Danh mục</label>
+                    <label className="block text-base font-bold text-foreground mb-2">Danh mục</label>
                     <select
                       name="category"
                       value={formData.category}
@@ -275,7 +274,7 @@ const TemplateCreate: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-foreground mb-2">Mô tả bài tập</label>
+                  <label className="block text-base font-bold text-foreground mb-2">Mô tả bài tập</label>
                   <textarea
                     name="description"
                     rows={4}
@@ -291,14 +290,13 @@ const TemplateCreate: React.FC = () => {
             {/* Code Configuration */}
             <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden transition-all">
               <div className="bg-muted/50 px-6 py-4 border-b border-border flex items-center gap-2 font-bold text-foreground">
-                <Code2 size={20} className="text-primary" />
                 Cấu hình mã nguồn
               </div>
               <div className="p-10 space-y-10">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-bold text-foreground">Mã khởi tạo (Initial Code) <span className="text-destructive">*</span></label>
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground/60">Environment: {formData.programmingLanguage}</span>
+                    <label className="text-base font-bold text-foreground">Mã khởi tạo <span className="text-destructive">*</span></label>
+                    <span className="text-[15px] uppercase font-bold text-muted-foreground/60">Ngôn ngữ: {formData.programmingLanguage}</span>
                   </div>
                   <div className="h-[400px] border border-border rounded-2xl overflow-hidden bg-[#1e1e1e]">
                     <Editor
@@ -321,7 +319,7 @@ const TemplateCreate: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-foreground mb-2 font-mono">Giải pháp mẫu (Solution Code)</label>
+                  <label className="block text-base font-bold text-foreground mb-2 font-mono">Giải pháp mẫu (Solution Code)</label>
                   <div className="h-[300px] border border-border rounded-2xl overflow-hidden bg-[#1e1e1e]">
                     <Editor
                       height="100%"
@@ -344,12 +342,12 @@ const TemplateCreate: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 space-y-4">
-                      <div className="flex items-center gap-2 font-bold text-primary text-xs uppercase tracking-wider">
+                      <div className="flex items-center gap-2 font-bold text-primary text-sm uppercase tracking-wider">
                         <Zap size={14} /> Hiệu năng
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[10px] font-bold text-primary/70 mb-1 uppercase">Thời gian (ms)</label>
+                          <label className="block text-[14px] font-bold text-primary/70 mb-1 uppercase">Thời gian (ms)</label>
                           <input
                             type="number"
                             name="timeLimitMs"
@@ -359,7 +357,7 @@ const TemplateCreate: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-primary/70 mb-1 uppercase">Bộ nhớ (MB)</label>
+                          <label className="block text-[14px] font-bold text-primary/70 mb-1 uppercase">Bộ nhớ (MB)</label>
                           <input
                             type="number"
                             name="memoryLimitMb"
@@ -373,7 +371,7 @@ const TemplateCreate: React.FC = () => {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="block text-sm font-bold text-foreground mb-2 font-mono">Ràng buộc tên biến/hàm</label>
+                    <label className="block text-base font-bold text-foreground mb-2 font-mono">Ràng buộc tên biến/hàm</label>
                     <input
                       type="text"
                       name="constraintName"
@@ -387,25 +385,23 @@ const TemplateCreate: React.FC = () => {
               </div>
             </div>
 
-            {/* Test Cases Area */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 font-bold text-foreground text-lg">
-                  <Beaker size={24} className="text-primary" />
                   Bộ lọc kiểm thử (Test Cases)
                 </div>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => addTestCase(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl text-xs font-bold transition-all border border-emerald-500/20"
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl text-sm font-bold transition-all border border-emerald-500/20"
                   >
                     <Plus size={14} /> Thêm Test Case Mẫu
                   </button>
                   <button
                     type="button"
                     onClick={() => addTestCase(false)}
-                    className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 text-muted-foreground rounded-xl text-xs font-bold transition-all border border-border"
+                    className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 text-muted-foreground rounded-xl text-sm font-bold transition-all border border-border"
                   >
                     <Plus size={14} /> Thêm Test Case Ẩn
                   </button>
@@ -419,9 +415,19 @@ const TemplateCreate: React.FC = () => {
                       <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
                         {index + 1}
                       </span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${tc.isPublic ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-muted text-muted-foreground border border-border'}`}>
-                        {tc.isPublic ? 'Mẫu (Public)' : 'Ẩn (Private)'}
+                      <span className={`px-2 py-0.5 rounded-full text-[12px] font-bold uppercase ${tc.isSample ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-muted text-muted-foreground border border-border'}`}>
+                        {tc.isSample ? 'Mẫu (Sample)' : 'Ẩn (Private)'}
                       </span>
+                      <div className="flex items-center gap-2 ml-2">
+                        <input
+                          type="checkbox"
+                          checked={tc.isSample}
+                          onChange={(e) => updateTestCase(index, 'isSample', e.target.checked)}
+                          className="w-4 h-4 rounded border-border focus:ring-primary"
+                          id={`is-sample-${index}`}
+                        />
+                        <label htmlFor={`is-sample-${index}`} className="text-[11px] font-bold text-muted-foreground cursor-pointer uppercase">Hiển thị mẫu</label>
+                      </div>
                     </div>
                     <button
                       type="button"
@@ -433,7 +439,7 @@ const TemplateCreate: React.FC = () => {
                   </div>
                   <div className="p-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
                     <div className="space-y-2">
-                      <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Input</label>
+                      <label className="block text-[15px] font-bold text-muted-foreground uppercase tracking-wide">Input</label>
                       <textarea
                         rows={4}
                         value={tc.input}
@@ -443,7 +449,7 @@ const TemplateCreate: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Expected Output</label>
+                      <label className="block text-[15px] font-bold text-muted-foreground uppercase tracking-wide">Expected Output</label>
                       <textarea
                         rows={4}
                         value={tc.expectedOutput}
@@ -453,15 +459,15 @@ const TemplateCreate: React.FC = () => {
                       />
                     </div>
                     <div className="md:col-span-2 space-y-2 pt-2 border-t border-border">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground mb-1">
-                        <Info size={14} /> Giải thích (Giải thích cho học sinh)
+                      <div className="flex items-center gap-1.5 text-sm font-bold text-muted-foreground mb-1">
+                        Giải thích cho học sinh
                       </div>
                       <input
                         type="text"
                         value={tc.explanation}
                         onChange={(e) => updateTestCase(index, 'explanation', e.target.value)}
                         className="w-full px-4 py-2.5 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm text-foreground"
-                        placeholder="Nửa dòng giải thích tại sao input ra output như này..."
+                        placeholder="Giải thích tại sao input ra output như này..."
                       />
                     </div>
                   </div>
@@ -485,12 +491,11 @@ const TemplateCreate: React.FC = () => {
             {/* Quick Settings */}
             <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden sticky top-24">
               <div className="bg-muted/50 px-6 py-4 border-b border-border flex items-center gap-2 font-bold text-foreground">
-                <Settings2 size={20} className="text-primary" />
                 Thiết lập nhanh
               </div>
               <div className="p-10 space-y-10">
                 <div>
-                  <label className="block text-sm font-bold text-foreground mb-2">Ngôn ngữ chủ đạo</label>
+                  <label className="block text-base font-bold text-foreground mb-2">Ngôn ngữ chủ đạo</label>
                   <select
                     name="programmingLanguage"
                     value={formData.programmingLanguage}
@@ -502,14 +507,14 @@ const TemplateCreate: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-foreground mb-2">Độ khó bài tập</label>
+                  <label className="block text-base font-bold text-foreground mb-2">Độ khó bài tập</label>
                   <div className="grid grid-cols-3 gap-2">
                     {difficulties.map(diff => (
                       <button
                         key={diff}
                         type="button"
                         onClick={() => setFormData(p => ({ ...p, difficulty: diff }))}
-                        className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${formData.difficulty === diff
+                        className={`py-2 rounded-xl text-[12px] font-bold border transition-all ${formData.difficulty === diff
                           ? (diff === 'EASY' ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20' :
                             diff === 'MEDIUM' ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20' :
                               'bg-destructive border-destructive text-white shadow-lg shadow-destructive/20')
@@ -524,7 +529,7 @@ const TemplateCreate: React.FC = () => {
 
                 <div className="p-4 bg-primary text-primary-foreground rounded-2xl space-y-3 shadow-xl shadow-primary/20">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold opacity-80 uppercase tracking-wider">Điểm hoàn thành</span>
+                    <span className="text-sm font-bold opacity-80 uppercase tracking-wider">Điểm hoàn thành</span>
                     <Trophy size={16} />
                   </div>
                   <input
@@ -534,15 +539,13 @@ const TemplateCreate: React.FC = () => {
                     onChange={handleInputChange}
                     className="w-full bg-white/10 border-0 rounded-xl px-4 py-3 text-2xl font-black focus:ring-2 focus:ring-white outline-none"
                   />
-                  <p className="text-[10px] font-bold opacity-70 flex items-center gap-1 uppercase tracking-widest"><Info size={10} /> Điểm sẽ cộng khi pass test</p>
                 </div>
 
                 <div className="pt-4 border-t border-border space-y-4">
                   <div className="flex items-center justify-between p-4 bg-muted rounded-2xl group cursor-pointer hover:bg-primary/5 transition-colors"
                     onClick={() => setFormData(p => ({ ...p, isPublished: !p.isPublished }))}>
                     <div className="flex flex-col">
-                      <span className="text-sm font-extrabold text-foreground">Xuất bản ngay</span>
-                      <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-tighter">Công khai cho contest</span>
+                      <span className="text-base font-extrabold text-foreground">Xuất bản ngay</span>
                     </div>
                     <div className={`w-12 h-6 rounded-full transition-all flex items-center px-1 ${formData.isPublished ? 'bg-primary' : 'bg-muted-foreground/30'}`}>
                       <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-all ${formData.isPublished ? 'translate-x-6' : 'translate-x-0'}`} />

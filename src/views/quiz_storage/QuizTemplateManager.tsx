@@ -244,18 +244,23 @@ const QuizTemplateManager: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-10">
-      <div className="max-w-[1700px] mx-auto space-y-10">
+    <div className="min-h-screen bg-background pb-12">
+      <div className="max-w-[2000px] mx-auto px-6 py-8 space-y-10">
 
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        >
+          <div className="space-y-1">
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
               Thư viện Mẫu Quiz
             </h1>
-            <p className="text-muted-foreground mt-1 flex items-center gap-2">
+            <p className="text-muted-foreground font-medium flex items-center gap-2">
               <Layers size={16} />
-              Quản lý danh sách các bộ đề câu hỏi trắc nghiệm
+              Quản lý bộ câu hỏi trắc nghiệm của bạn
             </p>
           </div>
           <button
@@ -263,12 +268,12 @@ const QuizTemplateManager: React.FC = () => {
               setEditingTemplateId(null);
               setShowCreateModal(true);
             }}
-            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-indigo-200 active:scale-95"
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
           >
             <Plus size={20} />
             Tạo mẫu mới
           </button>
-        </div>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -293,7 +298,7 @@ const QuizTemplateManager: React.FC = () => {
                 <stat.icon size={24} className={stat.color} />
               </div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
+                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
                 <p className="text-2xl font-bold text-foreground">
                   {stat.label === 'Tổng lượt dùng' ? <Counter value={stat.value} /> : stat.value}
                 </p>
@@ -303,7 +308,12 @@ const QuizTemplateManager: React.FC = () => {
         </motion.div>
 
         {/* Filters Section */}
-        <div className="bg-card p-6 rounded-2xl border border-border shadow-sm space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="bg-card p-6 rounded-2xl border border-border shadow-sm space-y-4"
+        >
           <div className="flex items-center gap-2 text-foreground font-semibold mb-2">
             <Filter size={20} className="text-indigo-600" />
             Bộ lọc tìm kiếm
@@ -339,7 +349,7 @@ const QuizTemplateManager: React.FC = () => {
               <option value="false">Đã tạm dừng</option>
             </select>
           </div>
-        </div>
+        </motion.div>
 
         {/* Content Section */}
         <AnimatePresence mode="wait">
@@ -397,11 +407,11 @@ const QuizTemplateManager: React.FC = () => {
                   <div className="p-6 flex-1 space-y-4">
                     <div className="flex justify-between items-start">
                       <div className="flex gap-2">
-                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${template.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                        <span className={`px-2.5 py-1 rounded-lg text-[12px] font-bold uppercase tracking-wider ${template.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
                           }`}>
                           {template.isActive ? 'Hoạt động' : 'Tạm dừng'}
                         </span>
-                        <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                        <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-lg text-[12px] font-bold uppercase tracking-wider">
                           {template.category}
                         </span>
                       </div>
@@ -412,25 +422,25 @@ const QuizTemplateManager: React.FC = () => {
                       <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 leading-tight">
                         {template.templateName}
                       </h3>
-                      <p className="text-muted-foreground text-xs line-clamp-2 min-h-[32px]">
+                      <p className="text-muted-foreground text-sm line-clamp-2 min-h-[40px]">
                         {template.description || "Không có mô tả"}
                       </p>
                     </div>
 
                     <div className="flex flex-wrap gap-3 pt-2">
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
+                      <div className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
                         <Zap size={14} className="text-amber-500" />
                         {template.usageCount || 0} lượt dùng
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
+                      <div className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
                         <BookOpen size={14} className="text-indigo-500" />
                         {template.totalQuestions || 0} câu hỏi
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
+                      <div className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
                         <Target size={14} className="text-rose-500" />
                         {template.passScore}% đạt
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
+                      <div className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
                         <RotateCcw size={14} className="text-orange-500" />
                         {template.maxAttempts || 3} lượt
                       </div>
@@ -493,61 +503,65 @@ const QuizTemplateManager: React.FC = () => {
       </div>
 
       {/* Duplicate Modal */}
-      {isDuplicateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-2xl border border-border scale-in-center animate-in zoom-in duration-200">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-primary/10 rounded-2xl">
-                <Copy className="w-6 h-6 text-primary" />
+      {
+        isDuplicateOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-2xl border border-border scale-in-center animate-in zoom-in duration-200">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-primary/10 rounded-2xl">
+                  <Copy className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-foreground">Nhân bản mẫu quiz</h3>
+                  <p className="text-sm text-muted-foreground">Tạo bản sao mới cho mẫu quiz này</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-foreground">Nhân bản mẫu quiz</h3>
-                <p className="text-sm text-muted-foreground">Tạo bản sao mới cho mẫu quiz này</p>
-              </div>
-            </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-foreground mb-2">Tên mẫu mới</label>
-                <input
-                  autoFocus
-                  type="text"
-                  placeholder="Nhập tên mẫu mới..."
-                  value={duplicateName}
-                  onChange={(e) => setDuplicateName(e.target.value)}
-                  className="w-full rounded-2xl border border-border px-4 py-3 bg-background focus:ring-2 focus:ring-primary outline-none transition-all font-medium text-foreground"
-                />
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-foreground mb-2">Tên mẫu mới</label>
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Nhập tên mẫu mới..."
+                    value={duplicateName}
+                    onChange={(e) => setDuplicateName(e.target.value)}
+                    className="w-full rounded-2xl border border-border px-4 py-3 bg-background focus:ring-2 focus:ring-primary outline-none transition-all font-medium text-foreground"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="flex flex-col gap-3 mt-8">
-              <button
-                onClick={handleDuplicate}
-                disabled={duplicating || !duplicateName.trim()}
-                className="w-full py-3 bg-primary text-primary-foreground rounded-2xl font-bold shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2"
-              >
-                {duplicating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
-                Xác nhận nhân bản
-              </button>
-              <button
-                onClick={() => setIsDuplicateOpen(false)}
-                className="w-full py-3 bg-muted text-muted-foreground rounded-2xl font-bold hover:bg-muted/80 transition-all"
-              >
-                Hủy bỏ
-              </button>
+              <div className="flex flex-col gap-3 mt-8">
+                <button
+                  onClick={handleDuplicate}
+                  disabled={duplicating || !duplicateName.trim()}
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-2xl font-bold shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  {duplicating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
+                  Xác nhận nhân bản
+                </button>
+                <button
+                  onClick={() => setIsDuplicateOpen(false)}
+                  className="w-full py-3 bg-muted text-muted-foreground rounded-2xl font-bold hover:bg-muted/80 transition-all"
+                >
+                  Hủy bỏ
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Editor Modal */}
-      {showCreateModal && (
-        <QuizEditorModal
-          quizId={editingTemplateId}
-          onClose={handleModalClose}
-        />
-      )}
-    </div>
+      {
+        showCreateModal && (
+          <QuizEditorModal
+            quizId={editingTemplateId}
+            onClose={handleModalClose}
+          />
+        )
+      }
+    </div >
   );
 };
 

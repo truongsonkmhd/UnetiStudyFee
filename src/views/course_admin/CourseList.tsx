@@ -175,7 +175,6 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
 
   return (
     <div className="space-y-8 pb-12">
-      {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -188,14 +187,13 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
         </div>
         <button
           onClick={onCreate}
-          className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-blue-600 px-6 py-3 text-white transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200 active:scale-95"
+          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
         >
           <Plus className="h-5 w-5" />
           <span className="font-semibold">Tạo khóa học mới</span>
         </button>
       </motion.div>
 
-      {/* Filters Section */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -305,7 +303,6 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
                 }}
                 className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/10 shadow-md"
               >
-                {/* Thumbnail Container */}
                 <div className="relative aspect-video w-full overflow-hidden bg-muted">
                   {course.imageUrl ? (
                     <img
@@ -320,7 +317,7 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
                   )}
 
                   {/* Overlay Badge */}
-                  <div className={`absolute right-3 top-3 inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md ${course.isPublished
+                  <div className={`absolute right-3 top-3 inline-flex items-center rounded-full px-2.5 py-1 text-[12px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md ${course.isPublished
                     ? 'bg-emerald-500/90 text-white'
                     : 'bg-amber-500/90 text-white'
                     }`}>
@@ -357,7 +354,7 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
                     {course.shortDescription || 'Chưa cập nhật nội dung giới thiệu cho khóa học này...'}
                   </p>
 
-                  <div className="mt-auto flex items-center justify-between border-t border-border pt-4 text-xs font-semibold text-muted-foreground">
+                  <div className="mt-auto flex items-center justify-between border-t border-border pt-4 text-sm font-semibold text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <Layers className="h-3.5 w-3.5 text-primary" />
                       <span>{course.totalModules} chương</span>
@@ -373,7 +370,7 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
                 <div className="flex border-t border-border bg-muted/30 px-5 py-2">
                   <button
                     onClick={() => handleDelete(course.courseId, course.title)}
-                    className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground transition-colors hover:text-destructive"
+                    className="flex items-center gap-1 text-sm font-bold text-muted-foreground transition-colors hover:text-destructive"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     Xóa khóa học
