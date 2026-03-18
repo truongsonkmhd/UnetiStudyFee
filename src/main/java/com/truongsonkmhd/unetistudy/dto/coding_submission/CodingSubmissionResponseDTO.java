@@ -1,10 +1,12 @@
 package com.truongsonkmhd.unetistudy.dto.coding_submission;
 
 import com.truongsonkmhd.unetistudy.common.SubmissionVerdict;
+import com.truongsonkmhd.unetistudy.dto.coding_exercise_dto.JudgeRunResponseDTO;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -25,4 +27,6 @@ public class CodingSubmissionResponseDTO {
     Integer memoryKb;
     Integer score;
     Instant submittedAt;
+    String message;
+    List<JudgeRunResponseDTO> testCaseResults;
 }

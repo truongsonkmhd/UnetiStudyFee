@@ -98,16 +98,14 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         Course course = courseRequestMapper.toEntity(req);
         course.setInstructor(instructor);
 
-        // Lưu YouTube URL giới thiệu khóa học
         if (req.getVideoUrl() != null && !req.getVideoUrl().isBlank()) {
             String ytVideoId = YouTubeUtils.extractVideoId(req.getVideoUrl());
             course.setYoutubeVideoId(ytVideoId);
             course.setVideoUrl(ytVideoId != null
-                    ? YouTubeUtils.toEmbedUrl(ytVideoId) // Lưu embed URL trực tiếp
+                    ? YouTubeUtils.toEmbedUrl(ytVideoId)
                     : req.getVideoUrl());
         }
 
-        // Upload course image if exists
         if (req.getImageFile() != null && !req.getImageFile().isEmpty()) {
             String pbUrl = storageService.uploadFile("course_images", req.getImageFile());
             if (pbUrl != null) {
@@ -150,9 +148,6 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         return getCourseTree(saved.getSlug(), userRepository.findRolesByUserId(instructor.getId()));
     }
 
-    /**
-     * Cache Invalidation: Evict cache khi update course
-     */
     @Override
     @Transactional
     public CourseTreeResponse update(UUID courseId, CourseShowRequest req) {

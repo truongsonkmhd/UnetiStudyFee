@@ -1,5 +1,6 @@
 package com.truongsonkmhd.unetistudy.service.impl.coding;
 
+import com.truongsonkmhd.unetistudy.common.ProgressStatus;
 import com.truongsonkmhd.unetistudy.common.SubmissionVerdict;
 import com.truongsonkmhd.unetistudy.configuration.JudgeRabbitConfig;
 import com.truongsonkmhd.unetistudy.context.UserContext;
@@ -14,6 +15,7 @@ import com.truongsonkmhd.unetistudy.model.lesson.CodingSubmission;
 import com.truongsonkmhd.unetistudy.model.lesson.ContestExerciseAttempt;
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.CourseLesson;
 import com.truongsonkmhd.unetistudy.dto.judge_rabbit_mq.JudgeInternalResult;
+import com.truongsonkmhd.unetistudy.dto.progress_dto.LessonProgressRequest;
 import com.truongsonkmhd.unetistudy.dto.judge_rabbit_mq.JudgeRunMessage;
 import com.truongsonkmhd.unetistudy.dto.judge_rabbit_mq.JudgeSubmitMessage;
 import com.truongsonkmhd.unetistudy.repository.coding.ExerciseTestCaseRepository;
@@ -35,6 +37,8 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -52,6 +56,8 @@ public class JudgeServiceImpl implements JudgeService {
     private final CourseLessonService lessonService;
     private final DockerCodeExecutionUtil dockerCodeExecutionUtil;
     private final LanguageRunnerFactory runnerFactory;
+    private final CodingSubmissionService codingSubmissionService;
+    private final LessonProgressService lessonProgressService;
 
     private static final String ENV_HOST = "JUDGE_WORKDIR_HOST";
 
@@ -190,29 +196,79 @@ public class JudgeServiceImpl implements JudgeService {
             if (total == 0) {
                 String out = dockerCodeExecutionUtil.runInContainer(workingDir, request.getLanguage(), "");
                 verdict = SubmissionVerdict.ACCEPTED;
-                message = out;
+                message = "Không có test case nào. Thực thi thành công.\n\nKết quả:\n" + out;
+                return JudgeInternalResult.builder()
+                        .verdict(verdict)
+                        .passed(0)
+                        .total(0)
+                        .score(0)
+                        .message(message)
+                        .testCaseResults(new ArrayList<>())
+                        .build();
             } else {
                 boolean allPassed = true;
+                List<JudgeRunResponseDTO> testCaseResults = new ArrayList<>();
 
                 for (ExerciseTestCasesDTO tc : testCases) {
-                    String outputRun = dockerCodeExecutionUtil.runInContainer(
-                            workingDir,
-                            request.getLanguage(),
-                            safeString(tc.getInput()));
+                    try {
+                        String tcInput = safeString(tc.getInput());
+                        String outputRun = dockerCodeExecutionUtil.runInContainer(
+                                workingDir,
+                                request.getLanguage(),
+                                tcInput);
 
-                    String expected = safeTrim(tc.getExpectedOutput());
-                    String actual = safeTrim(outputRun);
+                        String expected = safeTrim(tc.getExpectedOutput());
+                        String actual = safeTrim(outputRun);
 
-                    boolean ok = expected.equals(actual);
-                    if (!ok) {
+                        boolean ok = expected.equals(actual);
+                        int tcScore = (tc.getPoints() != null ? tc.getPoints() : 0);
+
+                        if (!ok) {
+                            allPassed = false;
+                        } else {
+                            passed++;
+                            score += tcScore;
+                        }
+
+                        testCaseResults
+                                .add(JudgeRunResponseDTO.builder()
+                                        .verdict(ok ? "ACCEPTED" : "WRONG_ANSWER")
+                                        .status(ok ? "ACCEPTED" : "WRONG_ANSWER")
+                                        .actualOutput(actual)
+                                        .expectedOutput(expected)
+                                        .input(tcInput)
+                                        .points(ok ? tcScore : 0)
+                                        .isKnownTestCase(true)
+                                        .testCaseId(tc.getTestCaseId() != null ? tc.getTestCaseId().toString() : null)
+                                        .build());
+
+                    } catch (Exception e) {
                         allPassed = false;
-                    } else {
-                        passed++;
-                        score += (tc.getScore() != null ? tc.getScore() : 0);
+                        testCaseResults
+                                .add(JudgeRunResponseDTO.builder()
+                                        .verdict("RUNTIME_ERROR")
+                                        .status("ERROR")
+                                        .message(e.getMessage())
+                                        .input(safeString(tc.getInput()))
+                                        .isKnownTestCase(true)
+                                        .testCaseId(tc.getTestCaseId() != null ? tc.getTestCaseId().toString() : null)
+                                        .build());
                     }
                 }
 
                 verdict = allPassed ? SubmissionVerdict.ACCEPTED : SubmissionVerdict.WRONG_ANSWER;
+                String finalMessage = allPassed ? "Chúc mừng! Bạn đã vượt qua tất cả các test case."
+                        : "Bạn đã vượt qua " + passed + "/" + total
+                                + " test case. Vui lòng kiểm tra lại các trường hợp bị lỗi.";
+
+                return JudgeInternalResult.builder()
+                        .verdict(verdict)
+                        .passed(passed)
+                        .total(total)
+                        .score(score)
+                        .message(finalMessage)
+                        .testCaseResults(testCaseResults)
+                        .build();
             }
 
         } catch (DockerCodeExecutionUtil.CompilationException e) {
@@ -261,7 +317,11 @@ public class JudgeServiceImpl implements JudgeService {
 
             if (testCases == null || testCases.isEmpty()) {
                 output.append(dockerCodeExecutionUtil.runInContainer(workingDir, request.getLanguage(), ""));
-                return new JudgeRunResponseDTO(output.toString(), "SUCCESS", "");
+                return JudgeRunResponseDTO.builder()
+                        .output(output.toString())
+                        .status("SUCCESS")
+                        .message("")
+                        .build();
             }
 
             boolean allPassed = true;
@@ -283,18 +343,34 @@ public class JudgeServiceImpl implements JudgeService {
                         .append("Input:\n").append(safeString(testCase.getInput())).append("\n")
                         .append("Expected:\n").append(expected).append("\n")
                         .append("Actual:\n").append(actual).append("\n")
-                        .append(passed ? "✅ Passed\n\n" : "❌ Failed\n\n");
+                        .append(passed ? " Passed\n\n" : " Failed\n\n");
             }
 
             String status = allPassed ? "SUCCESS" : "FAIL";
-            return new JudgeRunResponseDTO(output.toString(), status, "");
+            return JudgeRunResponseDTO.builder()
+                    .output(output.toString())
+                    .status(status)
+                    .message("")
+                    .build();
 
         } catch (DockerCodeExecutionUtil.CompilationException e) {
-            return new JudgeRunResponseDTO(e.getOutput(), "COMPILATION_ERROR", "Lỗi biên dịch");
+            return JudgeRunResponseDTO.builder()
+                    .output(e.getOutput())
+                    .status("COMPILATION_ERROR")
+                    .message("Lỗi biên dịch")
+                    .build();
         } catch (IOException | InterruptedException e) {
-            return new JudgeRunResponseDTO("", "ERROR", e.getMessage());
+            return JudgeRunResponseDTO.builder()
+                    .output("")
+                    .status("ERROR")
+                    .message(e.getMessage())
+                    .build();
         } catch (RuntimeException e) {
-            return new JudgeRunResponseDTO("", "ERROR", e.getMessage());
+            return JudgeRunResponseDTO.builder()
+                    .output("")
+                    .status("ERROR")
+                    .message(e.getMessage())
+                    .build();
         } finally {
             try {
                 DockerCodeExecutionUtil.deleteDirectoryRecursively(workingDir);
@@ -324,8 +400,9 @@ public class JudgeServiceImpl implements JudgeService {
             String inputToUse = userProvidedInput;
             String expectedOutput = "";
             boolean isKnownTestCase = false;
+            String matchedTestCaseId = null;
+            Integer tcPoints = null;
 
-            // 1. Tìm Expected Output và Verify Input từ Database
             Set<ExerciseTestCasesDTO> testCases = getListExerciseTestCase(request.getExerciseId());
             if (testCases != null) {
                 for (ExerciseTestCasesDTO tc : testCases) {
@@ -338,16 +415,16 @@ public class JudgeServiceImpl implements JudgeService {
                         expectedOutput = safeTrim(tc.getExpectedOutput());
                         inputToUse = safeString(tc.getInput()).trim();
                         isKnownTestCase = true;
+                        matchedTestCaseId = tc.getTestCaseId() != null ? tc.getTestCaseId().toString() : null;
+                        tcPoints = tc.getPoints();
                         break;
                     }
                 }
             }
 
-            // 2. Chạy Code lần đầu với test case đã chọn
             String outputRun = dockerCodeExecutionUtil.runInContainer(workingDir, request.getLanguage(), inputToUse);
             String actual = safeTrim(outputRun);
 
-            // 3. Kiểm tra kết quả ban đầu
             boolean passed = isKnownTestCase && expectedOutput.equals(actual);
 
             String verdict = passed ? "ACCEPTED" : (isKnownTestCase ? "WRONG_ANSWER" : "SUCCESS");
@@ -355,24 +432,118 @@ public class JudgeServiceImpl implements JudgeService {
                     : (isKnownTestCase ? "Sai kết quả (Wrong Answer)" : "Thực thi thành công");
 
             String summary = statusLabel + "\n" +
-                    "Đầu vào lọc: " + inputToUse + "\n" +
+                    "Đầu vào: " + inputToUse + "\n" +
                     "Mong đợi: " + (isKnownTestCase ? expectedOutput : "(Tùy chỉnh)") + "\n" +
                     "Thực tế: " + actual;
 
-            return new JudgeRunResponseDTO(actual, verdict, summary);
+            return JudgeRunResponseDTO.builder()
+                    .output(actual)
+                    .status(verdict)
+                    .message(summary)
+                    .verdict(verdict)
+                    .actualOutput(actual)
+                    .expectedOutput(isKnownTestCase ? expectedOutput : null)
+                    .input(inputToUse)
+                    .isKnownTestCase(isKnownTestCase)
+                    .testCaseId(matchedTestCaseId)
+                    .points(isKnownTestCase && tcPoints != null ? tcPoints : 0)
+                    .build();
 
         } catch (DockerCodeExecutionUtil.CompilationException e) {
-            return new JudgeRunResponseDTO(e.getOutput(), "COMPILATION_ERROR", "Lỗi biên dịch: \n" + e.getOutput());
+            return JudgeRunResponseDTO.builder()
+                    .output(e.getOutput())
+                    .status("COMPILATION_ERROR")
+                    .message("Lỗi biên dịch: \n" + e.getOutput())
+                    .verdict("COMPILATION_ERROR")
+                    .actualOutput(e.getOutput())
+                    .build();
         } catch (IOException | InterruptedException e) {
-            return new JudgeRunResponseDTO("", "ERROR", "Lỗi hệ thống: " + e.getMessage());
+            return JudgeRunResponseDTO.builder()
+                    .output("")
+                    .status("ERROR")
+                    .message("Lỗi hệ thống: " + e.getMessage())
+                    .verdict("RUNTIME_ERROR")
+                    .build();
         } catch (RuntimeException e) {
-            return new JudgeRunResponseDTO("", "RUNTIME_ERROR", "Lỗi thực thi: " + e.getMessage());
+            return JudgeRunResponseDTO.builder()
+                    .output("")
+                    .status("RUNTIME_ERROR")
+                    .message("Lỗi thực thi: " + e.getMessage())
+                    .verdict("RUNTIME_ERROR")
+                    .build();
         } finally {
             try {
                 DockerCodeExecutionUtil.deleteDirectoryRecursively(workingDir);
             } catch (Exception ignored) {
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public CodingSubmissionResponseDTO processPreJudgedSubmission(CodingSubmission sub, JudgeRequestDTO request) {
+        List<JudgeRunResponseDTO> frontendResults = request.getTestCaseResults();
+        if (frontendResults == null)
+            frontendResults = new ArrayList<>();
+
+        Set<ExerciseTestCasesDTO> dbTestCases = getListExerciseTestCase(request.getExerciseId());
+        int totalTestcases = (dbTestCases == null) ? 0 : dbTestCases.size();
+
+        int passed = 0;
+        int score = 0;
+        for (JudgeRunResponseDTO res : frontendResults) {
+            if ("ACCEPTED".equals(res.getVerdict())) {
+                passed++;
+                score += (res.getPoints() != null ? res.getPoints() : 0);
+            }
+        }
+
+        boolean allCasesJudged = frontendResults.size() >= totalTestcases;
+        SubmissionVerdict verdict = (allCasesJudged && passed == totalTestcases) ? SubmissionVerdict.ACCEPTED
+                : SubmissionVerdict.WRONG_ANSWER;
+
+        String juryMessage = allCasesJudged
+                ? (verdict == SubmissionVerdict.ACCEPTED ? "Chúc mừng! Bạn đã vượt qua tất cả các test case."
+                        : "Kết quả: " + passed + "/" + totalTestcases + " bài kiểm tra vượt qua.")
+                : "Cảnh báo: Bạn mới chỉ nộp " + frontendResults.size() + "/" + totalTestcases
+                        + " test case. Vui lòng chạy đủ tất cả các case trước khi nộp.";
+
+        sub.setVerdict(verdict);
+        sub.setPassedTestcases(passed);
+        sub.setTotalTestcases(totalTestcases);
+        sub.setScore(score);
+
+        codingSubmissionService.save(sub);
+        createContestAttemptIfNeeded(sub);
+
+        if (verdict == SubmissionVerdict.ACCEPTED) {
+            UUID lessonId = codingExerciseService.getLessonIDByExerciseID(request.getExerciseId());
+            CourseLesson lesson = lessonService.findById(lessonId).orElse(null);
+            if (lesson != null && lesson.getModule() != null && lesson.getModule().getCourse() != null) {
+                var progressReq = LessonProgressRequest.builder()
+                        .courseId(lesson.getModule().getCourse().getCourseId())
+                        .lessonId(lesson.getLessonId())
+                        .watchedPercent(100)
+                        .status(ProgressStatus.DONE)
+                        .build();
+                lessonProgressService.updateProgress(sub.getUser().getId(), progressReq);
+            }
+        }
+
+        return CodingSubmissionResponseDTO.builder()
+                .submissionId(sub.getSubmissionId())
+                .exerciseID(request.getExerciseId())
+                .userID(sub.getUser().getId())
+                .code(request.getSourceCode())
+                .language(request.getLanguage())
+                .verdict(verdict)
+                .passedTestcases(passed)
+                .totalTestcases(totalTestcases)
+                .score(score)
+                .message(juryMessage)
+                .testCaseResults(frontendResults)
+                .submittedAt(sub.getSubmittedAt())
+                .build();
     }
 
     @Override

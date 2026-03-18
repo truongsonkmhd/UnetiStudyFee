@@ -155,7 +155,7 @@ public class JudgeController {
                 throw new RuntimeException("User not found: " + userId);
             }
 
-            // Tạo submission với trạng thái PENDING
+            // Tạo submission
             CodingSubmission codingSubmission = CodingSubmission.builder()
                     .exercise(exercise)
                     .user(userEntity)
@@ -171,26 +171,8 @@ public class JudgeController {
 
             CodingSubmission saved = codingSubmissionService.save(codingSubmission);
 
-            log.info("Submission saved with PENDING: submissionId={}", saved.getSubmissionId());
-
-            judgeService.publishSubmitJob(saved, request);
-
-            log.info("Judge job published: submissionId={}", saved.getSubmissionId());
-
-            CodingSubmissionResponseDTO response = CodingSubmissionResponseDTO.builder()
-                    .submissionId(saved.getSubmissionId())
-                    .exerciseID(request.getExerciseId())
-                    .userID(userId)
-                    .code(request.getSourceCode())
-                    .language(request.getLanguage())
-                    .verdict(SubmissionVerdict.PENDING)
-                    .passedTestcases(0)
-                    .totalTestcases(0)
-                    .runtimeMs(null)
-                    .memoryKb(null)
-                    .score(0)
-                    .submittedAt(saved.getSubmittedAt())
-                    .build();
+            log.info("Processing submission based on frontend results: submissionId={}", saved.getSubmissionId());
+            CodingSubmissionResponseDTO response = judgeService.processPreJudgedSubmission(saved, request);
             return ResponseEntity.ok().body(ResponseMessage.CreatedSuccess(response));
         } catch (Exception e) {
             log.error("Async submit failed: exerciseId={}", request.getExerciseId(), e);
@@ -229,6 +211,7 @@ public class JudgeController {
                                 .expectedOutput(tc.getExpectedOutput())
                                 .isSample(tc.getIsSample())
                                 .explanation(tc.getExplanation())
+                                .points(tc.getPoints())
                                 .build())
                         .toList())
                 .build();

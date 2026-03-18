@@ -33,11 +33,6 @@ public class PermissionController {
 
     @GetMapping
     ResponseEntity<IResponseMessage> getAll() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        log.info("Username: {}", authentication.getName());
-        authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
-
         return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(permissionService.getAll()));
     }
 

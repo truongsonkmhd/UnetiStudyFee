@@ -16,5 +16,5 @@ public class ExerciseTestCasesDTO {
     Boolean isSample;
     String explanation;
     Integer orderIndex;
-    Integer score;
+    Integer points;
 }

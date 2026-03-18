@@ -132,6 +132,8 @@ public class JudgeSubmitConsumer {
                     .memoryKb(result.getMemoryKb())
                     .score(result.getScore())
                     .submittedAt(sub.getSubmittedAt())
+                    .message(result.getMessage())
+                    .testCaseResults(result.getTestCaseResults())
                     .build();
 
             webSocketService.notifySubmissionResult(payload.getUserId(), responseDTO);

@@ -37,4 +37,7 @@ public abstract class BaseExerciseTestCase {
 
     @Column(name = "order_index")
     Integer orderIndex;
+
+    @Column(name = "points")
+    Integer points;
 }

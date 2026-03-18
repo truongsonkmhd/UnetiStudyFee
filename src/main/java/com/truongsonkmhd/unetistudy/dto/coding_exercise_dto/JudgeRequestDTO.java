@@ -3,6 +3,7 @@ package com.truongsonkmhd.unetistudy.dto.coding_exercise_dto;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -18,4 +19,5 @@ public class JudgeRequestDTO {
     UUID exerciseId;
     String testCaseInput;
     String testCaseId;
+    List<JudgeRunResponseDTO> testCaseResults;
 }

@@ -24,4 +24,6 @@ public interface JudgeService {
 
     void createContestAttemptIfNeeded(CodingSubmission submission);
 
+    CodingSubmissionResponseDTO processPreJudgedSubmission(CodingSubmission sub, JudgeRequestDTO request);
+
 }
