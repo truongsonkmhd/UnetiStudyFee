@@ -28,15 +28,27 @@ export interface IStudentProfile {
 export interface ITeacherProfile {
   teacherId: string;
   department: string;
-  academicRank?: string; // e.g., Thạc sĩ, Tiến sĩ
-  specialization?: string; // Chuyên môn
+  academicRank?: string;
+  specialization?: string; 
 }
 
 export interface User extends IBaseUser {
   studentProfile?: IStudentProfile;
   teacherProfile?: ITeacherProfile;
-  // Giữ lại các trường phẳng (flat fields) để tương thích ngược nếu cần, 
-  // nhưng khuyến khích dùng Profile
-  studentId?: string;
-  classId?: string;
+  studentID?: string;
+  classID?: string;
+  teacherID?: string;
+  department?: string;
+  academicRank?: string;
+  specialization?: string;
+  contactAddress?: string;
+  currentResidence?: string;
+}
+
+export interface UserPageResponse {
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  totalElements: number;
+  users: User[];
 }

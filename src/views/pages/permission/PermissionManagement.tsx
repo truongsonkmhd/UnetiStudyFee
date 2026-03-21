@@ -88,7 +88,7 @@ const PermissionManagement = () => {
       loadPermissions();
     } catch (err: any) {
       if (err?.errorFields) return;
-      message.error("Thao tác thất bại, vui lòng thử lại.");
+      message.error(err.message || "Thao tác thất bại, vui lòng thử lại.");
     } finally {
       setSubmitLoading(false);
     }

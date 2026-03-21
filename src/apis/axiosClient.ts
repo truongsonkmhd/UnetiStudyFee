@@ -132,9 +132,15 @@ axiosClient.interceptors.response.use(
 
     // Thêm xử lý lỗi 400
     if (error.response?.status === 400) {
-      const errorMessage =
-        (error.response.data as any)?.message ||
-        "Yêu cầu không hợp lệ. Vui lòng kiểm tra dữ liệu.";
+      const responseData = error.response.data as any;
+      let errorMessage = responseData?.message || "Yêu cầu không hợp lệ. Vui lòng kiểm tra dữ liệu.";
+
+      if (responseData?.validationErrors && Array.isArray(responseData.validationErrors)) {
+        errorMessage = responseData.validationErrors
+          .map((err: any) => err.message)
+          .join("\n");
+      }
+
       toast.error(errorMessage);
       return Promise.reject({
         message: errorMessage,

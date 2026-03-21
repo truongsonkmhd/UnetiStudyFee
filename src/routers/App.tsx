@@ -25,6 +25,7 @@ import CacheManagementPage from "@/views/admin_cache/CacheManagementPage";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import ContestManager from "@/views/contest/ContestManager";
+import ManagerPerson from "@/views/pages/manager_person/ManagerPerson";
 import CourseManager from "@/views/course_admin/CourseManager";
 import EnrollmentManager from "@/views/teacher/enrollment-manager/EnrollmentManager";
 import MyCourses from "@/views/student/my-learning/MyCourses";
@@ -241,7 +242,7 @@ const App = () => (
                     RoleEnum.ROLE_SYS_ADMIN,
                   ]}
                 >
-                  <ContestManager />
+                  <ManagerPerson />
                 </ProtectedRoute>
               }
             />
