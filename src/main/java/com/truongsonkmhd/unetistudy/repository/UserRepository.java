@@ -15,12 +15,13 @@ import java.util.UUID;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
-    @Query(value = "select u from User u where u.status = 'ACTIVE'  " +
-            "and lower(u.fullName) like :keyword" +
+    @Query("select u from User u left join u.studentProfile s where u.status = 'ACTIVE' " +
+            "and (lower(u.fullName) like :keyword" +
             " or lower(u.username) like :keyword" +
             " or lower(u.phone) like :keyword" +
-            " or lower(u.email) like :keyword")
-    Page<User> searchByKeyWord(String keyword , Pageable pageable);
+            " or lower(u.email) like :keyword" +
+            " or lower(s.studentId) like :keyword)")
+    Page<User> searchByKeyWord(@Param("keyword") String keyword, Pageable pageable);
 
     Optional<User> findByUsername(String username);
 
@@ -30,9 +31,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByPhone(String phone);
 
-    Optional<User> findByStudentId(String studentID);
+    Optional<User> findByStudentProfile_StudentId(String studentID);
 
-    @Query("select  u from User u join u.token t where t.refreshToken =: refreshToken")
+    @Query("select  u from User u join u.token t where t.refreshToken = :refreshToken")
     Optional<User> findByRefreshToken(@Param("refreshToken") String refreshToken);
     // đây lầ cách lấy ở userRepo , nhưng ta nên lấy ở TokenRepository để đỡ phình to class (áp dụng SOLID)
 
@@ -46,7 +47,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> getByUsernameAndIsDeletedWithRoles(@Param("userName") String userName,
                                                       @Param("isDeleted") Boolean isDeleted);
    //(left join "fetch") Dùng fetch để giải quyết N+1 problem và đảm bảo dữ liệu quan hệ được load cùng lúc.
-    @Query("select u from User u where u.username =: userName")
+    @Query("select u from User u where u.username = :userName")
     Optional<User> findByUserName(@Param("userName") String userName);
 
     @Query("SELECT u.id FROM User u WHERE u.username = :userName")

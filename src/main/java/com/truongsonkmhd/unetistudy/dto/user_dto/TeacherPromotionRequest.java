@@ -11,4 +11,6 @@ import lombok.experimental.FieldDefaults;
 public class TeacherPromotionRequest {
     String teacherId;
     String department;
+    String academicRank;
+    String specialization;
 }

@@ -1,12 +1,20 @@
 package com.truongsonkmhd.unetistudy.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Gender {
-    @JsonProperty("male")
     MALE,
-    @JsonProperty("female")
     FEMALE,
-    @JsonProperty("other")
-    OTHER
+    OTHER;
+
+    @JsonCreator
+    public static Gender from(String value) {
+        return Gender.valueOf(value.toUpperCase());
+    }
+
+    @JsonValue
+    public String toValue() {
+        return this.name().toLowerCase();
+    }
 }

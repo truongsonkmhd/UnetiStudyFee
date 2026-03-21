@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum UserType {
-    SYSADMIN("SYSADMIN"),
-    ADMIN("ADMIN"),
-    TEACHER("TEACHER"),
-    STUDENT("STUDENT");
+    SYSADMIN("ROLE_SYSADMIN"),
+    ADMIN("ROLE_ADMIN"),
+    TEACHER("ROLE_TEACHER"),
+    STUDENT("ROLE_STUDENT");
 
     private final String value;
 

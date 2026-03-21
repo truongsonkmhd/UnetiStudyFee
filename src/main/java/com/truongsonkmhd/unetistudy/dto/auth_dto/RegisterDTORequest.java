@@ -31,7 +31,7 @@ public class RegisterDTORequest {
 
     @NotNull(message = "dateOfBirth must be not null")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    @JsonFormat(pattern = "MM/dd/yyyy")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     Date birthday;
 
     Set<String> roleCodes;

@@ -36,5 +36,7 @@ public interface UserService {
 
     UUID findUserIDByUserName(String userName);
 
-    void promoteToTeacher(UUID userId, String teacherId, String department);
+    void promoteToTeacher(UUID userId, String teacherId, String department, String academic, String specialization);
+
+    UserPageResponse searchUsers(String keyword, int pageNo, int pageSize);
 }

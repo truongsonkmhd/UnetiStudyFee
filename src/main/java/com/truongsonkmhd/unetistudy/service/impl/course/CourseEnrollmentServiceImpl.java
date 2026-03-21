@@ -232,7 +232,7 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
                 .studentId(entity.getStudent().getId())
                 .studentName(entity.getStudent().getFullName())
                 .studentEmail(entity.getStudent().getEmail())
-                .studentCode(entity.getStudent().getStudentId())
+                .studentCode(entity.getStudent().getStudentProfile() != null ? entity.getStudent().getStudentProfile().getStudentId() : null)
                 .status(entity.getStatus().name())
                 .requestedAt(entity.getCreatedAt())
                 .approvedAt(entity.getApprovedAt())
