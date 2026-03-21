@@ -13,7 +13,31 @@ export interface User {
   username: string;
   avatar?: string;
   isDeleted: boolean;
+  currentResidence?: string;
+  contactAddress?: string;
   type: UserType;
   status: UserStatus;
   roles: Role[];
+
+  // Student fields
+  studentCode?: string;
+  classCode?: string;
+  
+  // Teacher fields
+  teacherID?: string;
+  department?: string;
+  academicRank?: string;
+  specialization?: string;
+  
+  // Legacy fields (optional)
+  studentID?: string;
+  classID?: string;
+}
+
+export interface UserPageResponse {
+  pageNumber: number
+  pageSize: number
+  totalPages: number
+  totalElements: number
+  users: User[]
 }
