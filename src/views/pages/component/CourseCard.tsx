@@ -69,9 +69,9 @@ const CourseCard: React.FC<{ course: CourseCardResponse }> = ({ course }) => {
       className="group relative"
     >
       {/* Dynamic Animated Peripheral Glow */}
-      <div className={`absolute -inset-2 bg-gradient-to-br ${theme.grad} rounded-[2.8rem] opacity-0 group-hover:opacity-15 blur-2xl transition-opacity duration-700`} />
 
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-card/80 backdrop-blur-xl border border-border/50 hover:border-blue-500/30 transition-all duration-500 shadow-2xl">
+
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-card/80 border border-border/50 hover:border-blue-500/30 transition-all duration-500">
 
         {/* THUMBNAIL AREA */}
         <div className="relative aspect-[16/10] w-full overflow-hidden">
@@ -93,8 +93,7 @@ const CourseCard: React.FC<{ course: CourseCardResponse }> = ({ course }) => {
 
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
             <div className="relative">
-              <div className={`absolute -inset-4 bg-white/20 blur-xl rounded-full animate-pulse`} />
-              <button className="relative w-16 h-16 bg-white rounded-full flex items-center justify-center text-slate-950 shadow-[0_0_40px_rgba(255,255,255,0.4)] hover:scale-110 active:scale-95 transition-transform">
+              <button className="relative w-16 h-16 bg-white rounded-full flex items-center justify-center text-slate-950 hover:scale-110 active:scale-95 transition-transform">
                 <PlayCircle className="w-8 h-8 fill-current" />
               </button>
             </div>

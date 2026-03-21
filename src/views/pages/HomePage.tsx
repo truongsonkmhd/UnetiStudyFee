@@ -66,9 +66,9 @@ const MajorTags: React.FC<{
           key={k}
           onClick={() => onChange(k as Major)}
           className={[
-            "px-8 py-3 text-base font-bold rounded-2xl border transition-all duration-300 transform active:scale-95 shadow-sm",
+            "px-8 py-3 text-base font-bold rounded-2xl border transition-all duration-300 transform active:scale-95",
             value === k
-              ? "bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-500/30"
+              ? "bg-blue-600 border-blue-600 text-white"
               : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50/10"
           ].join(" ")}
         >
@@ -158,9 +158,8 @@ export function HomePage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="py-12 bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-2xl relative overflow-hidden group"
+            className="py-12 bg-white dark:bg-slate-900/50 rounded-[3rem] border border-slate-100 dark:border-slate-800 relative overflow-hidden group"
           >
-            <div className="absolute top-0 right-0 w-80 h-80 bg-blue-400/10 rounded-full blur-[100px] -mr-40 -mt-40"></div>
             <EmptyState
               title="Sắp ra mắt khóa học mới"
               description="Đội ngũ giáo viên sẽ thêm khóa học sớm nhất !!!"
@@ -200,7 +199,7 @@ export function HomePage() {
                             href="#"
                             onClick={(e) => { e.preventDefault(); handlePageChange(i); }}
                             isActive={currentPage === i}
-                            className={currentPage === i ? "bg-blue-600 text-white border-blue-600 font-black shadow-lg shadow-blue-500/20" : "text-slate-400 font-bold hover:bg-slate-800"}
+                            className={currentPage === i ? "bg-blue-600 text-white border-blue-600 font-black" : "text-slate-400 font-bold hover:bg-slate-800"}
                           >
                             {i + 1}
                           </PaginationLink>

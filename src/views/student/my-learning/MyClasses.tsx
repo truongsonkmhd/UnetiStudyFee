@@ -34,8 +34,7 @@ const MyClasses: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+
 
             <div className="max-w-[2000px] mx-auto px-6 py-12 md:py-20 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -99,7 +98,10 @@ const MyClasses: React.FC = () => {
                                         </div>
 
                                         <div className="mt-8 pt-6 border-t border-border/30 flex items-center justify-between">
-                                            <div className="flex items-center gap-2 group/link cursor-pointer">
+                                            <div 
+                                                className="flex items-center gap-2 group/link cursor-pointer"
+                                                onClick={() => navigate(`/my-classes/${cls.classId}`)}
+                                            >
                                                 <span className="text-sm font-black text-primary group-hover/link:underline">CHI TIẾT LỚP HỌC</span>
                                                 <ArrowRight size={14} className="text-primary group-hover/link:translate-x-1 transition-transform" />
                                             </div>
@@ -109,7 +111,7 @@ const MyClasses: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-violet-500/5 rounded-full blur-3xl group-hover:bg-violet-500/10 transition-colors duration-500" />
+
                                 </div>
                             </motion.div>
                         )

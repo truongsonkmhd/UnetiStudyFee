@@ -92,11 +92,9 @@ const JoinClass = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-background p-6 relative overflow-hidden">
-            {/* Background decoration */}
-            <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
 
-            <div className="max-w-xl w-full bg-card border border-border rounded-3xl p-8 md:p-12 shadow-2xl relative z-10 backdrop-blur-sm bg-card/80">
+
+            <div className="max-w-xl w-full bg-card border border-border rounded-3xl p-8 md:p-12 shadow-2xl relative z-10 bg-card/80">
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-4">
                         <BookOpen className="w-8 h-8 text-primary" />
@@ -157,7 +155,7 @@ const JoinClass = () => {
                     <button
                         onClick={handleJoin}
                         disabled={joining}
-                        className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:opacity-90 transition-all shadow-xl shadow-primary/25 flex items-center justify-center gap-2 group disabled:opacity-70"
+                        className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 group disabled:opacity-70"
                     >
                         {joining ? (
                             <Loader2 className="w-5 h-5 animate-spin" />

@@ -21,13 +21,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`flex flex-col items-center justify-center py-20 px-10 text-center bg-muted/5 backdrop-blur-sm rounded-[4rem] border-2 border-dashed border-border/30 ${className}`}
+            className={`flex flex-col items-center justify-center py-20 px-10 text-center bg-muted/5 rounded-[4rem] border-2 border-dashed border-border/30 ${className}`}
         >
             <div className="relative mb-10 group">
                 <motion.div
                     animate={{ y: [0, -12, 0] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    className={`${iconSize} bg-card rounded-[3rem] shadow-2xl flex items-center justify-center border border-border/50 overflow-hidden relative z-10`}
+                    className={`${iconSize} bg-card rounded-[3rem] flex items-center justify-center border border-border/50 overflow-hidden relative z-10`}
                 >
                     <motion.img
                         src={emptyIcon}
@@ -37,12 +37,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     />
                 </motion.div>
-                {/* Floating shadow */}
-                <motion.div
-                    className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-2 bg-black/20 dark:bg-primary/20 blur-md rounded-full"
-                    animate={{ scale: [1, 0.7, 1], opacity: [0.3, 0.1, 0.3] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                />
+
             </div>
 
             <h3 className="text-3xl font-black text-foreground mb-4 tracking-tight uppercase">

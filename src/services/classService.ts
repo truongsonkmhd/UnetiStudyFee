@@ -33,7 +33,6 @@ const classService = {
       ),
   },
 
-  // Student Methods
   student: {
     joinClass: (inviteCode: string, studentId: string): Promise<string> =>
       apiService.post<string>(
@@ -50,16 +49,17 @@ const classService = {
       apiService.get<ClazzResponse[]>(
         `${STUDENT_BASE_ENDPOINT}/my-classes?studentId=${studentId}`
       ),
+
+    getById: (classId: string): Promise<ClazzResponse> =>
+      apiService.get<ClazzResponse>(
+        `${STUDENT_BASE_ENDPOINT}/${classId}`
+      ),
   },
 
-  // Legacy/Common wrappers for backward compatibility if needed, 
-  // though it's better to update components to use .admin or .student
-  /** @deprecated use classService.admin.getAll */
   getAll: (): Promise<ClazzResponse[]> => {
     return apiService.get<ClazzResponse[]>(`${ADMIN_BASE_ENDPOINT}/getAll`);
   },
 
-  /** @deprecated use classService.student.getMyClasses */
   getMyClasses: (studentId: string): Promise<ClazzResponse[]> =>
     apiService.get<ClazzResponse[]>(`${STUDENT_BASE_ENDPOINT}/my-classes?studentId=${studentId}`),
 };

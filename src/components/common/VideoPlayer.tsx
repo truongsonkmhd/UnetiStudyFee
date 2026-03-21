@@ -432,7 +432,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             {/* Smart Overlay Mask & Initial State */}
             <div
                 className={`absolute inset-0 z-10 cursor-pointer transition-all duration-700 
-                  ${!isPlaying || !hasStarted ? 'bg-black/80 backdrop-blur-md' : 'bg-transparent'}`}
+                  ${!isPlaying || !hasStarted ? 'bg-black/80' : 'bg-transparent'}`}
                 onClick={togglePlay}
             >
                 {/* Buffering Indicator */}
@@ -445,7 +445,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 {/* Large Center Play Button - covers initial title and paused "More videos" shelf */}
                 {(!isPlaying || !hasStarted) && !isBuffering && (
                     <div className="absolute inset-x-0 top-0 bottom-24 flex items-center justify-center flex-col gap-5 animate-in fade-in zoom-in duration-500 pointer-events-none">
-                        <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-white shadow-[0_0_60px_rgba(var(--primary-rgb),0.4)] scale-100 hover:scale-110 transition-transform border-[6px] border-white/20">
+                        <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-white scale-100 hover:scale-110 transition-transform border-[6px] border-white/20">
                             <Play size={44} fill="currentColor" className="ml-1.5" />
                         </div>
                         <span className="text-white font-extrabold text-xl tracking-widest opacity-90 uppercase drop-shadow-lg">
@@ -458,7 +458,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             {/* Seek Warning Overlay */}
             {showWarning && (
                 <div className="absolute inset-x-0 top-1/4 z-50 flex justify-center pointer-events-none px-6 animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className="bg-destructive/90 backdrop-blur-xl text-white px-8 py-4 rounded-2xl flex items-center gap-4 shadow-2xl border border-white/20 transform scale-100 animate-in zoom-in-95 duration-200">
+                    <div className="bg-destructive/90 text-white px-8 py-4 rounded-2xl flex items-center gap-4 border border-white/20 transform scale-100 animate-in zoom-in-95 duration-200">
                         <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0">
                             <AlertTriangle size={28} className="text-white" />
                         </div>
@@ -474,7 +474,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             <div className={`absolute inset-0 z-20 transition-opacity duration-300 flex flex-col justify-end pointer-events-none ${showControls ? 'opacity-100' : 'opacity-0'}`}>
 
                 {showSettings && (
-                    <div className="absolute right-8 bottom-28 w-48 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl p-2 z-30 pointer-events-auto settings-menu animate-in slide-in-from-bottom-5 duration-200">
+                    <div className="absolute right-8 bottom-28 w-48 bg-black/90 border border-white/10 rounded-2xl p-2 z-30 pointer-events-auto settings-menu animate-in slide-in-from-bottom-5 duration-200">
                         <div className="px-3 py-2 text-xs font-bold text-white/40 uppercase tracking-widest border-b border-white/5 mb-1">
                             Tốc độ phát
                         </div>
@@ -482,7 +482,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                             <button
                                 key={rate}
                                 onClick={(e) => { e.stopPropagation(); handleSpeedChange(rate); }}
-                                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${playbackRate === rate ? 'bg-primary text-white shadow-lg' : 'text-white/70 hover:bg-white/5'}`}
+                                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${playbackRate === rate ? 'bg-primary text-white' : 'text-white/70 hover:bg-white/5'}`}
                             >
                                 <span>{rate === 1 ? 'Bình thường' : `${rate}x`}</span>
                                 {playbackRate === rate && <div className="w-1.5 h-1.5 bg-white rounded-full" />}

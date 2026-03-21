@@ -36,4 +36,6 @@ export const PATHS = {
   ADD_CONTEST: "/addContest",
 
   JOIN_CLASS: "/join-class",
+  CLASS_DETAIL: "/my-classes/:classId",
+  EXAM_SESSION: "/my-classes/:classId/exam/:examId",
 };

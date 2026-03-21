@@ -90,15 +90,15 @@ export function StudentLayout() {
 
     return (
         <div className="min-h-screen flex flex-col w-full bg-background text-foreground">
-            <header className="sticky top-0 z-50 h-20 bg-background/80 backdrop-blur-xl border-b border-border/50 flex items-center shadow-sm dark:shadow-2xl dark:shadow-black/20">
+            <header className="sticky top-0 z-50 h-20 bg-background border-b border-border/50 flex items-center">
                 <div className="mx-auto max-w-[2000px] w-full flex items-center justify-between px-4 sm:px-10">
                     <div className="flex items-center gap-10">
                         <div className="flex items-center gap-3 shrink-0">
                             <NavLink to={PATHS.HOME} className="flex items-center gap-2 group">
-                                <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
+                                <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                                     <img src={logoIcon} alt="Logo" className="w-8 h-8 object-contain" />
                                 </div>
-                                <span className="font-black text-2xl bg-gradient-to-r from-primary to-slate-400 dark:from-white bg-clip-text text-transparent uppercase tracking-tighter hidden lg:block">
+                                <span className="font-black text-2xl text-blue-600 dark:text-white uppercase tracking-tighter">
                                     {APP_NAME}
                                 </span>
                             </NavLink>
@@ -115,8 +115,8 @@ export function StudentLayout() {
                                         className={[
                                             "relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-base font-bold transition-all duration-300 transform",
                                             active
-                                                ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25 scale-100"
-                                                : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                                ? "bg-blue-600 text-white scale-100"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-muted font-black",
                                         ].join(" ")}
                                     >
                                         {item.label}
@@ -166,12 +166,12 @@ export function StudentLayout() {
                                     <img
                                         src={jwtClaims?.avatar || defaultAvatar}
                                         alt="Avatar"
-                                        className="w-10 h-10 rounded-full object-cover shadow-xl ring-2 ring-border"
+                                        className="w-10 h-10 rounded-full object-cover ring-2 ring-border"
                                     />
                                 </button>
                             </DropdownMenuTrigger>
 
-                            <DropdownMenuContent align="end" className="w-64 bg-popover border-border text-popover-foreground p-2 shadow-2xl">
+                            <DropdownMenuContent align="end" className="w-64 bg-popover border-border text-popover-foreground p-2">
                                 <div className="flex items-center gap-3 px-3 py-4 mb-2 bg-muted/50 rounded-xl">
                                     <img src={jwtClaims?.avatar || defaultAvatar} className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500" />
                                     <div>
@@ -208,18 +208,18 @@ export function StudentLayout() {
                 <button
                     onClick={() => navigate("/chat")}
                     title="Trợ lý AI"
-                    className="group relative flex items-center justify-center h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-2xl shadow-blue-500/20 hover:scale-110 active:scale-95 transition-all duration-300"
+                    className="group relative flex items-center justify-center h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 hover:scale-110 active:scale-95 transition-all duration-300"
                 >
                     <MessageCircle className="h-6 w-6 text-white" />
                     <span className="absolute right-full mr-4 px-3 py-1.5 bg-slate-800 border border-slate-700 text-xs font-bold text-white rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                         Hỏi đáp AI
                     </span>
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-400 rounded-full animate-ping opacity-75"></div>
+
                 </button>
                 <button
                     onClick={() => navigate("/chat")}
                     title="Hỗ trợ"
-                    className="relative flex items-center justify-center h-12 w-12 rounded-full bg-slate-800 border border-slate-700 shadow-xl hover:scale-105 transition-all"
+                    className="relative flex items-center justify-center h-12 w-12 rounded-full bg-slate-800 border border-slate-700 hover:scale-105 transition-all"
                 >
                     <img
                         src={chatboxCuImg}

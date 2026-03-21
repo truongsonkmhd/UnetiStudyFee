@@ -392,7 +392,7 @@ const CourseLearn: React.FC = () => {
                             className="!aspect-auto h-[70vh] w-full"
                         />
                         {isCurrentCompleted && (
-                            <div className="absolute top-4 right-4 bg-green-600/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg pointer-events-none z-10 animate-in fade-in slide-in-from-top-2">
+                            <div className="absolute top-4 right-4 bg-green-600/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 pointer-events-none z-10 animate-in fade-in slide-in-from-top-2">
                                 <CheckCircle2 size={20} />
                                 <span className="font-semibold">Đã hoàn thành</span>
                             </div>
@@ -439,7 +439,7 @@ const CourseLearn: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            <header className="bg-card text-foreground px-4 py-3 flex items-center justify-between border-b border-border sticky top-0 z-50 shadow-sm">
+            <header className="bg-card text-foreground px-4 py-3 flex items-center justify-between border-b border-border sticky top-0 z-50">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                     <button
                         onClick={() => navigate(PATHS.HOME)}
@@ -506,7 +506,7 @@ const CourseLearn: React.FC = () => {
                                 <Button
                                     onClick={handleNextLesson}
                                     disabled={isLastLesson || !canAccessNextLesson()}
-                                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
+                                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                                     title={!canAccessNextLesson() ? "Hoàn thành bài học hiện tại để mở khóa" : ""}
                                 >
                                     BÀI TIẾP THEO
@@ -527,7 +527,7 @@ const CourseLearn: React.FC = () => {
                     )}
                 </div>
 
-                <aside className="w-80 lg:w-96 bg-card border-l border-border flex flex-col overflow-hidden shadow-2xl">
+                <aside className="w-80 lg:w-96 bg-card border-l border-border flex flex-col overflow-hidden">
                     <div className="p-4 border-b border-border bg-card/50">
                         <h3 className="font-bold text-foreground text-lg">Nội dung khóa học</h3>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -580,15 +580,15 @@ const CourseLearn: React.FC = () => {
                                                 if (hasVideo) {
                                                     Icon = Play;
                                                     iconColorClass = isActive ? "text-primary-foreground" : "text-primary-foreground";
-                                                    bgColorClass = isActive ? "bg-primary shadow-lg shadow-primary/50" : "bg-primary/80 group-hover:bg-primary";
+                                                    bgColorClass = isActive ? "bg-primary" : "bg-primary/80 group-hover:bg-primary";
                                                 } else if (hasCode) {
                                                     Icon = Code;
                                                     iconColorClass = isActive ? "text-primary-foreground" : "text-primary";
-                                                    bgColorClass = isActive ? "bg-primary shadow-lg shadow-primary/50" : "bg-primary/20 group-hover:bg-primary/30";
+                                                    bgColorClass = isActive ? "bg-primary" : "bg-primary/20 group-hover:bg-primary/30";
                                                 } else if (hasQuiz) {
                                                     Icon = FileQuestion;
                                                     iconColorClass = isActive ? "text-emerald-500-foreground" : "text-emerald-500";
-                                                    bgColorClass = isActive ? "bg-emerald-500 shadow-lg shadow-emerald-500/50" : "bg-emerald-500/20 group-hover:bg-emerald-500/30";
+                                                    bgColorClass = isActive ? "bg-emerald-500" : "bg-emerald-500/20 group-hover:bg-emerald-500/30";
                                                 } else {
                                                     Icon = Play;
                                                     iconColorClass = isActive ? "text-foreground" : "text-muted-foreground";

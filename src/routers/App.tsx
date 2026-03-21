@@ -33,6 +33,10 @@ import MyClasses from "@/views/student/my-learning/MyClasses";
 import CourseDetail from "@/views/student/course-detail/CourseDetail";
 import CourseLearn from "@/views/student/course-learn/CourseLearn";
 import JoinClass from "@/views/student/JoinClass";
+import ClassDetail from "@/views/student/my-learning/ClassDetail";
+import ExamSession from "@/views/student/my-learning/ExamSession";
+
+import { RippleEffect } from "@/components/common/RippleEffect";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +45,7 @@ const App = () => (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
         <Sonner />
+        <RippleEffect />
         <Routes>
           <Route path="/" element={<Navigate to={PATHS.AUTH} replace />} />
 
@@ -165,7 +170,30 @@ const App = () => (
 
           <Route path={PATHS.COURSE_DETAIL} element={<CourseDetail />} />
           <Route path={PATHS.COURSE_LEARN} element={<CourseLearn />} />
+          <Route
+            path={PATHS.CLASS_DETAIL}
+            element={
+              <ProtectedRoute requiredRoles={[
+                RoleEnum.ROLE_ADMIN,
+                RoleEnum.ROLE_TEACHER,
+                RoleEnum.ROLE_STUDENT]}>
+                <ClassDetail />
+              </ProtectedRoute>
+            }
+          />
 
+
+          <Route
+            path={PATHS.EXAM_SESSION}
+            element={
+              <ProtectedRoute requiredRoles={[
+                RoleEnum.ROLE_ADMIN,
+                RoleEnum.ROLE_TEACHER,
+                RoleEnum.ROLE_STUDENT]}>
+                <ExamSession />
+              </ProtectedRoute>
+            }
+          />
 
           <Route element={<RoleBasedLayout />}>
             <Route path={PATHS.RANKING} element={<LeaderboardPage />} />

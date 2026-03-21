@@ -49,19 +49,15 @@ const CodingExerciseLibrary: React.FC = () => {
     const navigate = useNavigate();
     const observerTarget = useRef<HTMLDivElement>(null);
 
-    // State
     const [templates, setTemplates] = useState<TemplateCard[]>([]);
     const [loading, setLoading] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [totalElements, setTotalElements] = useState(0);
 
-    // Pagination
     const [currentPage, setCurrentPage] = useState(0);
     const [hasNext, setHasNext] = useState(false);
     const pageSize = 12;
-
-    // Filters
     const [filters, setFilters] = useState<SearchFilters>({
         q: '',
         difficulty: undefined,
@@ -73,7 +69,6 @@ const CodingExerciseLibrary: React.FC = () => {
     const difficulties = Object.values(Difficulty);
     const languages = ['Java', 'Python', 'JavaScript', 'C++', 'Go', 'TypeScript'];
 
-    // Stats - Memoized to avoid O(N) calculation on every render
     const stats = useMemo(() => {
         return {
             total: totalElements,
@@ -83,11 +78,9 @@ const CodingExerciseLibrary: React.FC = () => {
         };
     }, [templates, totalElements]);
 
-    // Refs to track state without triggering callback regenerations
     const loadingRef = useRef(false);
     const loadingMoreRef = useRef(false);
 
-    // Load Data
     const loadTemplates = useCallback(async (isInitial: boolean = false) => {
         if (loadingRef.current || (loadingMoreRef.current && !isInitial)) return;
 

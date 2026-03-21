@@ -156,8 +156,7 @@ const MyCourses: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* Decorative background shape */}
-                                    <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-primary/5 rounded-full blur-[80px] group-hover:bg-primary/10 transition-all duration-700" />
+
                                 </div>
                             </motion.div>
                         ))}
@@ -176,16 +175,14 @@ const MyCourses: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
-            {/* Massive modern background blobs */}
-            <div className="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[160px] pointer-events-none animate-pulse" />
-            <div className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 rounded-full blur-[160px] pointer-events-none" />
+
 
             <div className="max-w-[2000px] mx-auto px-4 sm:px-10 py-12 md:py-20 relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="flex flex-wrap items-center gap-3 mb-16 p-2 bg-muted/40 backdrop-blur-md rounded-[2rem] w-fit border border-border/50"
+                    className="flex flex-wrap items-center gap-3 mb-16 p-2 bg-muted/40 rounded-[2rem] w-fit border border-border/50"
                 >
                     {[
                         { id: 'joined', label: 'Khóa học đã tham gia', icon: LayoutGrid },
@@ -198,7 +195,7 @@ const MyCourses: React.FC = () => {
                                 key={tab.id}
                                 onClick={() => setCourseSubTab(tab.id as CourseSubTab)}
                                 className={`relative flex items-center gap-3 px-8 py-4 rounded-[1.5rem] text-sm font-black uppercase tracking-widest transition-all duration-500 ${active
-                                    ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20'
+                                    ? 'bg-blue-600 text-white'
                                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                     }`}
                             >
@@ -207,7 +204,7 @@ const MyCourses: React.FC = () => {
                                 {active && (
                                     <motion.div
                                         layoutId="tabBackground"
-                                        className="absolute inset-0 bg-blue-600 rounded-[1.5rem] -z-10 shadow-2xl"
+                                        className="absolute inset-0 bg-blue-600 rounded-[1.5rem] -z-10"
                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                     />
                                 )}

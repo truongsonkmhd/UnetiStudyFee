@@ -126,7 +126,7 @@ const CourseDetail: React.FC = () => {
     return (
         <div className="min-h-screen bg-background pb-20">
             <div className="bg-foreground text-background pt-8 pb-12 lg:pt-12 lg:pb-24 px-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-600/20 to-transparent pointer-events-none" />
+
 
                 <div className="max-w-[1440px] mx-auto relative z-10 flex flex-col lg:flex-row gap-8">
                     <div className="flex-1 lg:max-w-[65%]">
@@ -169,7 +169,7 @@ const CourseDetail: React.FC = () => {
 
                 <div className="flex-1 min-w-0">
 
-                    <div className="bg-card border border-border rounded-xl p-6 lg:p-8 shadow-sm mb-10">
+                    <div className="bg-card border border-border rounded-xl p-6 lg:p-8 mb-10">
                         <h2 className="text-xl lg:text-2xl font-bold mb-6 text-foreground">Bạn sẽ học được gì?</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
@@ -207,7 +207,7 @@ const CourseDetail: React.FC = () => {
 
                         <div className="flex flex-col gap-3">
                             {course.modules.map((module) => (
-                                <div key={module.moduleId} className="border border-border rounded-lg overflow-hidden bg-card shadow-sm">
+                                <div key={module.moduleId} className="border border-border rounded-lg overflow-hidden bg-card">
                                     <div
                                         className="flex justify-between items-center p-4 lg:px-6 py-4 cursor-pointer bg-muted/30 hover:bg-muted/70 transition-colors select-none group"
                                         onClick={() => toggleModule(module.moduleId)}
@@ -248,7 +248,7 @@ const CourseDetail: React.FC = () => {
 
                 <div className="w-full lg:w-[380px] shrink-0 relative">
                     <div className="lg:sticky lg:top-24 space-y-6">
-                        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl lg:shadow-2xl">
+                        <div className="bg-card border border-border rounded-2xl overflow-hidden">
                             <div
                                 className="relative w-full aspect-video bg-black group cursor-pointer overflow-hidden border-b border-border"
                                 onClick={() => course.videoUrl && setIsPlayingPreview(true)}
@@ -267,7 +267,7 @@ const CourseDetail: React.FC = () => {
                                             className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                                         />
                                         <div className="absolute inset-0 flex items-center justify-center z-20">
-                                            <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center text-primary shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                            <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
                                                 <Play size={28} fill="currentColor" className="ml-1" />
                                             </div>
                                         </div>

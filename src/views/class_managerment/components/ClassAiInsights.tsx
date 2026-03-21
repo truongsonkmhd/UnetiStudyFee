@@ -107,7 +107,7 @@ const ClassAiInsights: React.FC<ClassAiInsightsProps> = ({ classId, className })
                 <button
                     onClick={handleRunAnalysis}
                     disabled={analyzing}
-                    className="flex items-center gap-2 px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 transition-all font-bold shadow-lg shadow-primary/20"
+                    className="flex items-center gap-2 px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 transition-all font-bold"
                 >
                     <Brain className={`w-4 h-4 ${analyzing ? 'animate-pulse' : ''}`} />
                     {analyzing ? 'Đang phân tích...' : 'Chạy phân tích AI'}
@@ -115,7 +115,7 @@ const ClassAiInsights: React.FC<ClassAiInsightsProps> = ({ classId, className })
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 bg-card rounded-xl border border-border p-6 shadow-sm">
+                <div className="lg:col-span-1 bg-card rounded-xl border border-border p-6">
                     <h4 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                         <PieChartIcon className="w-5 h-5 text-primary" />
                         Biểu đồ phân phối
@@ -158,7 +158,7 @@ const ClassAiInsights: React.FC<ClassAiInsightsProps> = ({ classId, className })
                     </div>
                 </div>
 
-                <div className="lg:col-span-2 bg-card rounded-xl border border-border shadow-sm overflow-hidden flex flex-col">
+                <div className="lg:col-span-2 bg-card rounded-xl border border-border overflow-hidden flex flex-col">
                     <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between">
                         <h4 className="font-bold text-foreground">Chi tiết học viên</h4>
                         <div className="relative w-64">
@@ -224,7 +224,7 @@ const ClassAiInsights: React.FC<ClassAiInsightsProps> = ({ classId, className })
                                                     <motion.div
                                                         animate={{ y: [0, -8, 0] }}
                                                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                                        className="w-20 h-20 bg-card rounded-2xl shadow-lg flex items-center justify-center border border-border/50 overflow-hidden relative z-10"
+                                                        className="w-20 h-20 bg-card rounded-2xl flex items-center justify-center border border-border/50 overflow-hidden relative z-10"
                                                     >
                                                         <motion.img
                                                             src={emptyIcon}
@@ -234,11 +234,7 @@ const ClassAiInsights: React.FC<ClassAiInsightsProps> = ({ classId, className })
                                                             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                                                         />
                                                     </motion.div>
-                                                    <motion.div
-                                                        className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-10 h-1 bg-black/10 dark:bg-primary/10 blur-sm rounded-full"
-                                                        animate={{ scale: [1, 0.8, 1], opacity: [0.3, 0.1, 0.3] }}
-                                                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                                    />
+
                                                 </div>
                                                 <span className="font-bold uppercase tracking-widest text-[10px]">Không tìm thấy học viên nào</span>
                                             </div>
