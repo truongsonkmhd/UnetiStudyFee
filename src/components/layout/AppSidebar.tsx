@@ -12,13 +12,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
+  classContestIcon,
   classIcon,
+  codingIcon,
   createLessionIcon,
   createTestIcon,
   historyTestIcon,
   homepageIcon,
   logoIcon,
   managerIcon,
+  quizIcon,
   quyenIcon,
   rankingIcon,
   settingIcon,
@@ -41,13 +44,13 @@ const navigationItems: {
     {
       title: "Kho bài lập trình",
       url: PATHS.CODING_EXERCISE_LIBRARY,
-      icon: createTestIcon,
+      icon: codingIcon,
       requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
     },
     {
       title: "Kho bài trắc nghiệm",
       url: PATHS.QUIZ_LIBRARY,
-      icon: createTestIcon,
+      icon: quizIcon,
       requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
     },
     {
@@ -59,7 +62,7 @@ const navigationItems: {
     {
       title: "Quản lý lớp học",
       url: PATHS.MANAGER_CLASS,
-      icon: createTestIcon,
+      icon: classContestIcon,
       requiredRoles: [
         RoleEnum.ROLE_ADMIN,
         RoleEnum.ROLE_SYS_ADMIN,

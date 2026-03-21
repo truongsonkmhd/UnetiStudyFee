@@ -337,21 +337,6 @@ const PermissionManagement = () => {
 
           <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-              <div
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 16,
-                  background: "rgba(255,255,255,0.1)",
-                  backdropFilter: "blur(8px)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                }}
-              >
-                <LockOutlined style={{ fontSize: 26, color: "#c7d2fe" }} />
-              </div>
               <div>
                 <h2 style={{ color: "#fff", margin: 0, fontWeight: 800, fontSize: 24, letterSpacing: "-0.02em" }}>
                   Quản lý Quyền truy cập

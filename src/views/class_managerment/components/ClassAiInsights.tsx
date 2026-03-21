@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Brain, PieChart as PieChartIcon, AlertTriangle, RefreshCw, User, CheckCircle2, Search } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import aiService from '@/services/aiService';
+import { EmptyState } from '@/components/common/EmptyState';
 import { toast } from 'sonner';
+import { emptyIcon } from '@/assets';
+import { motion } from 'framer-motion';
 
 interface AiInsight {
     userId: string;
@@ -146,10 +149,11 @@ const ClassAiInsights: React.FC<ClassAiInsightsProps> = ({ classId, className })
                                 </PieChart>
                             </ResponsiveContainer>
                         ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm">
-                                <Brain className="w-12 h-12 mb-2 opacity-20" />
-                                Chưa có dữ liệu phân tích
-                            </div>
+                            <EmptyState
+                                title="Chưa có dữ liệu phân tích"
+                                description="Vui lòng thực hiện phân tích dữ liệu cho lớp học này trước."
+                                iconSize="w-24 h-24"
+                            />
                         )}
                     </div>
                 </div>
@@ -214,7 +218,31 @@ const ClassAiInsights: React.FC<ClassAiInsightsProps> = ({ classId, className })
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">Không tìm thấy học viên nào</td>
+                                        <td colSpan={3} className="px-4 py-12 text-center text-muted-foreground">
+                                            <div className="flex flex-col items-center justify-center gap-4">
+                                                <div className="relative group">
+                                                    <motion.div
+                                                        animate={{ y: [0, -8, 0] }}
+                                                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                                        className="w-20 h-20 bg-card rounded-2xl shadow-lg flex items-center justify-center border border-border/50 overflow-hidden relative z-10"
+                                                    >
+                                                        <motion.img
+                                                            src={emptyIcon}
+                                                            alt="Empty"
+                                                            className="w-12 h-12 object-contain"
+                                                            animate={{ rotate: [-2, 2, -2] }}
+                                                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                                        />
+                                                    </motion.div>
+                                                    <motion.div
+                                                        className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-10 h-1 bg-black/10 dark:bg-primary/10 blur-sm rounded-full"
+                                                        animate={{ scale: [1, 0.8, 1], opacity: [0.3, 0.1, 0.3] }}
+                                                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                                    />
+                                                </div>
+                                                <span className="font-bold uppercase tracking-widest text-[10px]">Không tìm thấy học viên nào</span>
+                                            </div>
+                                        </td>
                                     </tr>
                                 )}
                             </tbody>

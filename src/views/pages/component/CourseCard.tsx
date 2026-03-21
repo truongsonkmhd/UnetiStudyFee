@@ -127,8 +127,8 @@ const CourseCard: React.FC<{ course: CourseCardResponse }> = ({ course }) => {
                 </div>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-tighter">Cộng đồng</span>
-                <span className="text-[12px] font-bold text-foreground/80">Người tham gia</span>
+                <span className="text-[15px] font-black text-muted-foreground uppercase tracking-tighter">Cộng đồng</span>
+                <span className="text-[15px] font-bold text-foreground/80">Người tham gia</span>
               </div>
             </div>
 

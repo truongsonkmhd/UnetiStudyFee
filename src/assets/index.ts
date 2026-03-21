@@ -4,6 +4,9 @@ import socialIcon from "@/assets/ic/ic_social_2.png";
 import rankingIcon from "@/assets/ic/ic_ranking.png";
 import createLessionIcon from "@/assets/ic/ic_create_lession.png";
 import createTestIcon from "@/assets/ic/ic_create.png";
+import quizIcon from "@/assets/ic/ic_quiz.png";
+import classContestIcon from "@/assets/ic/ic_class_contest.png";
+import codingIcon from "@/assets/ic/ic_coding.png";
 import testIcon from "@/assets/ic/ic_test.png";
 import managerIcon from "@/assets/ic/ic_manager.png";
 import quyenIcon from "@/assets/ic/ic_quyen.png";
@@ -20,7 +23,8 @@ export {
   socialIcon,
   rankingIcon,
   createLessionIcon,
-  createTestIcon,
+  createTestIcon, codingIcon, quizIcon,
+  classContestIcon,
   testIcon,
   managerIcon,
   quyenIcon,

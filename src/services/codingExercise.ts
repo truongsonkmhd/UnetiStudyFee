@@ -335,11 +335,12 @@ You can return the answer in any order.`,
     /**
      * Submit code for evaluation
      */
-    submitCode: (exerciseId: string, sourceCode: string, language: string): Promise<any> =>
-        apiService.post<any>('/judge/submitMQ', {
+    submitCode: (exerciseId: string, sourceCode: string, language: string, testCaseResults?: any[]): Promise<any> =>
+        apiService.post<any>('/judge/submit', {
             exerciseId,
             sourceCode,
             language: language.toLowerCase(),
+            testCaseResults,
         }),
 
     /**
@@ -363,6 +364,12 @@ You can return the answer in any order.`,
             testCaseInput,
             testCaseId,
         }),
+
+    /**
+     * Lấy danh sách lịch sử nộp bài của user cho 1 exercise bằng id
+     */
+    getExerciseSubmissions: (id: string): Promise<any[]> =>
+        apiService.get<any[]>(`/practice/lesson/submissions/${id}`),
 };
 
 // ===== Helper Functions =====

@@ -92,6 +92,7 @@ const App = () => (
                   RoleEnum.ROLE_ADMIN,
                   RoleEnum.ROLE_SYS_ADMIN,
                   RoleEnum.ROLE_TEACHER,
+                  RoleEnum.ROLE_STUDENT,
                 ]}
               >
                 <CodingExerciseView />

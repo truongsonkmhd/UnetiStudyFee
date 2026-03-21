@@ -3,6 +3,7 @@ export interface ExerciseTestCase {
   input: string;
   expectedOutput: string;
   isSample: boolean;
+  points?: number;
   explanation?: string;
   orderIndex?: number;
 }

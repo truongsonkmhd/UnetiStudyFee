@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { EnrollmentResponse } from '@/model/enrollment/EnrollmentResponse';
 import courseEnrollmentService from '@/services/courseEnrollmentService';
 import { Button } from '@/components/ui/button';
-import { Clock, BookOpen, CheckCircle, XCircle, AlertCircle, Calendar, Sparkles, LayoutGrid, ListChecks } from 'lucide-react';
+import { Clock, BookOpen, CheckCircle, XCircle, AlertCircle, Calendar, LayoutGrid, ListChecks } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import CourseCard from '@/views/pages/component/CourseCard';
 import { CourseCardResponse } from '@/model/course-admin/CourseCardResponse';
+import { EmptyState } from '@/components/common/EmptyState';
 
 type CourseSubTab = 'joined' | 'requests';
 
@@ -95,6 +96,12 @@ const MyCourses: React.FC = () => {
                     </motion.div>
                 );
             }
+            return (
+                <EmptyState
+                    title="Hành trình mới đang chờ bạn"
+                    description="Khám phá hàng ngàn khóa học chất lượng để bắt đầu nâng tầm kiến thức ngay hôm nay."
+                />
+            );
         } else {
             const requestEnrollments = enrollments.filter(e => e.status !== 'APPROVED');
             if (requestEnrollments.length > 0) {
@@ -157,33 +164,14 @@ const MyCourses: React.FC = () => {
                     </motion.div>
                 );
             }
-        }
+            return (
+                <EmptyState
+                    title="Chưa có yêu cầu nào"
+                    description="Các yêu cầu đăng ký khóa học của bạn sẽ hiển thị chi tiết tại đây để bạn tiện theo dõi."
 
-        return (
-            <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center justify-center py-32 px-10 text-center bg-muted/5 backdrop-blur-sm rounded-[4rem] border-2 border-dashed border-border/30"
-            >
-                <div className="w-28 h-28 bg-card rounded-[3rem] shadow-2xl flex items-center justify-center mb-10 border border-border/50 group hover:scale-110 transition-all duration-500">
-                    {courseSubTab === 'joined' ? <BookOpen className="text-primary h-12 w-12" /> : <Clock className="text-amber-500 h-12 w-12" />}
-                </div>
-                <h3 className="text-3xl font-black text-foreground mb-4 tracking-tight">
-                    {courseSubTab === 'joined' ? 'Hành trình mới đang chờ bạn' : 'Chưa có yêu cầu nào'}
-                </h3>
-                <p className="text-muted-foreground max-w-md mb-12 text-lg font-medium leading-relaxed">
-                    {courseSubTab === 'joined'
-                        ? 'Khám phá hàng ngàn khóa học chất lượng để bắt đầu nâng tầm kiến thức ngay hôm nay.'
-                        : 'Các yêu cầu đăng ký khóa học của bạn sẽ hiển thị chi tiết tại đây để bạn tiện theo dõi.'}
-                </p>
-                <Button
-                    onClick={() => navigate('/home')}
-                    className="h-16 px-12 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-[0_20px_40px_rgba(37,99,235,0.25)] hover:-translate-y-1 active:scale-95 transition-all text-base uppercase tracking-widest"
-                >
-                    KHÁM PHÁ CATALOG
-                </Button>
-            </motion.div>
-        );
+                />
+            );
+        }
     };
 
     return (
@@ -193,7 +181,6 @@ const MyCourses: React.FC = () => {
             <div className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 rounded-full blur-[160px] pointer-events-none" />
 
             <div className="max-w-[2000px] mx-auto px-4 sm:px-10 py-12 md:py-20 relative z-10">
-
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

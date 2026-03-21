@@ -103,6 +103,7 @@ const TemplateCreate: React.FC = () => {
       input: '',
       expectedOutput: '',
       isSample,
+      points: 10,
       explanation: '',
       orderIndex: exerciseTestCases.length + 1
     };
@@ -177,6 +178,13 @@ const TemplateCreate: React.FC = () => {
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    const total = exerciseTestCases.reduce((acc, tc) => acc + (tc.points || 0), 0);
+    if (total > 0 && total !== formData.points) {
+      setFormData(prev => ({ ...prev, points: total }));
+    }
+  }, [exerciseTestCases]);
 
   if (loading) {
     return (
@@ -429,6 +437,24 @@ const TemplateCreate: React.FC = () => {
                         <label htmlFor={`is-sample-${index}`} className="text-[11px] font-bold text-muted-foreground cursor-pointer uppercase">Hiển thị mẫu</label>
                       </div>
                     </div>
+                    
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-lg border border-primary/20">
+                          <Trophy size={14} className="text-primary" />
+                          <span className="text-[11px] font-bold text-primary uppercase">Điểm:</span>
+                          <input 
+                              type="number"
+                              value={tc.points || 0}
+                              onChange={(e) => {
+                                  const val = parseInt(e.target.value) || 0;
+                                  updateTestCase(index, 'points', val);
+                                  
+                                  // Optional: Auto-calculate and update total points if you want
+                                  // But user might want to set total points manually as well.
+                              }}
+                              className="w-12 bg-transparent border-0 text-[13px] font-black text-primary focus:ring-0 p-0 outline-none"
+                          />
+                      </div>
                     <button
                       type="button"
                       onClick={() => removeTestCase(index)}
@@ -436,6 +462,7 @@ const TemplateCreate: React.FC = () => {
                     >
                       <Trash2 size={18} />
                     </button>
+                    </div>
                   </div>
                   <div className="p-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
                     <div className="space-y-2">

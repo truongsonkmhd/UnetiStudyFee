@@ -19,12 +19,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { emptyIcon } from '@/assets';
 import codingExerciseTemplateService from '@/services/codingExerciseTemplateService';
 import { TemplateCard } from '@/model/coding-template/TemplateCard';
 import { SearchFilters } from '@/model/coding-template/SearchFilters';
 import { Difficulty } from '@/model/coding-template/Difficulty';
 import { toast } from 'sonner';
 import { useMotionValue, useTransform, animate } from 'framer-motion';
+import { EmptyState } from '@/components/common/EmptyState';
 
 const Counter: React.FC<{ value: number }> = ({ value }) => {
     const count = useMotionValue(0);
@@ -310,27 +312,18 @@ const CodingExerciseLibrary: React.FC = () => {
                             <p className="mt-4 text-slate-500 font-medium tracking-wide">Đang tải dữ liệu...</p>
                         </motion.div>
                     ) : templates.length === 0 ? (
-                        <motion.div
-                            key="empty"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-card border border-dashed border-border rounded-3xl p-12 text-center space-y-4"
-                        >
-                            <div className="bg-background w-20 h-20 rounded-full flex items-center justify-center mx-auto">
-                                <Code size={40} className="text-muted-foreground/50" />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-foreground">Không tìm thấy bài tập nào</h3>
-                                <p className="text-muted-foreground max-w-sm mx-auto">Thử thay đổi bộ lọc hoặc tạo một bài tập mới để bắt đầu xây dựng thư viện của bạn.</p>
-                            </div>
-                            <button
-                                onClick={() => navigate('/templates/create')}
-                                className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-colors"
-                            >
-                                Tạo bài tập đầu tiên
-                            </button>
-                        </motion.div>
+                        <EmptyState
+                            title="Không tìm thấy bài tập nào"
+                            description="Thử thay đổi bộ lọc hoặc tạo một bài tập mới để bắt đầu xây dựng thư viện của bạn."
+                            action={
+                                <button
+                                    onClick={() => navigate('/templates/create')}
+                                    className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+                                >
+                                    Tạo bài tập đầu tiên
+                                </button>
+                            }
+                        />
                     ) : (
                         <motion.div
                             key="content"
@@ -444,8 +437,8 @@ const CodingExerciseLibrary: React.FC = () => {
                         </div>
                     )}
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

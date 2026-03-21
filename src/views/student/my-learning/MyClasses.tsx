@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Users, Calendar, GraduationCap, ArrowRight } from 'lucide-react';
+import { GraduationCap, Users, Calendar, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { emptyIcon } from '@/assets';
 import classService from '@/services/classService';
 import { ClazzResponse } from '@/model/class/ClazzResponse';
 import { actionAuth } from '@/components/context/AuthContext';
+import { EmptyState } from '@/components/common/EmptyState';
 
 const MyClasses: React.FC = () => {
     const [myClasses, setMyClasses] = useState<ClazzResponse[]>([]);
@@ -112,32 +114,11 @@ const MyClasses: React.FC = () => {
                             </motion.div>
                         )
                         )) : (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="col-span-full flex flex-col items-center justify-center py-24 px-6 text-center bg-muted/10 rounded-[3rem] border-2 border-dashed border-border/50"
-                        >
-                            <div className="w-24 h-24 bg-card rounded-[2rem] shadow-xl flex items-center justify-center mb-8 border border-border/50 group hover:scale-110 transition-transform duration-500">
-                                <GraduationCap className="text-violet-500 h-10 w-10" />
-                            </div>
-                            <h3 className="text-2xl font-black text-foreground mb-3">Chưa có lớp học nào</h3>
-                            <p className="text-muted-foreground max-w-sm mb-10 font-medium">Bạn cần có mã tham gia từ giảng viên để có thể vào các lớp học này.</p>
-                            <div className="flex gap-4">
-                                <Button
-                                    onClick={() => navigate('/join-class')}
-                                    className="px-10 py-6 bg-violet-600 hover:bg-violet-700 text-white font-black rounded-2xl shadow-2xl transition-all"
-                                >
-                                    THAM GIA LỚP HỌC
-                                </Button>
-                                <Button
-                                    onClick={() => navigate('/home')}
-                                    variant="outline"
-                                    className="px-10 py-6 font-black rounded-2xl transition-all"
-                                >
-                                    KHÁM PHÁ KHÓA HỌC
-                                </Button>
-                            </div>
-                        </motion.div>
+                        <EmptyState
+                            className="col-span-full"
+                            title="Chưa có lớp học nào"
+                            description="Bạn cần có mã tham gia từ giảng viên để có thể vào các lớp học này."
+                        />
                     )}
                 </div>
             </div>

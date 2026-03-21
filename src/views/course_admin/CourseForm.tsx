@@ -485,7 +485,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                   placeholder="Ví dụ: https://www.youtube.com/watch?v=..."
                 />
               </div>
-              <p className="text-[10px] text-muted-foreground italic px-1">Dán liên kết YouTube của video giới thiệu lộ trình học này.</p>
+              <p className="text-[15px] text-muted-foreground italic px-1">Dán liên kết YouTube của video giới thiệu lộ trình học này.</p>
             </div>
           </div>
         </div>

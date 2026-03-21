@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { emptyIcon } from '@/assets';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { CheckCircle2, XCircle, Clock, ChevronRight, RotateCcw, FileText, Calendar, Target, Award, Info } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Clock, History, RotateCcw, Play, ChevronRight, LayoutList, Info, FileText, Target, Award } from 'lucide-react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { studentQuizService, StartQuizResponse, QuestionResponse, QuizResultResponse } from '@/services/studentQuizService';
 import { QuizDTO } from '@/model/course-admin/QuizDTO';
 
@@ -312,8 +315,8 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onBack }) =
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${attempt.isPassed
-                                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-200'
-                                                    : 'bg-red-500/10 text-red-600 border-red-200'
+                                                        ? 'bg-emerald-500/10 text-emerald-600 border-emerald-200'
+                                                        : 'bg-red-500/10 text-red-600 border-red-200'
                                                     }`}>
                                                     {attempt.isPassed ? 'Đạt' : 'Trượt'}
                                                 </span>
@@ -327,8 +330,13 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onBack }) =
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground italic">
-                                            Chưa có lần thực hiện nào.
+                                        <td colSpan={8}>
+                                            <EmptyState
+                                                title="Chưa có lượt thi nào"
+                                                description="Bạn chưa thực hiện bất kỳ lượt thi nào cho bài thi này."
+                                                className="py-16"
+                                                iconSize="w-24 h-24"
+                                            />
                                         </td>
                                     </tr>
                                 )}
@@ -376,8 +384,8 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onBack }) =
         return (
             <div className="w-full max-w-2xl mx-auto flex flex-col items-center animate-in zoom-in duration-300">
                 <div className={`w-28 h-28 rounded-full flex items-center justify-center mb-8 shadow-2xl ${quizResult.isPassed
-                    ? 'bg-emerald-500 shadow-emerald-500/20'
-                    : 'bg-red-500 shadow-red-500/20'
+                        ? 'bg-emerald-500 shadow-emerald-500/20'
+                        : 'bg-red-500 shadow-red-500/20'
                     }`}>
                     <span className="text-3xl font-black text-white">{Math.round(quizResult.percentage)}%</span>
                 </div>
@@ -496,13 +504,13 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onBack }) =
                                     key={option.answerId}
                                     onClick={() => handleAnswerSelect(option.answerId)}
                                     className={`relative group flex items-center p-5 rounded-2xl border-2 transition-all duration-200 text-left ${isSelected
-                                        ? 'border-primary bg-primary/5 shadow-md'
-                                        : 'border-border bg-card hover:border-primary/50 hover:bg-muted/30'
+                                            ? 'border-primary bg-primary/5 shadow-md'
+                                            : 'border-border bg-card hover:border-primary/50 hover:bg-muted/30'
                                         }`}
                                 >
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg mr-5 transition-all duration-200 ${isSelected
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary'
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary'
                                         }`}>
                                         {label}
                                     </div>

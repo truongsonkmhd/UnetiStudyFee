@@ -23,9 +23,11 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { PATHS } from '@/constants/paths';
+import classService from '@/services/classService';
 import codingExerciseTemplateService from '@/services/codingExerciseTemplateService';
 import quizTemplateService from '@/services/quizTemplateService';
 import contestLessonService from '@/services/contestLessonService';
+import { EmptyState } from '@/components/common/EmptyState';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { TemplateCard } from '@/model/coding-template/TemplateCard';
@@ -552,16 +554,17 @@ const ContestManager = () => {
         ))}
       </div>
 
-      {filteredExercises.length === 0 && (
-        <div className="text-center py-20 bg-white/50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 border-dashed">
-          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 flex items-center justify-center rounded-2xl mx-auto mb-4">
-            <Search size={24} className="text-slate-400" />
-          </div>
-          <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Dữ liệu trống</h3>
-          <p className="text-slate-400 font-medium text-sm mt-1">Không tìm thấy thực thể phù hợp với tiêu chí của bạn.</p>
-        </div>
-      )}
-    </div>
+      {
+        filteredExercises.length === 0 && (
+          <EmptyState
+            title="Dữ liệu trống"
+            description="Không tìm thấy thực thể phù hợp với tiêu chí của bạn."
+            className="bg-white/50 dark:bg-slate-900/50"
+            iconSize="w-24 h-24"
+          />
+        )
+      }
+    </div >
   );
 
   const QuizLibraryView = () => (
@@ -697,13 +700,12 @@ const ContestManager = () => {
       </div>
 
       {filteredQuizzes.length === 0 && (
-        <div className="text-center py-20 bg-white/50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 border-dashed">
-          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 flex items-center justify-center rounded-2xl mx-auto mb-4">
-            <Search size={24} className="text-slate-400" />
-          </div>
-          <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Dữ liệu trống</h3>
-          <p className="text-slate-400 font-medium text-sm mt-1">Không tìm thấy thực thể phù hợp với tiêu chí của bạn.</p>
-        </div>
+        <EmptyState
+          title="Dữ liệu trống"
+          description="Không tìm thấy mẫu Quiz phù hợp với tiêu chí của bạn."
+          className="bg-white/50 dark:bg-slate-900/50"
+          iconSize="w-24 h-24"
+        />
       )}
     </div>
   );
@@ -828,7 +830,7 @@ const ContestManager = () => {
                   </span>
                 </div>
                 <button
-                  onClick={() => handleManageContest(cls)}
+                  onClick={() => handleManageContest(cls.contestLessonId)}
                   className="flex items-center gap-2 text-xs font-black text-primary uppercase tracking-widest hover:gap-3 transition-all"
                 >
                   Chi tiết
@@ -839,20 +841,20 @@ const ContestManager = () => {
           ))}
 
           {classes.length === 0 && (
-            <div className="col-span-full py-20">
-              <div className="max-w-xl mx-auto text-center space-y-4 bg-muted/10 p-12 rounded-[3rem] border border-dashed border-border">
-                <Archive size={48} className="mx-auto text-muted-foreground/30" />
-                <div>
-                  <h3 className="text-xl font-bold text-foreground uppercase">Dữ liệu trống</h3>
-                  <p className="text-muted-foreground font-medium">Bạn chưa thiết lập bất kỳ kỳ thi nào.</p>
-                </div>
-                <button
-                  onClick={() => setView('library_coding')}
-                  className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
-                >
-                  Khởi tạo ngay
-                </button>
-              </div>
+            <div className="col-span-full">
+              <EmptyState
+                title="Dữ liệu trống"
+                description="Bạn chưa thiết lập bất kỳ kỳ thi nào."
+                iconSize="w-24 h-24"
+                action={
+                  <button
+                    onClick={() => setView('library_coding')}
+                    className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+                  >
+                    Khởi tạo ngay
+                  </button>
+                }
+              />
             </div>
           )}
         </div>
@@ -888,18 +890,17 @@ const ContestManager = () => {
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        {/* Main Configuration */}
         <div className="lg:col-span-8 space-y-8">
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none p-10">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-8 flex items-center gap-3">
               <div className="w-2 h-8 bg-indigo-600 rounded-full"></div>
-              Bản sắc bài thi
+              Thông tin bài thi
             </h2>
 
             <div className="space-y-8">
               <div className="group">
                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3 group-focus-within:text-indigo-600 transition-colors">
-                  Tiêu đề định danh <span className="text-red-500">*</span>
+                  Tiêu đề bài thi <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -911,7 +912,7 @@ const ContestManager = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Mô tả chiến lược</label>
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Mô tả </label>
                 <textarea
                   value={newClass.description}
                   onChange={(e) => setNewClass({ ...newClass, description: e.target.value })}

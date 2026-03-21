@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { PATHS } from '@/constants/paths';
 import QuizPlayer from './components/QuizPlayer';
 import VideoPlayer from '@/components/common/VideoPlayer';
+import { formatTime } from '@/utils/format';
 
 
 const CourseLearn: React.FC = () => {
@@ -20,12 +21,15 @@ const CourseLearn: React.FC = () => {
     const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
     const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
     const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
+    const [currentVideoDuration, setCurrentVideoDuration] = useState<number>(0);
 
     const [searchParams, setSearchParams] = useSearchParams();
     const jumpNext = searchParams.get('jumpNext');
     const [shouldJumpAfterQuiz, setShouldJumpAfterQuiz] = useState(false);
 
     const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
+    const [lastPositions, setLastPositions] = useState<Record<string, number>>({});
+    const lastUploadedPercentRef = useRef<Record<string, number>>({});
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
@@ -56,6 +60,7 @@ const CourseLearn: React.FC = () => {
         if (videoRef.current) {
             videoRef.current.currentTime = 0;
         }
+        setCurrentVideoDuration(0);
     }, [currentLessonId]);
 
     const fetchCourse = async (courseSlug: string) => {
@@ -109,36 +114,52 @@ const CourseLearn: React.FC = () => {
                     .map(p => p.lessonId)
             );
             setCompletedLessons(completed);
+
+            const positions: Record<string, number> = {};
+            progressList.forEach(p => {
+                if (p.timeSpentSec > 0) {
+                    positions[p.lessonId] = p.timeSpentSec;
+                }
+            });
+            setLastPositions(positions);
         } catch (error) {
             console.error("Failed to load progress", error);
         }
     };
 
-    const saveProgress = async (lessonId: string, status: ProgressStatus, watchedPercent: number = 100) => {
+    const saveProgress = async (lessonId: string, status: ProgressStatus, watchedPercent: number = 100, timeSpentSec: number = 0) => {
         if (!course) return;
 
         try {
-            await lessonProgressService.updateProgress({
+            const response = await lessonProgressService.updateProgress({
                 lessonId,
                 courseId: course.courseId,
                 status,
                 watchedPercent,
-                timeSpentSec: 0
+                timeSpentSec
             });
 
-            if (status === ProgressStatus.DONE) {
+            if (response.status === ProgressStatus.DONE) {
                 const newCompleted = new Set(completedLessons);
                 newCompleted.add(lessonId);
                 setCompletedLessons(newCompleted);
-                toast.success('Đã hoàn thành bài học!');
+                if (status === ProgressStatus.DONE) {
+                    toast.success('Đã hoàn thành toàn bộ bài học!');
+                }
+            } else if (status === ProgressStatus.DONE) {
+                const newCompleted = new Set(completedLessons);
+                if (newCompleted.has(lessonId)) {
+                    newCompleted.delete(lessonId);
+                    setCompletedLessons(newCompleted);
+                }
+                toast.info('Bạn cần đạt ít nhất 50% điểm cho cả bài tập Code và bài Quiz để hoàn thành bài học này!');
             }
         } catch (error) {
             console.error("Failed to save progress", error);
-            toast.error("Không thể lưu tiến độ học tập");
         }
     };
 
-    const updateProgressInBackground = async (lessonId: string, watchedPercent: number) => {
+    const updateProgressInBackground = async (lessonId: string, watchedPercent: number, timeSpentSec: number) => {
         if (!course || completedLessons.has(lessonId)) return;
 
         try {
@@ -153,7 +174,7 @@ const CourseLearn: React.FC = () => {
                 courseId: course.courseId,
                 status,
                 watchedPercent,
-                timeSpentSec: 0
+                timeSpentSec
             });
         } catch (error) {
             console.error("Failed to update progress in background", error);
@@ -175,23 +196,27 @@ const CourseLearn: React.FC = () => {
             duration = videoRef.current.duration;
         }
 
+        if (duration > 0) {
+            setCurrentVideoDuration(prev => {
+                const newDuration = Math.floor(duration);
+                return prev !== newDuration ? newDuration : prev;
+            });
+        }
+
         const watchedPercent = duration > 0 ? Math.round((currentTime / duration) * 100) : 0;
 
-        // Chỉ cập nhật nếu chưa hoàn thành
         if (completedLessons.has(currentLessonId)) return;
 
-        if (watchedPercent % 10 === 0 && watchedPercent > 0) {
-            updateProgressInBackground(currentLessonId, watchedPercent);
+        const lastPercent = lastUploadedPercentRef.current[currentLessonId] || 0;
+        if (watchedPercent % 10 === 0 && watchedPercent > lastPercent) {
+            lastUploadedPercentRef.current[currentLessonId] = watchedPercent;
+            updateProgressInBackground(currentLessonId, watchedPercent, Math.floor(currentTime));
         }
 
         if (watchedPercent >= 95 && !completedLessons.has(currentLessonId)) {
-            saveProgress(currentLessonId, ProgressStatus.DONE, 100);
+            lastUploadedPercentRef.current[currentLessonId] = 100;
+            saveProgress(currentLessonId, ProgressStatus.DONE, 100, Math.floor(currentTime));
         }
-    };
-
-
-    const handleVideoSeeking = () => {
-        // Restriction removed
     };
 
     const toggleModule = (moduleId: string) => {
@@ -218,7 +243,8 @@ const CourseLearn: React.FC = () => {
     };
 
     const handleQuizComplete = async (isPassed: boolean) => {
-        if (isPassed) {
+        if (isPassed && currentLessonId) {
+            await saveProgress(currentLessonId, ProgressStatus.DONE, 100, 0);
             await loadProgress();
             setShouldJumpAfterQuiz(true);
             toast.success('Chúc mừng! Bạn đã vượt qua bài kiểm tra.');
@@ -235,7 +261,7 @@ const CourseLearn: React.FC = () => {
 
     const handleCodingExerciseClick = (exerciseId: string) => {
         if (!course) return;
-        navigate(`/templates/${exerciseId}/view?courseSlug=${course.slug}&fromLesson=${currentLessonId}`);
+        navigate(`/templates/${exerciseId}/view?courseSlug=${course.slug}&fromLesson=${currentLessonId}&courseId=${course.courseId}`);
     };
 
     const getCurrentLesson = () => {
@@ -276,25 +302,6 @@ const CourseLearn: React.FC = () => {
         const currentIndex = allLessons.findIndex(l => l.lessonId === currentLessonId);
         if (currentIndex > 0) {
             setCurrentLessonId(allLessons[currentIndex - 1].lessonId);
-        }
-    };
-
-    const getLessonIcon = (lessonType?: string) => {
-        switch (lessonType?.toUpperCase()) {
-            case 'VIDEO':
-            case 'QUIZ_AND_VIDEO':
-            case 'CODE_AND_VIDEO':
-                return <Play size={14} className="fill-current" />;
-            case 'CODE':
-            case 'CODING':
-                return <Code size={14} />;
-            case 'QUIZ':
-                return <FileQuestion size={14} />;
-            case 'CODE_AND_QUIZ':
-            case 'ALL':
-                return <Code size={14} />;
-            default:
-                return <Play size={14} className="fill-current" />;
         }
     };
 
@@ -370,11 +377,17 @@ const CourseLearn: React.FC = () => {
                 <div className="w-full bg-black border-b border-white/5 shadow-inner">
                     <div className="w-full max-h-[70vh] relative overflow-hidden flex justify-center items-center">
                         <VideoPlayer
+                            key={currentLesson.lessonId}
                             videoId={currentLesson.youtubeVideoId}
                             videoUrl={currentLesson.videoUrl}
+                            isCompleted={isCurrentCompleted}
+                            initialTime={currentLessonId ? lastPositions[currentLessonId] : 0}
                             onTimeUpdate={handleVideoTimeUpdate}
+                            onDurationReady={(dur: number) => {
+                                if (dur > 0) setCurrentVideoDuration(Math.floor(dur));
+                            }}
                             onEnded={() => {
-                                if (currentLessonId) saveProgress(currentLessonId, ProgressStatus.DONE, 100);
+                                if (currentLessonId) saveProgress(currentLessonId, ProgressStatus.DONE, 100, 0);
                             }}
                             className="!aspect-auto h-[70vh] w-full"
                         />
@@ -613,7 +626,9 @@ const CourseLearn: React.FC = () => {
                                                             </div>
                                                             <div className="flex items-center gap-2 flex-shrink-0">
                                                                 <Clock size={12} className="text-muted-foreground" />
-                                                                <span className="text-xs text-muted-foreground">10:00</span>
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    {isActive && currentVideoDuration > 0 ? formatTime(currentVideoDuration) : '--:--'}
+                                                                </span>
                                                             </div>
                                                         </button>
 

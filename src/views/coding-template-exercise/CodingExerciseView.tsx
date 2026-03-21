@@ -5,20 +5,20 @@ import {
     ChevronRight,
     Play,
     Send,
-    Lightbulb,
     Trophy,
     Clock,
     Database,
     ChevronDown,
     Terminal,
     FileText,
-    History,
     Languages,
     History as HistoryIcon,
-    Settings2,
     Beaker,
     Copy,
-    Check
+    Check,
+    Star,
+    Zap,
+    Award
 } from 'lucide-react';
 import Editor from "@monaco-editor/react";
 import {
@@ -32,13 +32,7 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +43,8 @@ import authService from '@/services/AuthService';
 import { Difficulty } from '@/model/coding-template/Difficulty';
 import { toast } from 'sonner';
 import { AlertCircle as AlertIcon, CheckCircle, XCircle, Clock as ClockIcon, Loader2 } from 'lucide-react';
+import lessonProgressService from '@/services/lessonProgressService';
+import { ProgressStatus } from '@/model/progress/LessonProgress';
 
 type Verdict =
     | "PENDING"
@@ -71,6 +67,8 @@ type TestCaseResult = {
     memoryKb?: number;
     error?: string;
     message?: string;
+    points?: number;
+    isKnownTestCase?: boolean;
 };
 
 type SubmissionDTO = {
@@ -83,6 +81,7 @@ type SubmissionDTO = {
     memoryKb?: number | null;
     language?: string | null;
     submittedAt?: string | number | Date | null;
+    message?: string;
     testCaseResults?: TestCaseResult[];
 };
 
@@ -95,6 +94,17 @@ const VERDICT_CONFIG: Record<string, any> = {
     RUNTIME_ERROR: { icon: AlertIcon, color: "text-red-500", bg: "bg-red-100", label: "Lỗi runtime" },
     TIME_LIMIT_EXCEEDED: { icon: ClockIcon, color: "text-yellow-500", bg: "bg-yellow-100", label: "Vượt quá thời gian" },
     MEMORY_LIMIT_EXCEEDED: { icon: AlertIcon, color: "text-purple-500", bg: "bg-purple-100", label: "Vượt quá bộ nhớ" },
+    SUCCESS: { icon: CheckCircle, color: "text-emerald-500", bg: "bg-emerald-100", label: "Thành công" },
+    PARTIAL_ACCEPTED: { icon: CheckCircle, color: "text-amber-500", bg: "bg-amber-100", label: "Chấp nhận một phần" },
+};
+
+const getEducationalLabel = (passed: number, total: number): { label: string, color: string } => {
+    if (total === 0) return { label: 'CHƯA ĐẠT', color: 'text-rose-500' };
+    const ratio = passed / total;
+    if (ratio >= 1.0) return { label: 'HOÀN THÀNH XUẤT SẮC', color: 'text-emerald-500' };
+    if (ratio >= 0.6) return { label: 'HOÀN THÀNH TỐT', color: 'text-blue-500' };
+    if (ratio > 0) return { label: 'HOÀN THÀNH', color: 'text-amber-500' };
+    return { label: 'CHƯA ĐẠT', color: 'text-rose-500' };
 };
 
 const CodingExerciseView: React.FC = () => {
@@ -102,28 +112,78 @@ const CodingExerciseView: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const courseSlug = searchParams.get('courseSlug');
+    const fromLesson = searchParams.get('fromLesson');
+    const courseIdParam = searchParams.get('courseId');
     const [exerciseDetail, setExerciseDetail] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
     const [code, setCode] = useState('');
     const [selectedLanguage, setSelectedLanguage] = useState('');
     const [consoleOutput, setConsoleOutput] = useState<string>('');
-    const [isRunning, setIsRunning] = useState(false);
+    const [isRunningCase, setIsRunningCase] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submission, setSubmission] = useState<SubmissionDTO | null>(null);
-    const [consoleTab, setConsoleTab] = useState<'testcase' | 'result'>('testcase');
+    const [consoleTab, setConsoleTab] = useState<string>('result');
     const [activeTestCaseIndex, setActiveTestCaseIndex] = useState(0);
     const activeTestCaseIndexRef = React.useRef(0);
     const [activeResultCaseIndex, setActiveResultCaseIndex] = useState(0);
+
+    const [leftTab, setLeftTab] = useState('description');
+
+    const [submissionHistory, setSubmissionHistory] = useState<any[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+
+    const fetchHistory = async (id: string) => {
+        try {
+            setLoadingHistory(true);
+            const response = await codingExerciseService.getExerciseSubmissions(id);
+            console.log("Submission history response:", response);
+
+            let data: any[] = [];
+            if (Array.isArray(response)) {
+                data = response;
+            } else if (response && typeof response === 'object') {
+                // Thử trích xuất các thuộc tính phổ biến như 'data', 'content', 'items'
+                data = (response as any).data || (response as any).content || (response as any).items || [];
+                // Nếu vẫn là object (ví dụ { items: [...] }), lặp lại 
+                if (!Array.isArray(data) && typeof data === 'object') {
+                    data = (data as any).items || (data as any).content || [];
+                }
+            }
+
+            setSubmissionHistory(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Failed to load submission history:', error);
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
     const [copied, setCopied] = useState(false);
     const [caseResults, setCaseResults] = useState<Record<number, TestCaseResult>>({});
-    const [isRunningCase, setIsRunningCase] = useState(false);
 
-    // Filtered sample test cases to be used throughout the UI
+    const [consolePanelOpen, setConsolePanelOpen] = useState(false);
+
+    const [lessonMarkedComplete, setLessonMarkedComplete] = useState(false);
+    const lessonMarkedCompleteRef = React.useRef(false);
+
+    const [runScore, setRunScore] = useState(0);
+    const [passedCaseIndices, setPassedCaseIndices] = useState<Set<number>>(new Set());
+    const passedCaseIndicesRef = React.useRef<Set<number>>(new Set());
+
     const sampleCases = (exerciseDetail?.exerciseTestCases || []).filter((tc: any) => tc.isSample);
+    const sampleCasesRef = React.useRef(sampleCases);
+    const exerciseDetailRef = React.useRef(exerciseDetail);
+    React.useEffect(() => {
+        sampleCasesRef.current = sampleCases;
+        exerciseDetailRef.current = exerciseDetail;
+    }, [sampleCases, exerciseDetail]);
+
+    const caseResultsRef = React.useRef(caseResults);
+    React.useEffect(() => {
+        caseResultsRef.current = caseResults;
+    }, [caseResults]);
 
     const formatContent = (text: string) => {
         if (!text) return '';
-        // Unescape literal \n or \t strings that might come from the API
         return text.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
     };
 
@@ -134,6 +194,31 @@ const CodingExerciseView: React.FC = () => {
         toast.success('Đã sao chép vào bộ nhớ tạm');
     };
 
+
+
+    // Compute how many sample cases currently passed via run
+    const passedRunCount = passedCaseIndices.size;
+    const hasRunAtLeastOneCase = Object.keys(caseResults).length > 0;
+
+    const markLessonAsComplete = async () => {
+        if (!courseIdParam || !fromLesson || lessonMarkedCompleteRef.current) return;
+        try {
+            const response = await lessonProgressService.updateProgress({
+                lessonId: fromLesson,
+                courseId: courseIdParam,
+                status: ProgressStatus.DONE,
+                watchedPercent: 100,
+            });
+
+            if (response.status === ProgressStatus.DONE) {
+                lessonMarkedCompleteRef.current = true;
+                setLessonMarkedComplete(true);
+                toast.success('🎓 Bạn đã hoàn thành toàn bộ chuyên mục của bài học này!');
+            }
+        } catch (error) {
+            console.error('Failed to mark lesson as complete:', error);
+        }
+    };
 
     useEffect(() => {
         const claims = authService.getJwtClaimDecoded();
@@ -147,14 +232,33 @@ const CodingExerciseView: React.FC = () => {
             webSocketService.subscribe(subDestination, (data) => {
                 if (data.submissionId && data.verdict) {
                     setSubmission(data);
+
+                    // Sync runScore and passedCaseIndices from submission result
+                    if (!["PENDING", "RUNNING"].includes(data.verdict) && data.testCaseResults) {
+                        let totalPoints = 0;
+                        const newPassed = new Set<number>();
+                        data.testCaseResults.forEach((tc: any, idx: number) => {
+                            if (idx < sampleCasesRef.current.length) {
+                                if (tc.verdict === 'ACCEPTED') {
+                                    newPassed.add(idx);
+                                    totalPoints += (tc.points || 0);
+                                }
+                            }
+                        });
+                        setPassedCaseIndices(newPassed);
+                        passedCaseIndicesRef.current = newPassed;
+                        setRunScore(totalPoints);
+                    }
+
                     if (!["PENDING", "RUNNING"].includes(data.verdict)) {
                         setIsSubmitting(false);
                         setConsoleTab('result');
                         setActiveResultCaseIndex(0);
+                        setConsolePanelOpen(true);
                         if (data.verdict === 'ACCEPTED') {
-                            toast.success(`Chúc mừng! Bạn đã vượt qua tất cả test case. (+${data.score || 0} điểm)`);
+                            toast.success(data.message || `🎉 Chúc mừng! Vượt qua tất cả test case. (+${data.score || 0} điểm)`);
                         } else {
-                            toast.error(`Kết quả: ${data.verdict}`);
+                            toast.error(data.message || `Kết quả: ${VERDICT_CONFIG[data.verdict]?.label || data.verdict}. Passed: ${data.passedTestcases || 0}/${data.totalTestcases || 0}`);
                         }
                     }
                 } else if (data.status && data.submissionId) {
@@ -162,12 +266,10 @@ const CodingExerciseView: React.FC = () => {
                 }
             });
 
-            // Subscribe to run updates
             const runDestination = `/queue/run/${userId}`;
             webSocketService.subscribe(runDestination, (data) => {
                 console.log('Received run update via WebSocket:', data);
 
-                // Trạng thái (RUNNING, ERROR...)
                 if (data.runId && data.status) {
                     if (data.status === 'RUNNING') {
                         setIsRunningCase(true);
@@ -175,23 +277,54 @@ const CodingExerciseView: React.FC = () => {
                         setIsRunningCase(false);
                         toast.error('Có lỗi xảy ra khi thực thi mã');
                     }
-                }
-                // Kết quả (trả về JudgeRunResponseDTO hoặc Object kết quả)
-                else {
-                    const result = data;
+                } else {
                     const currentIndex = activeTestCaseIndexRef.current;
-                    const tcResult: TestCaseResult = result.testCaseResults?.[currentIndex]
-                        || result.testCaseResults?.[0]
-                        || {
-                        verdict: result.status || result.verdict,
-                        actualOutput: result.output,
-                        message: result.message,
-                        error: result.error,
-                        runtimeMs: result.runtimeMs,
-                        memoryKb: result.memoryKb
+
+                    const tcResult: TestCaseResult = {
+                        verdict: data.verdict || data.status,
+                        actualOutput: data.actualOutput || data.output,
+                        expectedOutput: data.expectedOutput,
+                        input: data.input || sampleCasesRef.current[currentIndex]?.input,
+                        message: data.message,
+                        error: data.error,
+                        runtimeMs: data.runtimeMs,
+                        memoryKb: data.memoryKb,
+                        testCaseId: data.testCaseId,
+                        points: (() => {
+                            if (data.points && data.points > 0) return data.points;
+
+                            const samples = sampleCasesRef.current;
+                            if (samples[currentIndex]?.points && samples[currentIndex]?.points > 0) {
+                                return samples[currentIndex].points;
+                            }
+
+                            const totalPoints = exerciseDetailRef.current?.points || 0;
+                            const totalCount = data.totalTestcases || samples.length || 0;
+                            return Math.floor(totalPoints / totalCount);
+                        })(),
+                        isKnownTestCase: data.isKnownTestCase,
                     };
 
-                    setCaseResults(prev => ({ ...prev, [currentIndex]: tcResult }));
+                    const isPassed = tcResult.verdict === 'ACCEPTED';
+
+                    setCaseResults(prev => ({
+                        ...prev,
+                        [currentIndex]: tcResult
+                    }));
+
+                    if (isPassed && !passedCaseIndicesRef.current.has(currentIndex)) {
+                        passedCaseIndicesRef.current.add(currentIndex);
+                        setPassedCaseIndices(new Set(passedCaseIndicesRef.current));
+                        setRunScore(prev => prev + (tcResult.points || 0));
+                    } else if (!isPassed && passedCaseIndicesRef.current.has(currentIndex)) {
+                        // Nếu vừa fail và trước đó đã pass -> trừ điểm
+                        passedCaseIndicesRef.current.delete(currentIndex);
+                        setPassedCaseIndices(new Set(passedCaseIndicesRef.current));
+                        setRunScore(prev => Math.max(0, prev - (tcResult.points || 0)));
+                    }
+
+                    // Cập nhật hiển thị kết quả (UI console)
+                    // Cập nhật hiển thị kết quả (UI console)
                     setSubmission(prev => {
                         const existing = prev?.testCaseResults ? [...prev.testCaseResults] : [];
                         existing[currentIndex] = tcResult;
@@ -201,16 +334,21 @@ const CodingExerciseView: React.FC = () => {
                             verdict: tcResult.verdict,
                             testCaseResults: existing,
                             passedTestcases: totalPass,
-                            totalTestcases: sampleCases.length
+                            totalTestcases: sampleCasesRef.current.length
                         };
                     });
+
                     setActiveResultCaseIndex(currentIndex);
                     setIsRunningCase(false);
+                    setConsolePanelOpen(true);
+                    setConsoleTab('result');
 
-                    if (tcResult.verdict === 'ACCEPTED' || tcResult.verdict === 'SUCCESS') {
-                        toast.success('Case ' + (currentIndex + 1) + ' đã vượt qua!');
+                    if (isPassed) {
+                        toast.success(`✅ Case ${currentIndex + 1} đã vượt qua! (+${tcResult.points || 0} điểm)`);
+                    } else if (tcResult.verdict === 'COMPILATION_ERROR') {
+                        toast.error(`Case ${currentIndex + 1}: Lỗi biên dịch`);
                     } else {
-                        toast.error('Case ' + (currentIndex + 1) + ' chưa đạt. Kiểm tra lại!');
+                        toast.error(`❌ Case ${currentIndex + 1} chưa đạt (${VERDICT_CONFIG[tcResult.verdict || '']?.label || tcResult.verdict})`);
                     }
                 }
             });
@@ -224,6 +362,28 @@ const CodingExerciseView: React.FC = () => {
         }
     }, []);
 
+    React.useEffect(() => {
+        if (!submission?.submissionId) return;
+        if (lessonMarkedCompleteRef.current) return;
+        if (["PENDING", "RUNNING"].includes(submission.verdict || "")) return;
+
+        if (submission.verdict === 'ACCEPTED') {
+            markLessonAsComplete();
+        }
+    }, [submission]);
+
+    const handleCodeChange = (newCode: string) => {
+        setCode(newCode);
+        setRunScore(0);
+        passedCaseIndicesRef.current = new Set();
+        setPassedCaseIndices(new Set());
+        setCaseResults({});
+    };
+
+    const handleLanguageChange = (lang: string) => {
+        setSelectedLanguage(lang);
+    };
+
     const loadExercise = async (targetId: string) => {
         try {
             let data: any;
@@ -234,17 +394,25 @@ const CodingExerciseView: React.FC = () => {
             } else {
                 data = await codingExerciseTemplateService.getById(targetId);
             }
-
-            console.log('Loaded exercise data:', data);
             if (data) {
+                console.log('Processed exercise detail:', {
+                    title: data.title,
+                    points: data.points,
+                    exerciseTestCases: data.exerciseTestCases,
+                    testCases: data.testCases
+                });
                 setExerciseDetail(data);
                 setCode(data.initialCode || '');
                 setSelectedLanguage(data.programmingLanguage || 'Java');
+
+                const exerciseId = data.exerciseId || data.templateId || targetId;
+                if (exerciseId) {
+                    fetchHistory(exerciseId);
+                }
             }
         } catch (error) {
             console.error('Error loading exercise:', error);
             toast.error('Không thể tải dữ liệu bài tập');
-
         } finally {
             setLoading(false);
         }
@@ -255,7 +423,6 @@ const CodingExerciseView: React.FC = () => {
             loadExercise(id);
         }
     }, [id, courseSlug]);
-
 
     const handleRunCurrentCase = async () => {
         const targetExerciseId = exerciseDetail?.exerciseId || exerciseDetail?.templateId;
@@ -268,11 +435,14 @@ const CodingExerciseView: React.FC = () => {
         }
 
         setIsRunningCase(true);
-        setConsoleTab('result');
+        activeTestCaseIndexRef.current = activeTestCaseIndex;
         setConsoleOutput(`Đang chuẩn bị chạy Case ${activeTestCaseIndex + 1}...`);
+        setConsolePanelOpen(true);
+        setConsoleTab('result');
+
+        setSubmission(prev => prev?.submissionId ? { ...prev, submissionId: undefined } : prev);
 
         try {
-            // Trigger run - result will come via WebSocket
             await codingExerciseService.runSingleTestCase(
                 targetExerciseId,
                 code,
@@ -294,25 +464,106 @@ const CodingExerciseView: React.FC = () => {
         const targetExerciseId = exerciseDetail?.exerciseId || exerciseDetail?.templateId;
         if (!targetExerciseId) return;
 
+        if (!hasRunAtLeastOneCase) {
+            toast.error(`Vui lòng chạy thử ít nhất 1 test case trước khi nộp bài!`);
+            return;
+        }
+
         setIsSubmitting(true);
         setSubmission({ verdict: 'PENDING' });
         setActiveTestCaseIndex(0);
         setConsoleOutput('Đang gửi bài lên hệ thống đánh giá...');
+        setConsolePanelOpen(true);
+        setConsoleTab('result');
 
         try {
+            const resultsArray = Object.values(caseResultsRef.current);
+
             const result = await codingExerciseService.submitCode(
                 targetExerciseId,
                 code,
-                selectedLanguage
+                selectedLanguage,
+                resultsArray
             );
             console.log('Submit success:', result);
+            console.log('Submit success result object:', result);
+
+            let finalScore = result.score || 0;
+            if (finalScore === 0 && result.testCaseResults) {
+                const results = result.testCaseResults;
+                // Lấy tất cả test cases từ bài tập (bao gồm cả ẩn nếu backend trả về điểm)
+                const detailTestCases = exerciseDetail?.exerciseTestCases || exerciseDetail?.testCases || [];
+
+                console.log('Calculating score from:', {
+                    resultTestCasesCount: results.length,
+                    detailTestCasesCount: detailTestCases.length
+                });
+
+                finalScore = results.reduce((acc: number, tc: any, idx: number) => {
+                    // Ưu tiên points trực tiếp từ tc, sau đó mapping qua index trong detailTestCases
+                    const definedPoints = tc.points || tc.score || detailTestCases[idx]?.points || detailTestCases[idx]?.score || 0;
+
+                    const isPassed = tc.verdict === 'ACCEPTED' || tc.status === 'ACCEPTED';
+                    if (isPassed) {
+                        // Nếu vẫn bằng 0 nhưng đã qua, và chúng ta có tổng điểm, hãy thử chia đều nếu đây là TC duy nhất 
+                        // Hoặc nếu đây là TC cuối cùng và tổng điểm chưa đủ.
+                        // Tuy nhiên tốt nhất là lấy từ cấu hình.
+                        return acc + definedPoints;
+                    }
+                    return acc;
+                }, 0);
+
+                // Cố định điểm nếu pass hết nhưng tổng điểm tính ra bằng 0 (do cấu hình cũ)
+                const passedCount = results.filter((tc: any) => (tc?.verdict === 'ACCEPTED' || tc?.status === 'ACCEPTED')).length;
+                if (finalScore === 0 && passedCount > 0 && exerciseDetail?.points) {
+                    finalScore = Math.floor((passedCount / results.length) * exerciseDetail.points);
+                }
+
+                result.score = finalScore;
+                console.log('Calculated final score:', finalScore);
+            }
+
+            setRunScore(finalScore);
             setSubmission(result);
-            setConsoleOutput('Bài đã được gửi. Đang chờ kết quả từ Judge...');
+            setIsSubmitting(false);
+
+            const passedCount = result.passedTestcases ||
+                (result.testCaseResults ? result.testCaseResults.filter((tc: any) => (tc?.verdict === 'ACCEPTED' || tc?.status === 'ACCEPTED')).length : 0);
+            const totalCount = result.totalTestcases || result.testCaseResults?.length || 0;
+
+            const edu = getEducationalLabel(passedCount, totalCount);
+            const passRatio = totalCount > 0 ? (passedCount / totalCount) : 0;
+            const isPassingGrade = passRatio >= 0.5;
+
+            if (result.verdict === 'ACCEPTED' || (passedCount > 0 && passedCount === totalCount)) {
+                setConsoleOutput(`🎉 ${edu.label}! Bạn đã vượt qua tất cả test case. (+${finalScore} điểm)`);
+                toast.success(result.message || `${edu.label}! Bài làm chính xác. (+${finalScore} điểm)`);
+                markLessonAsComplete();
+            } else if (isPassingGrade) {
+                setConsoleOutput(`✅ ${edu.label}! Đã vượt qua ${passedCount}/${totalCount} test case. (+${finalScore} điểm)\nBạn đã đạt điều kiện hoàn thành bài học!`);
+                toast.success(`${edu.label}: ${passedCount}/${totalCount} test case. (+${finalScore} điểm). Chúc mừng bạn đã hoàn thành yêu cầu!`);
+                markLessonAsComplete();
+            } else if (passedCount > 0) {
+                setConsoleOutput(`⚠️ ${edu.label}. Đã vượt qua ${passedCount}/${totalCount} test case. (+${finalScore} điểm)\nLưu ý: Bạn cần đạt ít nhất 50% số điểm để hoàn thành bài tập này.`);
+                toast.warning(`Chưa đạt yêu cầu: Bạn cần đúng ít nhất 50% test case để bài học được tính là hoàn thành.`);
+            } else {
+                const verdict = result.verdict || 'WRONG_ANSWER';
+                const verdictLabel = verdict === 'WRONG_ANSWER' ? 'CHƯA ĐẠT' : (VERDICT_CONFIG[verdict]?.label || verdict);
+                setConsoleOutput(`Kết quả: ${verdictLabel}\n${result.message || ''}`);
+                toast.error(result.message || `Bài làm chưa chính xác.`);
+            }
+
+            if (targetExerciseId) {
+                setTimeout(() => fetchHistory(targetExerciseId), 1000);
+            }
+            setLeftTab('submissions');
         } catch (error: any) {
             console.error('Submit error:', error);
-            toast.error(error.message || 'Có lỗi khi nộp bài');
+            const errorMsg = error.response?.data?.message || error.message || 'Có lỗi khi nộp bài';
+            toast.error(errorMsg);
             setIsSubmitting(false);
             setSubmission(null);
+            setConsoleOutput('Lỗi: ' + errorMsg);
         }
     };
 
@@ -329,15 +580,16 @@ const CodingExerciseView: React.FC = () => {
 
     if (!exerciseDetail) return <div className="h-screen flex items-center justify-center bg-slate-950 text-white">Không tìm thấy bài tập.</div>;
 
+    const isSubmitMode = submission?.submissionId != null;
+
     return (
         <div className="h-screen flex flex-col bg-[#1a1a1a] text-[#eff1f6] overflow-hidden">
-            {/* Navigation Header */}
             <header className="h-12 flex items-center justify-between px-4 bg-[#282828] border-b border-[#3e3e3e] shrink-0">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => {
                             if (courseSlug) {
-                                navigate(`/learn/${courseSlug}`);
+                                navigate(`/course/${courseSlug}/learn`);
                             } else {
                                 navigate('/codingExerciseLibrary');
                             }
@@ -354,14 +606,20 @@ const CodingExerciseView: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <Button variant="ghost" size="sm" className="text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 gap-2">
-                        <Lightbulb size={16} />
-                        <span className="hidden sm:inline">Gợi ý</span>
-                    </Button>
+                    {/* Run score badge */}
+                    {passedRunCount > 0 && (
+                        <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full">
+                            <Zap size={12} className="text-emerald-400" />
+                            <span className="text-xs font-bold text-emerald-400">
+                                {passedRunCount}/{sampleCases.length} chạy thử OK
+                            </span>
+                        </div>
+                    )}
                     <div className="h-4 w-px bg-[#3e3e3e]"></div>
                     <div className="flex items-center gap-2 bg-[#1a1a1a] px-3 py-1 rounded-full border border-[#3e3e3e]">
-                        <Trophy size={14} className="text-indigo-400" />
-                        <span className="text-xs font-bold text-indigo-400">{exerciseDetail.points} pts</span>
+                        <Trophy size={12} className="text-amber-400" />
+                        <span className="hidden sm:inline text-xs text-slate-400">Điểm :</span>
+                        <span className="text-xs font-bold text-indigo-400">{exerciseDetail.points} điểm</span>
                     </div>
                 </div>
             </header>
@@ -372,7 +630,13 @@ const CodingExerciseView: React.FC = () => {
                     {/* Left Side: Problem Info */}
                     <ResizablePanel defaultSize={40} minSize={25}>
                         <div className="h-full flex flex-col bg-[#1a1a1a]">
-                            <Tabs defaultValue="description" className="h-full flex flex-col">
+                            <Tabs value={leftTab} onValueChange={(val) => {
+                                setLeftTab(val);
+                                if (val === 'submissions') {
+                                    const exId = exerciseDetail?.exerciseId || exerciseDetail?.templateId || id;
+                                    if (exId) fetchHistory(exId);
+                                }
+                            }} className="h-full flex flex-col">
                                 <div className="px-2 pt-2 bg-[#282828]">
                                     <TabsList className="bg-transparent border-b-0 gap-1 h-9">
                                         <TabsTrigger
@@ -381,13 +645,6 @@ const CodingExerciseView: React.FC = () => {
                                         >
                                             <FileText size={14} />
                                             Câu hỏi
-                                        </TabsTrigger>
-                                        <TabsTrigger
-                                            value="solution"
-                                            className="data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-white rounded-t-lg rounded-b-none border-b-0 h-full gap-2 px-4"
-                                        >
-                                            <Lightbulb size={14} />
-                                            Giải pháp
                                         </TabsTrigger>
                                         <TabsTrigger
                                             value="submissions"
@@ -424,7 +681,6 @@ const CodingExerciseView: React.FC = () => {
                                                 </div>
 
                                                 <div className="prose prose-invert max-w-none prose-p:text-slate-300 prose-code:text-indigo-300 prose-code:bg-slate-900 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded">
-                                                    {/* We can use a markdown renderer here, for now just replace newlines */}
                                                     {exerciseDetail.description.split('\n').map((line: string, i: number) => (
                                                         <p key={i} className="mb-4 leading-relaxed whitespace-pre-wrap">
                                                             {line}
@@ -432,18 +688,28 @@ const CodingExerciseView: React.FC = () => {
                                                     ))}
                                                 </div>
 
-                                                {/* Test Cases Section */}
                                                 <div className="space-y-4 pt-4 border-t border-slate-800">
-                                                    <h3 className="text-md font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                        <Beaker size={16} className="text-indigo-500" />
-                                                        Test Cases
-                                                    </h3>
+                                                    <div className="flex items-center justify-between">
+                                                        <h3 className="text-md font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                            <Beaker size={16} className="text-indigo-500" />
+                                                            Test Cases
+                                                        </h3>
+                                                        {passedRunCount > 0 && (
+                                                            <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                                                                <Star size={11} className="text-emerald-400 fill-emerald-400" />
+                                                                <span className="text-[11px] font-bold text-emerald-400">
+                                                                    {passedRunCount}/{sampleCases.length} passed
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
 
                                                     <div className="flex flex-wrap gap-2">
                                                         {sampleCases.map((tc: any, idx: number) => {
-                                                            const result = submission?.testCaseResults?.[idx];
-                                                            const isPassed = result?.verdict === 'ACCEPTED';
-                                                            const isFailed = result && result.verdict !== 'ACCEPTED';
+                                                            const result = caseResults[idx];
+                                                            const isPassed = passedCaseIndices.has(idx);
+                                                            const isFailed = result && !isPassed;
+                                                            const isCurrentlyRunning = isRunningCase && activeTestCaseIndex === idx;
 
                                                             return (
                                                                 <Button
@@ -453,8 +719,10 @@ const CodingExerciseView: React.FC = () => {
                                                                     onClick={() => {
                                                                         setActiveTestCaseIndex(idx);
                                                                         activeTestCaseIndexRef.current = idx;
-                                                                        if (submission?.testCaseResults?.[idx]) {
+                                                                        if (caseResults[idx]) {
                                                                             setActiveResultCaseIndex(idx);
+                                                                            setConsolePanelOpen(true);
+                                                                            setConsoleTab('result');
                                                                         }
                                                                     }}
                                                                     className={`h-8 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTestCaseIndex === idx
@@ -462,7 +730,9 @@ const CodingExerciseView: React.FC = () => {
                                                                         : 'bg-slate-900/50 text-slate-400 hover:text-white hover:bg-slate-800'
                                                                         } ${isPassed ? 'border-l-2 border-l-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.1)]' : isFailed ? 'border-l-2 border-l-rose-500' : ''}`}
                                                                 >
-                                                                    {isPassed ? (
+                                                                    {isCurrentlyRunning ? (
+                                                                        <Loader2 size={12} className="animate-spin text-blue-400" />
+                                                                    ) : isPassed ? (
                                                                         <CheckCircle size={12} className="text-emerald-500" />
                                                                     ) : isFailed ? (
                                                                         <XCircle size={12} className="text-rose-500" />
@@ -470,6 +740,7 @@ const CodingExerciseView: React.FC = () => {
                                                                         <div className="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
                                                                     )}
                                                                     Case {idx + 1}
+                                                                    {(tc.points || tc.score) ? <span className="text-[10px] opacity-60">+{tc.points || tc.score}đ</span> : null}
                                                                 </Button>
                                                             );
                                                         })}
@@ -477,9 +748,8 @@ const CodingExerciseView: React.FC = () => {
 
                                                     {sampleCases[activeTestCaseIndex] && (
                                                         <div className="space-y-4 animate-in fade-in slide-in-from-left-2 duration-300">
-                                                            {(() => {
-                                                                const result = submission?.testCaseResults?.[activeTestCaseIndex];
-                                                                if (!result) return null;
+                                                            {caseResults[activeTestCaseIndex] && (() => {
+                                                                const result = caseResults[activeTestCaseIndex];
                                                                 const isPassed = result.verdict === 'ACCEPTED';
                                                                 return (
                                                                     <div className={`p-3 rounded-xl border flex items-center justify-between ${isPassed ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}>
@@ -489,7 +759,7 @@ const CodingExerciseView: React.FC = () => {
                                                                             </div>
                                                                             <div>
                                                                                 <div className={`text-xs font-black uppercase tracking-tight ${isPassed ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                                                                    {isPassed ? 'Đã vượt qua (Passed)' : result.verdict || 'Chưa đạt'}
+                                                                                    {isPassed ? `Đã vượt qua (Passed) +${result.points || sampleCases[activeTestCaseIndex]?.points || 0}đ` : result.verdict || 'Chưa đạt'}
                                                                                 </div>
                                                                                 <div className="text-[10px] text-slate-500 font-bold">
                                                                                     {result.runtimeMs != null ? `${result.runtimeMs}ms` : ''} {result.memoryKb != null ? `• ${(result.memoryKb / 1024).toFixed(2)}MB` : ''}
@@ -498,36 +768,26 @@ const CodingExerciseView: React.FC = () => {
                                                                         </div>
                                                                         <div className="flex items-center gap-2">
                                                                             <Button
-                                                                                variant="outline"
-                                                                                size="sm"
-                                                                                className="h-7 text-[10px] font-black uppercase text-indigo-400 hover:text-indigo-300 border-indigo-500/20"
-                                                                                onClick={() => {
-                                                                                    setConsoleTab('result');
-                                                                                    setActiveResultCaseIndex(activeTestCaseIndex);
-                                                                                }}
-                                                                            >
-                                                                                Chi tiết kết quả
-                                                                            </Button>
-                                                                            <Button
                                                                                 variant="secondary"
                                                                                 size="sm"
-                                                                                disabled={isRunningCase || isRunning}
-                                                                                className="h-7 text-[10px] font-black uppercase bg-indigo-600 hover:bg-indigo-500 text-white border-0 gap-1.5"
+                                                                                disabled={isRunningCase || isSubmitting}
+                                                                                className="h-7 text-[11px] font-black uppercase bg-indigo-600 hover:bg-indigo-500 text-white border-0 gap-1.5"
                                                                                 onClick={handleRunCurrentCase}
                                                                             >
                                                                                 {isRunningCase ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} fill="currentColor" />}
-                                                                                Chạy Case này
+                                                                                Chạy lại
                                                                             </Button>
                                                                         </div>
                                                                     </div>
                                                                 );
                                                             })()}
-                                                            {(!submission?.testCaseResults?.[activeTestCaseIndex] && !caseResults[activeTestCaseIndex]) && (
+
+                                                            {!caseResults[activeTestCaseIndex] && (
                                                                 <div className="flex justify-end">
                                                                     <Button
                                                                         variant="secondary"
                                                                         size="sm"
-                                                                        disabled={isRunningCase || isRunning}
+                                                                        disabled={isRunningCase || isSubmitting}
                                                                         className="h-8 px-4 text-xs font-black uppercase bg-indigo-600 hover:bg-indigo-500 text-white border-0 gap-2 shadow-lg shadow-indigo-900/20"
                                                                         onClick={handleRunCurrentCase}
                                                                     >
@@ -536,6 +796,7 @@ const CodingExerciseView: React.FC = () => {
                                                                     </Button>
                                                                 </div>
                                                             )}
+
                                                             <div className="space-y-2 relative group/tc">
                                                                 <div className="flex items-center justify-between">
                                                                     <div className="text-[13px] font-black text-slate-500 uppercase tracking-wider">Đầu vào:</div>
@@ -560,8 +821,8 @@ const CodingExerciseView: React.FC = () => {
                                                             </div>
                                                             {sampleCases[activeTestCaseIndex].explanation && (
                                                                 <div className="p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-xl">
-                                                                    <div className="text-[10px] font-black text-indigo-400 uppercase tracking-wider mb-1">Explanation:</div>
-                                                                    <p className="text-xs text-slate-400 italic leading-relaxed">
+                                                                    <div className="text-[11px] font-black text-indigo-400 uppercase tracking-wider mb-1">Explanation:</div>
+                                                                    <p className="text-[13px] text-slate-400 italic leading-relaxed">
                                                                         {sampleCases[activeTestCaseIndex].explanation}
                                                                     </p>
                                                                 </div>
@@ -572,26 +833,99 @@ const CodingExerciseView: React.FC = () => {
                                             </div>
                                         </ScrollArea>
                                     </TabsContent>
+                                    <div className={`h-full m-0 overflow-y-auto w-full ${leftTab === 'submissions' ? 'block' : 'hidden'}`}>
 
-                                    <TabsContent value="solution" className="h-full m-0 flex items-center justify-center">
-                                        <div className="text-center p-8 space-y-4">
-                                            <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
-                                                <Lightbulb size={32} className="text-amber-500" />
-                                            </div>
-                                            <h3 className="text-lg font-bold">Giải pháp tối ưu</h3>
-                                            <p className="text-slate-400 max-w-xs mx-auto">Sử dụng mảng động với cấu trúc Resize logic để tối ưu hóa thời gian O(1) trung bình cho pushback.</p>
-                                            <Button variant="outline" className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10">Xem mã giải</Button>
-                                        </div>
-                                    </TabsContent>
+                                        <div className="p-4 space-y-4">
+                                            {loadingHistory && (
+                                                <div className="flex justify-center p-8">
+                                                    <Loader2 className="animate-spin text-indigo-500" />
+                                                </div>
+                                            )}
+                                            {!loadingHistory && submissionHistory.length === 0 && (
+                                                <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                                                    <HistoryIcon size={48} strokeWidth={1} className="mb-4 opacity-20" />
+                                                    <p>Bạn chưa có lượt nộp bài nào.</p>
+                                                    <p className="text-[10px] mt-2 opacity-50">Lịch sử sẽ cập nhật tại đây khi bạn nộp bài thành công.</p>
+                                                </div>
+                                            )}
 
-                                    <TabsContent value="submissions" className="h-full m-0">
-                                        <div className="p-6">
-                                            <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                                                <History size={48} strokeWidth={1} className="mb-4 opacity-20" />
-                                                <p>Bạn chưa có lượt nộp bài nào.</p>
-                                            </div>
+                                            {!loadingHistory && submissionHistory.length > 0 && (
+                                                <div className="space-y-3">
+                                                    <h3 className="font-bold text-slate-300 px-1 mb-2">
+                                                        Lịch sử Lượt nộp ({submissionHistory.length})
+                                                    </h3>
+                                                    {submissionHistory.map((sub: any, index: number) => {
+                                                        const detailTestCases = exerciseDetail?.exerciseTestCases || exerciseDetail?.testCases || [];
+                                                        const passed = sub.passedTestcases ?? sub.testCasesPassed ?? 0;
+                                                        const total = sub.totalTestcases ?? sub.totalTestCases ?? (detailTestCases.length || 0);
+                                                        const isSuccess = sub.status === 'ACCEPTED' || (passed > 0 && passed === total);
+                                                        const isPartial = sub.status !== 'ACCEPTED' && passed > 0 && passed < total;
+
+                                                        const edu = getEducationalLabel(passed, total);
+                                                        const verdictConfig = {
+                                                            ... (VERDICT_CONFIG[sub.status || 'WRONG_ANSWER'] || VERDICT_CONFIG.WRONG_ANSWER),
+                                                            label: edu.label,
+                                                            color: edu.color
+                                                        };
+
+                                                        return (
+                                                            <div key={index} className="flex justify-between items-center bg-[#242424] border border-[#3e3e3e] p-4 rounded-xl hover:border-indigo-500/50 transition-colors">
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className={`w-[120px] text-center px-2 py-1 rounded text-[11px] font-black uppercase ${edu.color} bg-white/5 border border-white/10 shrink-0`}>
+                                                                        {edu.label}
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="flex items-center gap-2 mb-1">
+                                                                            <span className="text-[15px] text-slate-500 font-bold uppercase tracking-wider">
+                                                                                {sub.submittedAt ? new Date(sub.submittedAt).toLocaleString('vn-VN') : 'Vừa nộp'}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="text-sm font-black text-slate-200">
+                                                                            Đã vượt qua: {passed} / {total}
+                                                                        </div>
+                                                                        <div className="text-[15px] text-slate-500 font-bold uppercase tracking-tighter mt-1">
+                                                                            Ngôn ngữ: <span className="text-indigo-400">{sub.language || 'N/A'}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="text-right flex flex-col items-end justify-center">
+                                                                    <div className={`text-xl font-black ${edu.color}`}>
+                                                                        {(() => {
+                                                                            if (sub.status === 'ACCEPTED') return exerciseDetail?.points || 100;
+                                                                            if (sub.score && sub.score > 0) return sub.score;
+                                                                            if (total > 0) {
+                                                                                return Math.floor((passed / total) * (exerciseDetail?.points || 100));
+                                                                            }
+                                                                            return sub.points || 0;
+                                                                        })()} <span className="text-xs font-normal opacity-50 text-slate-500">điểm</span>
+                                                                    </div>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="h-7 px-2 mt-1 text-[15px] font-bold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 uppercase tracking-widest"
+                                                                        onClick={() => {
+                                                                            setConsoleTab('result');
+                                                                            setConsolePanelOpen(true);
+                                                                            setSubmission(sub);
+                                                                            setCode(sub.code || '');
+                                                                            setSelectedLanguage(sub.language || 'Java');
+                                                                            toast.success("Mã nguồn đã được tải vào Editor");
+                                                                            if (sub.testCaseResults) {
+                                                                                setActiveResultCaseIndex(0);
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        Xem code
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
                                         </div>
-                                    </TabsContent>
+                                    </div>
                                 </div>
                             </Tabs>
                         </div>
@@ -619,7 +953,7 @@ const CodingExerciseView: React.FC = () => {
                                     language={selectedLanguage.toLowerCase() === 'c++' ? 'cpp' : selectedLanguage.toLowerCase()}
                                     theme="vs-dark"
                                     value={formatContent(code)}
-                                    onChange={(value) => setCode(value || '')}
+                                    onChange={(value) => handleCodeChange(value || '')}
                                     options={{
                                         minimap: { enabled: false },
                                         fontSize: 14,
@@ -633,152 +967,235 @@ const CodingExerciseView: React.FC = () => {
                                 />
                             </div>
 
+                            {/* Console / Result Panel */}
                             <div className="shrink-0 bg-[#282828] border-t border-[#3e3e3e]">
-                                {consoleOutput && (
-                                    <div className="p-4 border-b border-[#3e3e3e] min-h-[250px] max-h-[400px] overflow-y-auto">
+                                {consolePanelOpen && (
+                                    <div className="border-b border-[#3e3e3e] min-h-[220px] max-h-[420px] overflow-y-auto">
                                         <Tabs value={consoleTab} onValueChange={(v: any) => setConsoleTab(v)} className="w-full">
-                                            <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center justify-between px-4 pt-3 mb-3">
                                                 <TabsList className="bg-transparent border-b-0 gap-4 h-8 p-0">
                                                     <TabsTrigger
                                                         value="result"
                                                         className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-indigo-500 rounded-none border-b-2 border-transparent h-full px-0 font-bold text-xs uppercase tracking-widest text-slate-500"
                                                     >
-                                                        Kết quả thực thi
+                                                        {isSubmitMode ? 'Kết quả nộp bài' : 'Kết quả chạy thử'}
                                                     </TabsTrigger>
                                                 </TabsList>
-
                                             </div>
 
-                                            <TabsContent value="result" className="mt-0 space-y-4">
-                                                {submission ? (
-                                                    <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-300">
-                                                        <div className="flex items-center justify-between bg-slate-900/40 p-3 rounded-xl border border-slate-800/50">
-                                                            <div className="flex items-center gap-3">
-                                                                {(() => {
-                                                                    const verdict = submission.verdict || "PENDING";
-                                                                    const config = VERDICT_CONFIG[verdict] || VERDICT_CONFIG.PENDING;
-                                                                    const Icon = config.icon;
-                                                                    return (
-                                                                        <>
-                                                                            <div className={`p-2 rounded-lg ${config.bg}`}>
-                                                                                <Icon className={`w-5 h-5 ${config.color} ${config.animate || ""}`} />
-                                                                            </div>
-                                                                            <div>
-                                                                                <div className={`font-black text-sm uppercase tracking-tight ${config.color}`}>{config.label}</div>
-                                                                                <div className="text-[10px] text-slate-500 font-bold">
-                                                                                    {submission.runtimeMs != null ? `${submission.runtimeMs}ms` : '---'} • {submission.memoryKb != null ? `${(submission.memoryKb / 1024).toFixed(2)}MB` : '---'}
-                                                                                </div>
-                                                                            </div>
-                                                                        </>
-                                                                    );
-                                                                })()}
-                                                            </div>
-                                                            <div className="text-right">
-                                                                <div className="text-[13px] text-slate-500 font-bold uppercase mb-0.5">Test cases</div>
-                                                                <div className="text-sm font-black text-white">
-                                                                    {submission.passedTestcases || 0} / {submission.totalTestcases || 0}
-                                                                </div>
-                                                            </div>
+                                            <TabsContent value="result" className="mt-0 space-y-3 px-4 pb-4">
+                                                {isRunningCase && !submission?.testCaseResults?.[activeTestCaseIndex] ? (
+                                                    // Loading state while running
+                                                    <div className="flex flex-col items-center justify-center py-8 text-slate-500 space-y-3">
+                                                        <Loader2 size={28} className="animate-spin text-indigo-500 opacity-70" />
+                                                        <div className="text-[11px] font-bold uppercase tracking-widest text-slate-600 animate-pulse">
+                                                            Đang thực thi Case {activeTestCaseIndex + 1}...
                                                         </div>
+                                                    </div>
+                                                ) : submission ? (
+                                                    <div className="space-y-3 animate-in fade-in slide-in-from-right-2 duration-300">
 
-                                                        {submission.testCaseResults && submission.testCaseResults.length > 0 ? (
-                                                            <div className="space-y-4">
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    {submission.testCaseResults.map((tc, idx) => {
-                                                                        if (!tc) return null;
-                                                                        return (
-                                                                            <Button
-                                                                                key={idx}
-                                                                                variant="ghost"
-                                                                                size="sm"
-                                                                                onClick={() => setActiveResultCaseIndex(idx)}
-                                                                                className={`h-8 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeResultCaseIndex === idx
-                                                                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                                                                                    : 'bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800'
-                                                                                    }`}
-                                                                            >
-                                                                                <div className={`w-1.5 h-1.5 rounded-full ${tc?.verdict === 'ACCEPTED' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
-                                                                                Case {idx + 1}
-                                                                            </Button>
-                                                                        );
-                                                                    })}
-                                                                </div>
+                                                        {/* === SUBMIT MODE: Show full submission result === */}
+                                                        {isSubmitMode ? (
+                                                            <>
+                                                                {/* Submission summary card */}
+                                                                <div className={`p-4 rounded-xl border ${submission.verdict === 'ACCEPTED'
+                                                                    ? 'bg-emerald-500/5 border-emerald-500/20'
+                                                                    : (submission.passedTestcases || 0) >= 1
+                                                                        ? 'bg-amber-500/5 border-amber-500/20'
+                                                                        : 'bg-rose-500/5 border-rose-500/20'
+                                                                    }`}>
+                                                                    <div className="space-y-3">
+                                                                        <div className="flex items-center justify-between">
+                                                                            <div className="flex items-center gap-3">
+                                                                                {(() => {
+                                                                                    const passed = submission.passedTestcases || 0;
+                                                                                    const total = submission.totalTestcases || 0;
+                                                                                    const verdict = submission.verdict || "PENDING";
 
-                                                                {submission.testCaseResults[activeResultCaseIndex] && (
-                                                                    <div className="space-y-4 p-4 bg-slate-900/30 rounded-xl border border-slate-800/50 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                                            <div className="space-y-1.5">
-                                                                                <div className="text-[13px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                                                                                    <Terminal size={12} className="text-indigo-400" />
-                                                                                    Đầu vào
-                                                                                </div>
-                                                                                <pre className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] font-mono text-indigo-200 overflow-x-auto whitespace-pre-wrap min-h-[44px]">
-                                                                                    {formatContent(submission.testCaseResults[activeResultCaseIndex].input || sampleCases[activeResultCaseIndex]?.input || '')}
-                                                                                </pre>
+                                                                                    const isSuccess = verdict === 'ACCEPTED' || (passed > 0 && passed === total);
+                                                                                    const isError = ['COMPILATION_ERROR', 'RUNTIME_ERROR', 'TIME_LIMIT_EXCEEDED'].includes(verdict);
+
+                                                                                    const edu = getEducationalLabel(passed, total);
+                                                                                    const config = VERDICT_CONFIG[verdict] || VERDICT_CONFIG.PENDING;
+                                                                                    const Icon = config.icon;
+
+                                                                                    // Nếu là lỗi hệ thống thì hiện lỗi, nếu không thì hiện nhãn đánh giá học tập
+                                                                                    const finalLabel = isError ? config.label : edu.label;
+                                                                                    const finalColor = isError ? config.color : edu.color;
+
+                                                                                    return (
+                                                                                        <>
+                                                                                            <div className={`p-2 rounded-lg ${config.bg}`}>
+                                                                                                <Icon className={`w-5 h-5 ${finalColor} ${config.animate || ""}`} />
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                <div className={`font-black text-sm uppercase tracking-tight ${finalColor}`}>{finalLabel}</div>
+                                                                                                <div className="text-[10px] text-slate-500 font-bold">
+                                                                                                    {submission.runtimeMs != null ? `${submission.runtimeMs}ms` : '---'} • {submission.memoryKb != null ? `${(submission.memoryKb / 1024).toFixed(2)}MB` : '---'}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </>
+                                                                                    );
+                                                                                })()}
                                                                             </div>
-                                                                            <div className="space-y-1.5">
-                                                                                <div className="text-[13px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                                                                                    <Play size={12} className="text-amber-400" />
-                                                                                    Kết quả
+
+                                                                            {/* Score breakdown */}
+                                                                            <div className="text-right space-y-1">
+                                                                                <div className="flex items-center gap-3">
+                                                                                    <div>
+                                                                                        <div className="text-[10px] text-slate-500 font-bold uppercase">Test cases</div>
+                                                                                        <div className="text-sm font-black text-white">
+                                                                                            {submission.passedTestcases || 0} / {submission.totalTestcases || 0}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className={`px-3 py-1.5 rounded-lg ${submission.verdict === 'ACCEPTED' ? 'bg-emerald-500/10 border border-emerald-500/20' : (submission.passedTestcases || 0) >= 1 ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-slate-800'}`}>
+                                                                                        <div className="text-[10px] text-slate-500 font-bold uppercase">Điểm</div>
+                                                                                        <div className={`text-lg font-black ${submission.verdict === 'ACCEPTED' ? 'text-emerald-400' : (submission.passedTestcases || 0) >= 1 ? 'text-amber-400' : 'text-slate-300'}`}>
+                                                                                            {submission.score || 0}
+                                                                                            <span className="text-xs text-slate-500 font-normal ml-0.5">/{exerciseDetail.points}</span>
+                                                                                        </div>
+                                                                                    </div>
                                                                                 </div>
-                                                                                <pre className={`bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] font-mono overflow-x-auto whitespace-pre-wrap min-h-[44px] ${(submission.testCaseResults[activeResultCaseIndex] as any).verdict === 'ACCEPTED' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                                                                    {formatContent(submission.testCaseResults[activeResultCaseIndex].actualOutput || (submission.testCaseResults[activeResultCaseIndex] as any).output || 'N/A')}
-                                                                                </pre>
-                                                                            </div>
-                                                                            <div className="space-y-1.5">
-                                                                                <div className="text-[13px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                                                                                    <CheckCircle size={12} className="text-emerald-400" />
-                                                                                    Mong đợi
-                                                                                </div>
-                                                                                <pre className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] font-mono text-emerald-300 overflow-x-auto whitespace-pre-wrap min-h-[44px]">
-                                                                                    {formatContent(submission.testCaseResults[activeResultCaseIndex].expectedOutput || sampleCases[activeResultCaseIndex]?.expectedOutput || '')}
-                                                                                </pre>
                                                                             </div>
                                                                         </div>
 
-                                                                        {submission.testCaseResults[activeResultCaseIndex].message && (
-                                                                            <div className="space-y-1.5 pt-2 border-t border-slate-800/50">
-                                                                                <div className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider">Thông báo:</div>
-                                                                                <pre className="bg-indigo-500/5 p-2.5 rounded-lg border border-indigo-500/10 text-[11px] font-mono text-slate-400 overflow-x-auto whitespace-pre-wrap">
-                                                                                    {submission.testCaseResults[activeResultCaseIndex].message}
-                                                                                </pre>
-                                                                            </div>
-                                                                        )}
-
-                                                                        {submission.testCaseResults[activeResultCaseIndex].error && (
-                                                                            <div className="space-y-1.5 pt-2 border-t border-slate-800/50">
-                                                                                <div className="text-[11px] font-bold text-rose-500 uppercase tracking-wider">Chi tiết lỗi:</div>
-                                                                                <pre className="bg-rose-500/5 p-2.5 rounded-lg border border-rose-500/10 text-[11px] font-mono text-rose-400 overflow-x-auto">
-                                                                                    {submission.testCaseResults[activeResultCaseIndex].error}
-                                                                                </pre>
+                                                                        {/* Summary message */}
+                                                                        {submission.message && (
+                                                                            <div className="text-xs text-slate-400 font-medium pt-2 border-t border-slate-800/20 italic">
+                                                                                {submission.message}
                                                                             </div>
                                                                         )}
                                                                     </div>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <div className="space-y-2">
-                                                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Raw Output / Logs:</div>
-                                                                <pre className="text-xs font-mono text-slate-300 whitespace-pre-wrap mt-2 bg-slate-900/30 p-4 rounded-xl border border-slate-800/50 italic leading-relaxed">
-                                                                    {consoleOutput}
-                                                                </pre>
-                                                            </div>
-                                                        )}
+                                                                </div>
 
-                                                        {submission.verdict === 'ACCEPTED' && courseSlug && (
-                                                            <div className="pt-2">
-                                                                <Button
-                                                                    onClick={() => navigate(`/learn/${courseSlug}?jumpNext=true`)}
-                                                                    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-tight gap-2 py-6 rounded-xl shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all"
-                                                                >
-                                                                    Tiếp theo <ChevronRight size={18} />
-                                                                </Button>
-                                                            </div>
+                                                                {/* Test case tabs for submit result */}
+                                                                {submission.testCaseResults && submission.testCaseResults.length > 0 ? (
+                                                                    <div className="space-y-3">
+                                                                        <div className="flex flex-wrap gap-1.5">
+                                                                            {submission.testCaseResults.map((tc, idx) => {
+                                                                                if (!tc) return null;
+                                                                                return (
+                                                                                    <Button
+                                                                                        key={idx}
+                                                                                        variant="ghost"
+                                                                                        size="sm"
+                                                                                        onClick={() => setActiveResultCaseIndex(idx)}
+                                                                                        className={`h-7 px-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${activeResultCaseIndex === idx
+                                                                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                                                                                            : 'bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800'
+                                                                                            }`}
+                                                                                    >
+                                                                                        <div className={`w-1.5 h-1.5 rounded-full ${tc?.verdict === 'ACCEPTED' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                                                                                        Case {idx + 1}
+                                                                                    </Button>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+
+                                                                        {submission.testCaseResults[activeResultCaseIndex] && (
+                                                                            <ResultDetailPanel
+                                                                                result={submission.testCaseResults[activeResultCaseIndex]}
+                                                                                caseInput={sampleCases[activeResultCaseIndex]?.input}
+                                                                                caseExpected={sampleCases[activeResultCaseIndex]?.expectedOutput}
+                                                                                casePoints={sampleCases[activeResultCaseIndex]?.points}
+                                                                                formatContent={formatContent}
+                                                                            />
+                                                                        )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="text-xs font-mono text-slate-300 whitespace-pre-wrap bg-slate-900/30 p-4 rounded-xl border border-slate-800/50 italic leading-relaxed">
+                                                                        {consoleOutput}
+                                                                    </div>
+                                                                )}
+
+
+                                                                {/* Partial pass notification */}
+                                                                {submission.verdict !== 'ACCEPTED' && (submission.passedTestcases || 0) >= 1 && courseSlug && (
+                                                                    <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 flex items-center gap-3">
+                                                                        <CheckCircle size={18} className="text-amber-400 flex-shrink-0" />
+                                                                        <div>
+                                                                            <div className="text-xs font-bold text-amber-400">Bài học đã được đánh dấu hoàn thành!</div>
+                                                                            <div className="text-[11px] text-slate-400 mt-0.5">
+                                                                                Bạn đã vượt qua {submission.passedTestcases}/{submission.totalTestcases} test case. Có thể tiếp tục học bài mới.
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                {((submission.passedTestcases || 0) >= 1 || lessonMarkedComplete) && courseSlug && (
+                                                                    <Button
+                                                                        onClick={() => navigate(`/learn/${courseSlug}?jumpNext=true`)}
+                                                                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-tight gap-2 py-5 rounded-xl shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all"
+                                                                    >
+                                                                        Tiếp theo <ChevronRight size={18} />
+                                                                    </Button>
+                                                                )}
+                                                            </>
+                                                        ) : (
+                                                            /* === RUN MODE: Show single-case run result === */
+                                                            <>
+                                                                {/* Run score summary bar */}
+                                                                {passedRunCount > 0 && (
+                                                                    <div className="flex items-center justify-between bg-emerald-500/5 border border-emerald-500/15 rounded-xl px-3 py-2">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <Award size={14} className="text-emerald-400" />
+                                                                            <span className="text-xs font-bold text-emerald-400">Chạy thử: {passedRunCount}/{sampleCases.length} case đạt</span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-1">
+                                                                            <Star size={11} className="text-amber-400 fill-amber-400" />
+                                                                            <span className="text-xs font-black text-amber-400">{runScore} điểm tích lũy</span>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Tabs for each run case */}
+                                                                {Object.keys(caseResults).length > 0 && (
+                                                                    <div className="flex flex-wrap gap-1.5">
+                                                                        {sampleCases.map((_: any, idx: number) => {
+                                                                            const r = caseResults[idx];
+                                                                            if (!r) return null;
+                                                                            const passed = r.verdict === 'ACCEPTED';
+                                                                            return (
+                                                                                <Button
+                                                                                    key={idx}
+                                                                                    variant="ghost"
+                                                                                    size="sm"
+                                                                                    onClick={() => setActiveResultCaseIndex(idx)}
+                                                                                    className={`h-7 px-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${activeResultCaseIndex === idx
+                                                                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                                                                                        : 'bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800'
+                                                                                        }`}
+                                                                                >
+                                                                                    <div className={`w-1.5 h-1.5 rounded-full ${passed ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                                                                                    Case {idx + 1}
+                                                                                </Button>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Detail of selected run case */}
+                                                                {caseResults[activeResultCaseIndex] ? (
+                                                                    <ResultDetailPanel
+                                                                        result={caseResults[activeResultCaseIndex]}
+                                                                        caseInput={sampleCases[activeResultCaseIndex]?.input}
+                                                                        caseExpected={sampleCases[activeResultCaseIndex]?.expectedOutput}
+                                                                        casePoints={sampleCases[activeResultCaseIndex]?.points}
+                                                                        formatContent={formatContent}
+                                                                    />
+                                                                ) : (
+                                                                    <div className="text-xs font-mono text-slate-400 whitespace-pre-wrap bg-slate-900/30 p-4 rounded-xl border border-slate-800/50 italic leading-relaxed">
+                                                                        {consoleOutput}
+                                                                    </div>
+                                                                )}
+                                                            </>
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <div className="flex flex-col items-center justify-center py-12 text-slate-500 space-y-4">
-                                                        <Loader2 size={32} className="animate-spin opacity-20 text-indigo-500" />
+                                                    // Initial state: waiting
+                                                    <div className="flex flex-col items-center justify-center py-8 text-slate-500 space-y-3">
+                                                        <Loader2 size={28} className="animate-spin opacity-20 text-indigo-500" />
                                                         <div className="text-[10px] font-bold uppercase tracking-widest text-slate-600 animate-pulse">Waiting for code execution...</div>
                                                     </div>
                                                 )}
@@ -787,21 +1204,47 @@ const CodingExerciseView: React.FC = () => {
                                     </div>
                                 )}
 
+                                {/* Bottom toolbar */}
                                 <div className="h-14 px-4 flex items-center justify-between">
                                     <button
-                                        onClick={() => setConsoleOutput(prev => prev ? '' : 'Console đang sẵn sàng...')}
+                                        onClick={() => setConsolePanelOpen(prev => !prev)}
                                         className="flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-white transition-colors"
                                     >
-                                        Bảng điểu khiển
-                                        <ChevronDown size={16} className={`transition-transform ${consoleOutput ? 'rotate-180' : ''}`} />
+                                        Bảng điều khiển
+                                        <ChevronDown size={16} className={`transition-transform ${consolePanelOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
                                     <div className="flex items-center gap-3">
+                                        {/* Run progress indicator */}
+                                        {sampleCases.length > 0 && (
+                                            <div className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${hasRunAtLeastOneCase
+                                                ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+                                                : 'text-slate-400 bg-slate-800 border-slate-700'
+                                                }`}>
+                                                {Object.keys(caseResults).length}/{sampleCases.length} đã chạy
+                                            </div>
+                                        )}
+
+                                        <Button
+                                            onClick={handleRunCurrentCase}
+                                            disabled={isRunningCase || isSubmitting}
+                                            variant="outline"
+                                            className="h-9 px-4 border-indigo-500/30 text-indigo-400 hover:text-white hover:bg-indigo-600 hover:border-indigo-600 font-bold gap-2 transition-all"
+                                        >
+                                            {isRunningCase
+                                                ? <Loader2 size={14} className="animate-spin" />
+                                                : <Play size={14} fill="currentColor" />}
+                                            Chạy (Case {activeTestCaseIndex + 1})
+                                        </Button>
 
                                         <Button
                                             onClick={handleSubmit}
-                                            disabled={isSubmitting || isRunning}
-                                            className="h-9 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold gap-2 shadow-lg shadow-emerald-900/20 active:scale-95 transition-all"
+                                            disabled={isSubmitting || isRunningCase || !hasRunAtLeastOneCase}
+                                            title={!hasRunAtLeastOneCase ? `Vui lòng chạy ít nhất 1 test case trước khi nộp bài` : 'Nộp bài để chấm điểm'}
+                                            className={`h-9 px-6 font-bold gap-2 shadow-lg active:scale-95 transition-all ${hasRunAtLeastOneCase
+                                                ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20'
+                                                : 'bg-slate-700 hover:bg-slate-600 text-slate-400 shadow-none cursor-not-allowed'
+                                                }`}
                                         >
                                             {isSubmitting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Send size={16} />}
                                             Nộp bài
@@ -814,6 +1257,90 @@ const CodingExerciseView: React.FC = () => {
                 </ResizablePanelGroup>
             </main >
         </div >
+    );
+};
+
+interface ResultDetailPanelProps {
+    result: TestCaseResult;
+    caseInput?: string;
+    caseExpected?: string;
+    casePoints?: number;
+    formatContent: (text: string) => string;
+}
+
+const ResultDetailPanel: React.FC<ResultDetailPanelProps> = ({ result, caseInput, caseExpected, casePoints, formatContent }) => {
+    const isPassed = result.verdict === 'ACCEPTED';
+
+    return (
+        <div className="space-y-3 p-3 bg-slate-900/30 rounded-xl border border-slate-800/50 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {/* verdict badge */}
+            <div className={`flex items-center justify-between px-3 py-2 rounded-lg ${isPassed ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-rose-500/10 border border-rose-500/20'}`}>
+                <div className="flex items-center gap-2">
+                    {isPassed
+                        ? <CheckCircle size={14} className="text-emerald-500" />
+                        : <XCircle size={14} className="text-rose-500" />
+                    }
+                    <span className={`text-xs font-black uppercase tracking-tight ${isPassed ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {isPassed ? 'Accepted' : (VERDICT_CONFIG[result.verdict || '']?.label || result.verdict)}
+                    </span>
+                </div>
+                <div className="flex items-center gap-3 text-[10px] text-slate-500 font-bold">
+                    {(isPassed && (result.points || casePoints) != null) && (
+                        <span className="text-emerald-400 font-black">+{result.points || casePoints} điểm</span>
+                    )}
+                    {result.runtimeMs != null && <span>{result.runtimeMs}ms</span>}
+                    {result.memoryKb != null && <span>{(result.memoryKb / 1024).toFixed(1)}MB</span>}
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <Terminal size={11} className="text-indigo-400" />
+                        Đầu vào
+                    </div>
+                    <pre className="bg-slate-950 p-2 rounded-lg border border-slate-800 text-[11px] font-mono text-indigo-200 overflow-x-auto whitespace-pre-wrap min-h-[44px]">
+                        {formatContent(result.input || caseInput || '')}
+                    </pre>
+                </div>
+                <div className="space-y-1.5">
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <Play size={11} className="text-amber-400" />
+                        Kết quả
+                    </div>
+                    <pre className={`bg-slate-950 p-2 rounded-lg border border-slate-800 text-[11px] font-mono overflow-x-auto whitespace-pre-wrap min-h-[44px] ${isPassed ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {formatContent(result.actualOutput || (result as any).output || 'N/A')}
+                    </pre>
+                </div>
+                <div className="space-y-1.5">
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <CheckCircle size={11} className="text-emerald-400" />
+                        Mong đợi
+                    </div>
+                    <pre className="bg-slate-950 p-2 rounded-lg border border-slate-800 text-[11px] font-mono text-emerald-300 overflow-x-auto whitespace-pre-wrap min-h-[44px]">
+                        {formatContent(result.expectedOutput || caseExpected || '')}
+                    </pre>
+                </div>
+            </div>
+
+            {result.message && (
+                <div className="space-y-1 pt-2 border-t border-slate-800/50">
+                    <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Thông báo:</div>
+                    <pre className="bg-indigo-500/5 p-2 rounded-lg border border-indigo-500/10 text-[11px] font-mono text-slate-400 overflow-x-auto whitespace-pre-wrap">
+                        {result.message}
+                    </pre>
+                </div>
+            )}
+
+            {result.error && (
+                <div className="space-y-1 pt-2 border-t border-slate-800/50">
+                    <div className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Chi tiết lỗi:</div>
+                    <pre className="bg-rose-500/5 p-2 rounded-lg border border-rose-500/10 text-[11px] font-mono text-rose-400 overflow-x-auto">
+                        {result.error}
+                    </pre>
+                </div>
+            )}
+        </div>
     );
 };
 
