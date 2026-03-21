@@ -14,6 +14,13 @@ import com.truongsonkmhd.unetistudy.repository.course.CourseModuleRepository;
 import com.truongsonkmhd.unetistudy.repository.course.CourseRepository;
 import com.truongsonkmhd.unetistudy.repository.course.LessonProgressRepository;
 import com.truongsonkmhd.unetistudy.repository.course.LessonRepository;
+import com.truongsonkmhd.unetistudy.repository.coding.CodingSubmissionRepository;
+import com.truongsonkmhd.unetistudy.repository.quiz.UserQuizAttemptRepository;
+import com.truongsonkmhd.unetistudy.model.lesson.CodingSubmission;
+import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.CodingExercise;
+import com.truongsonkmhd.unetistudy.model.quiz.UserQuizAttempt;
+import com.truongsonkmhd.unetistudy.model.quiz.Quiz;
+import com.truongsonkmhd.unetistudy.common.SubmissionVerdict;
 import com.truongsonkmhd.unetistudy.service.LessonProgressService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +41,8 @@ public class LessonProgressServiceImpl implements LessonProgressService {
         private final UserRepository userRepository;
         private final CourseRepository courseRepository;
         private final LessonRepository lessonRepository;
-        private final CourseModuleRepository courseModuleRepository;
+        private final CodingSubmissionRepository codingSubmissionRepository;
+        private final UserQuizAttemptRepository userQuizAttemptRepository;
 
         @Override
         @Transactional
@@ -42,7 +50,6 @@ public class LessonProgressServiceImpl implements LessonProgressService {
                 log.info("Updating progress for user {} - course {} - lesson {}",
                                 userId, request.getCourseId(), request.getLessonId());
 
-                // Validate entities exist
                 User user = userRepository.findById(userId)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -52,7 +59,6 @@ public class LessonProgressServiceImpl implements LessonProgressService {
                 CourseLesson lesson = lessonRepository.findById(request.getLessonId())
                                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
 
-                // Find existing progress or create new
                 LessonProgress progress = lessonProgressRepository
                                 .findByUserAndCourseAndLesson(userId, request.getCourseId(), request.getLessonId())
                                 .orElse(LessonProgress.builder()
@@ -62,14 +68,64 @@ public class LessonProgressServiceImpl implements LessonProgressService {
                                                 .build());
 
                 if (progress.getStatus() != ProgressStatus.DONE) {
+                    if (request.getStatus() == ProgressStatus.DONE) {
+                        boolean canMarkDone = true;
+
+                        // 1. Check all Coding Exercises
+                        if (lesson.getCodingExercises() != null && !lesson.getCodingExercises().isEmpty()) {
+                            for (CodingExercise ce : lesson.getCodingExercises()) {
+                                UUID targetId = ce.getExerciseId();
+                                List<CodingSubmission> submissions = codingSubmissionRepository
+                                        .getCodingSubmissionShowByUserName(user.getUsername(), targetId);
+                                
+                                // Yêu cầu đạt ít nhất 50% số lượng test case vượt qua
+                                boolean passedCoding = submissions.stream()
+                                        .anyMatch(s -> {
+                                            if (s.getVerdict() == SubmissionVerdict.ACCEPTED) return true;
+                                            if (s.getTotalTestcases() != null && s.getTotalTestcases() > 0) {
+                                                double ratio = (double) s.getPassedTestcases() / s.getTotalTestcases();
+                                                return ratio >= 0.5;
+                                            }
+                                            return false;
+                                        });
+                                
+                                if (!passedCoding) {
+                                    canMarkDone = false;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // 2. Check all Quizzes
+                        if (canMarkDone && lesson.getQuizzes() != null && !lesson.getQuizzes().isEmpty()) {
+                            for (Quiz q : lesson.getQuizzes()) {
+                                List<UserQuizAttempt> attempts = userQuizAttemptRepository
+                                        .findByUserIdAndQuizOrderByCreatedAtDesc(userId, q);
+                                
+                                // Yêu cầu đạt ít nhất 50% số điểm (hoặc kết quả isPassed của hệ thống)
+                                boolean passedQuiz = attempts.stream()
+                                        .anyMatch(a -> (a.getPercentage() != null && a.getPercentage() >= 50.0) || Boolean.TRUE.equals(a.getIsPassed()));
+                                
+                                if (!passedQuiz) {
+                                    canMarkDone = false;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // 3. Optional Bonus Check: If lesson has video, ensure sufficient watch percent (Optional: frontend normally sends watchedPercent = 100 for code/quiz only, so we skip heavy video math, fallback to request's watchPercent context unless 0)
+                        
+                        progress.setStatus(canMarkDone ? ProgressStatus.DONE : ProgressStatus.IN_PROGRESS);
+                    } else {
                         progress.setStatus(request.getStatus());
+                    }
                 }
 
                 if (progress.getStatus() != ProgressStatus.DONE ||
-                                (request.getWatchedPercent() != null
-                                                && request.getWatchedPercent() > progress.getWatchedPercent())) {
-                        progress.setWatchedPercent(
-                                        request.getWatchedPercent() != null ? request.getWatchedPercent() : 0);
+                                (request.getCompletionPercent() != null
+                                                && request.getCompletionPercent() > progress.getCompletionPercent())) {
+                        progress.setCompletionPercent(
+                                        request.getCompletionPercent() != null ? request.getCompletionPercent() : 0);
                 }
 
                 progress.setTimeSpentSec(request.getTimeSpentSec() != null ? request.getTimeSpentSec() : 0);
@@ -174,7 +230,7 @@ public class LessonProgressServiceImpl implements LessonProgressService {
                                 .lessonTitle(lesson.getTitle())
                                 .lessonSlug(lesson.getSlug())
                                 .status(progress.getStatus())
-                                .watchedPercent(progress.getWatchedPercent())
+                                .watchedPercent(progress.getCompletionPercent())
                                 .timeSpentSec(progress.getTimeSpentSec())
                                 .lastAccessAt(progress.getLastAccessAt())
                                 .createdAt(progress.getCreatedAt())

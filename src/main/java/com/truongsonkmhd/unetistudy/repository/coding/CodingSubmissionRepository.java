@@ -16,19 +16,19 @@ public interface CodingSubmissionRepository extends JpaRepository<CodingSubmissi
   @Query("""
       SELECT cb
       FROM CodingSubmission cb
-      WHERE cb.user.username = :userName AND cb.exercise.slug = :theSlug
+      WHERE cb.user.username = :userName AND cb.exercise.exerciseId = :exerciseId
       ORDER BY cb.submittedAt DESC
       """)
   List<CodingSubmission> getCodingSubmissionShowByUserName(@Param("userName") String theUserName,
-      @Param("theSlug") String theSlug);
+      @Param("exerciseId") UUID exerciseId);
 
   @Query("""
       SELECT cb
       FROM CodingSubmission cb
-      WHERE cb.exercise.slug = :theSlug
+      WHERE cb.exercise.exerciseId = :exerciseId
       ORDER BY cb.submittedAt DESC
       """)
-  List<CodingSubmission> getCodingSubmissionShowBySlugExercise(@Param("theSlug") String theSlug);
+  List<CodingSubmission> getCodingSubmissionShowByExerciseId(@Param("exerciseId") UUID exerciseId);
 
   @Query("""
           select

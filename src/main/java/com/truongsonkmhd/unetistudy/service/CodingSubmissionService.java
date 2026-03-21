@@ -9,9 +9,8 @@ import java.util.UUID;
 public interface CodingSubmissionService {
     CodingSubmission save(CodingSubmission codingSubmission);
 
-    List<CodingSubmissionShowDTO> getCodingSubmissionShowByUserName(String theUserName, String theSlug);
-
-    List<CodingSubmissionShowDTO> getCodingSubmissionShowBySlugExercise(String theSlug);
+    List<CodingSubmissionShowDTO> getCodingSubmissionShowByUserName(String theUserName, UUID exerciseId);
+    List<CodingSubmissionShowDTO> getCodingSubmissionShowByExerciseId(UUID exerciseId);
 
     CodingSubmission getSubmissionById(UUID id);
 }

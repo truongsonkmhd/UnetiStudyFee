@@ -27,10 +27,10 @@ public class TeacherProfile {
     String department;
 
     @Column(name = "academic_rank")
-    String academicRank; // Thạc sĩ, Tiến sĩ
+    String academicRank;
 
     @Column(name = "specialization")
-    String specialization; // Chuyên môn
+    String specialization;
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")

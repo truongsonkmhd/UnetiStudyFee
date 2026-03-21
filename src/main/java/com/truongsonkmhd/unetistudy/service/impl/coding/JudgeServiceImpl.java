@@ -220,7 +220,7 @@ public class JudgeServiceImpl implements JudgeService {
                         String expected = safeTrim(tc.getExpectedOutput());
                         String actual = safeTrim(outputRun);
 
-                        boolean ok = expected.equals(actual);
+                        boolean ok = compareOutputsIgnoreSpace(expected, actual);
                         int tcScore = (tc.getPoints() != null ? tc.getPoints() : 0);
 
                         if (!ok) {
@@ -335,7 +335,7 @@ public class JudgeServiceImpl implements JudgeService {
                 String expected = safeTrim(testCase.getExpectedOutput());
                 String actual = safeTrim(outputRun);
 
-                boolean passed = expected.equals(actual);
+                boolean passed = compareOutputsIgnoreSpace(expected, actual);
                 if (!passed)
                     allPassed = false;
 
@@ -425,7 +425,7 @@ public class JudgeServiceImpl implements JudgeService {
             String outputRun = dockerCodeExecutionUtil.runInContainer(workingDir, request.getLanguage(), inputToUse);
             String actual = safeTrim(outputRun);
 
-            boolean passed = isKnownTestCase && expectedOutput.equals(actual);
+            boolean passed = isKnownTestCase && compareOutputsIgnoreSpace(expectedOutput, actual);
 
             String verdict = passed ? "ACCEPTED" : (isKnownTestCase ? "WRONG_ANSWER" : "SUCCESS");
             String statusLabel = passed ? "Vượt qua (Passed)"
@@ -502,11 +502,14 @@ public class JudgeServiceImpl implements JudgeService {
         SubmissionVerdict verdict = (allCasesJudged && passed == totalTestcases) ? SubmissionVerdict.ACCEPTED
                 : SubmissionVerdict.WRONG_ANSWER;
 
-        String juryMessage = allCasesJudged
-                ? (verdict == SubmissionVerdict.ACCEPTED ? "Chúc mừng! Bạn đã vượt qua tất cả các test case."
-                        : "Kết quả: " + passed + "/" + totalTestcases + " bài kiểm tra vượt qua.")
-                : "Cảnh báo: Bạn mới chỉ nộp " + frontendResults.size() + "/" + totalTestcases
-                        + " test case. Vui lòng chạy đủ tất cả các case trước khi nộp.";
+        String juryMessage;
+        if (verdict == SubmissionVerdict.ACCEPTED) {
+            juryMessage = "Chúc mừng! Bạn đã vượt qua tất cả các test case.";
+        } else if (passed >= 1) {
+            juryMessage = "Bạn đã vượt qua " + passed + "/" + totalTestcases + " bài kiểm tra. Hệ thống đã lưu tiến độ của bạn!";
+        } else {
+            juryMessage = "Bài làm chưa chính xác. Đã nộp " + frontendResults.size() + "/" + totalTestcases + " test case.";
+        }
 
         sub.setVerdict(verdict);
         sub.setPassedTestcases(passed);
@@ -516,14 +519,15 @@ public class JudgeServiceImpl implements JudgeService {
         codingSubmissionService.save(sub);
         createContestAttemptIfNeeded(sub);
 
-        if (verdict == SubmissionVerdict.ACCEPTED) {
+        // Đánh dấu hoàn thành bài học nếu pass ít nhất 1 test case
+        if (passed >= 1 || verdict == SubmissionVerdict.ACCEPTED) {
             UUID lessonId = codingExerciseService.getLessonIDByExerciseID(request.getExerciseId());
             CourseLesson lesson = lessonService.findById(lessonId).orElse(null);
             if (lesson != null && lesson.getModule() != null && lesson.getModule().getCourse() != null) {
                 var progressReq = LessonProgressRequest.builder()
                         .courseId(lesson.getModule().getCourse().getCourseId())
                         .lessonId(lesson.getLessonId())
-                        .watchedPercent(100)
+                        .completionPercent(100)
                         .status(ProgressStatus.DONE)
                         .build();
                 lessonProgressService.updateProgress(sub.getUser().getId(), progressReq);
@@ -579,6 +583,18 @@ public class JudgeServiceImpl implements JudgeService {
     private Set<ExerciseTestCasesDTO> getListExerciseTestCase(UUID exerciseId) {
         return exerciseTestCaseMapper.toDto(
                 exerciseTestCaseRepository.getExerciseTestCasesDTOByExerciseID(exerciseId));
+    }
+
+    private boolean compareOutputsIgnoreSpace(String expected, String actual) {
+        if (expected == null && actual == null)
+            return true;
+        if (expected == null || actual == null)
+            return false;
+
+        String expRegex = expected.replaceAll("\\s+", "");
+        String actRegex = actual.replaceAll("\\s+", "");
+
+        return expRegex.equals(actRegex);
     }
 
     private static String safeTrim(String s) {

@@ -3,6 +3,7 @@ package com.truongsonkmhd.unetistudy.service.impl.quiz;
 import com.truongsonkmhd.unetistudy.cache.CacheConstants;
 import com.truongsonkmhd.unetistudy.cache.service.ScoreWriteBehindService;
 import com.truongsonkmhd.unetistudy.common.AttemptStatus;
+import com.truongsonkmhd.unetistudy.common.ProgressStatus;
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.CourseLesson;
 import com.truongsonkmhd.unetistudy.model.quiz.Quiz;
 import com.truongsonkmhd.unetistudy.model.quiz.Answer;
@@ -14,6 +15,7 @@ import com.truongsonkmhd.unetistudy.dto.quiz_dto.QuizResultResponse;
 import com.truongsonkmhd.unetistudy.dto.quiz_dto.QuestionResult;
 import com.truongsonkmhd.unetistudy.dto.quiz_dto.AnswerDetail;
 import com.truongsonkmhd.unetistudy.repository.quiz.*;
+import com.truongsonkmhd.unetistudy.service.LessonProgressService;
 import com.truongsonkmhd.unetistudy.service.QuizService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +46,7 @@ public class QuizServiceImpl implements QuizService {
         private final UserQuizAttemptRepository attemptRepository;
         private final UserAnswerRepository userAnswerRepository;
         private final ScoreWriteBehindService scoreWriteBehindService;
-        private final com.truongsonkmhd.unetistudy.service.LessonProgressService lessonProgressService;
+        private final LessonProgressService lessonProgressService;
 
         @Override
         @Transactional
@@ -205,7 +207,6 @@ public class QuizServiceImpl implements QuizService {
                 attempt.setCompletedAt(Instant.now());
                 attempt.setStatus(AttemptStatus.COMPLETED);
 
-                // Update Lesson Progress for all lessons containing this quiz
                 if (isPassed && attempt.getQuiz().getCourseLessons() != null) {
                         for (CourseLesson lesson : attempt.getQuiz().getCourseLessons()) {
                                 try {
@@ -216,8 +217,8 @@ public class QuizServiceImpl implements QuizService {
                                                                                 .courseId(lesson.getModule().getCourse()
                                                                                                 .getCourseId())
                                                                                 .lessonId(lesson.getLessonId())
-                                                                                .status(com.truongsonkmhd.unetistudy.common.ProgressStatus.DONE)
-                                                                                .watchedPercent(100)
+                                                                                .status(ProgressStatus.DONE)
+                                                                                .completionPercent(100)
                                                                                 .timeSpentSec(0)
                                                                                 .build());
                                         }

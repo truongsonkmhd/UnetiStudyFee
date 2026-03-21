@@ -27,6 +27,8 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgress, 
                 where lp.user.id = :userId
                   and lp.course.courseId = :courseId
                   and lp.lesson.lessonId = :lessonId
+                order by lp.updatedAt desc
+                limit 1
             """)
     Optional<LessonProgress> findByUserAndCourseAndLesson(
             @Param("userId") UUID userId,

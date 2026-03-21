@@ -51,8 +51,8 @@ public class LessonProgress {
         @Column(name = "status", nullable = false, length = 20)
         ProgressStatus status = ProgressStatus.NOT_STARTED;
 
-        @Column(name = "watched_percent", nullable = false)
-        Integer watchedPercent = 0; // 0..100
+        @Column(name = "completion_percent", nullable = false)
+        Integer completionPercent = 0;
 
         @Column(name = "time_spent_sec", nullable = false)
         Integer timeSpentSec = 0;

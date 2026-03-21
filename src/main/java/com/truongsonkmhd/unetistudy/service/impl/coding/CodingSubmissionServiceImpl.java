@@ -32,14 +32,14 @@ public class CodingSubmissionServiceImpl implements CodingSubmissionService {
     }
 
     @Override
-    public List<CodingSubmissionShowDTO> getCodingSubmissionShowByUserName(String theUserName, String theSlug) {
+    public List<CodingSubmissionShowDTO> getCodingSubmissionShowByUserName(String theUserName, UUID exerciseId) {
         return codingSubmissionShowMapper
-                .toDto(codingSubmissionRepository.getCodingSubmissionShowByUserName(theUserName, theSlug));
+                .toDto(codingSubmissionRepository.getCodingSubmissionShowByUserName(theUserName, exerciseId));
     }
 
     @Override
-    public List<CodingSubmissionShowDTO> getCodingSubmissionShowBySlugExercise(String theSlug) {
+    public List<CodingSubmissionShowDTO> getCodingSubmissionShowByExerciseId(UUID exerciseId) {
         return codingSubmissionShowMapper
-                .toDto(codingSubmissionRepository.getCodingSubmissionShowBySlugExercise(theSlug));
+                .toDto(codingSubmissionRepository.getCodingSubmissionShowByExerciseId(exerciseId));
     }
 }

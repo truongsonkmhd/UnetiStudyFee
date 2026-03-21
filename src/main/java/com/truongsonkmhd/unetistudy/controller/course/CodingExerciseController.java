@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/practice/lesson")
@@ -27,17 +28,17 @@ public class CodingExerciseController {
 
     private final CodingSubmissionService codingSubmissionService;
 
-    @GetMapping("/submissions/{slug}")
-    public ResponseEntity<IResponseMessage> showExerciseSubmissions(@PathVariable("slug") String theSlug) {
+    @GetMapping("/submissions/{id}")
+    public ResponseEntity<IResponseMessage> showExerciseSubmissions(@PathVariable("id") UUID id) {
         List<CodingSubmissionShowDTO> submissions = codingSubmissionService
-                .getCodingSubmissionShowByUserName(UserContext.getUsername(), theSlug);
+                .getCodingSubmissionShowByUserName(UserContext.getUsername(), id);
         return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(submissions));
     }
 
-    @GetMapping("/leaderboard/{slug}")
-    public ResponseEntity<IResponseMessage> showLeaderBoard(@PathVariable("slug") String theSlug) {
+    @GetMapping("/leaderboard/{id}")
+    public ResponseEntity<IResponseMessage> showLeaderBoard(@PathVariable("id") UUID id) {
         List<CodingSubmissionShowDTO> submissions = codingSubmissionService
-                .getCodingSubmissionShowBySlugExercise(theSlug);
+                .getCodingSubmissionShowByExerciseId(id);
         return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(submissions));
     }
 

@@ -33,7 +33,6 @@ public class LessonProgressController {
     @PostMapping
     @Operation(summary = "Update lesson progress", description = "Update or create progress for a lesson")
     public ResponseEntity<IResponseMessage> updateProgress(
-
             @Valid @RequestBody LessonProgressRequest request) {
 
         UUID userId  = UserContext.getUserID();

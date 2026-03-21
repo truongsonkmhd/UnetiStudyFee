@@ -31,7 +31,7 @@ public class LessonProgressRequest {
 
     @Min(value = 0, message = "Watched percent must be between 0 and 100")
     @Max(value = 100, message = "Watched percent must be between 0 and 100")
-    private Integer watchedPercent;
+    private Integer completionPercent;
 
     @Min(value = 0, message = "Time spent must be non-negative")
     private Integer timeSpentSec;

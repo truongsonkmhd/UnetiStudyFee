@@ -136,7 +136,7 @@ public class JudgeController {
     // return ResponseEntity.ok().body(ResponseMessage.CreatedSuccess(submission));
     // }
 
-    @PostMapping("/submitMQ")
+    @PostMapping("/submit")
     public ResponseEntity<IResponseMessage> handleSubmitCodeMQ(@RequestBody JudgeRequestDTO request) {
         try {
             UUID userId = UserContext.getUserID();
@@ -154,8 +154,6 @@ public class JudgeController {
                 log.error("User not found: {}", userId);
                 throw new RuntimeException("User not found: " + userId);
             }
-
-            // Tạo submission
             CodingSubmission codingSubmission = CodingSubmission.builder()
                     .exercise(exercise)
                     .user(userEntity)

@@ -107,7 +107,7 @@ public class JudgeSubmitConsumer {
                                             .courseId(lesson.getModule().getCourse().getCourseId())
                                             .lessonId(lesson.getLessonId())
                                             .status(ProgressStatus.DONE)
-                                            .watchedPercent(100)
+                                            .completionPercent(100)
                                             .timeSpentSec(0)
                                             .build());
                         }
