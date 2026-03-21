@@ -21,5 +21,7 @@ public interface ClassService {
     List<UserResponse> getStudentsInClass(UUID classId);
 
     List<ClazzResponse> getMyClasses(UUID studentId);
+    
+    ClazzResponse findById(UUID classId);
 
 }

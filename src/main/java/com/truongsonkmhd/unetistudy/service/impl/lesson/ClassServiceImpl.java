@@ -130,6 +130,13 @@ public class ClassServiceImpl implements ClassService {
                                 .toList();
         }
 
+        @Override
+        public ClazzResponse findById(UUID classId) {
+                Clazz clazz = classRepository.findById(classId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học"));
+                return mapToResponse(clazz);
+        }
+
         private ClazzResponse mapToResponse(Clazz clazz) {
                 User instructor = clazz.getInstructor();
 

@@ -188,9 +188,14 @@ public class CourseTreeServiceImpl implements CourseTreeService {
 
         // Upload/Update course image if exists
         if (req.getImageFile() != null && !req.getImageFile().isEmpty()) {
+            String oldImageUrl = course.getImageUrl();
             String pbUrl = storageService.uploadFile("course_images", req.getImageFile());
             if (pbUrl != null) {
                 course.setImageUrl(pbUrl);
+                // 3. Delete OLD image from storage if upload new one successfully
+                if (oldImageUrl != null && !oldImageUrl.isBlank()) {
+                    storageService.deleteFile(oldImageUrl);
+                }
             }
         }
 
@@ -221,7 +226,12 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         Course course = courseRepository.findById(theId)
                 .orElseThrow(() -> new DataNotFoundException("course not found: " + theId));
 
-        // Cleanup student data for all modules in this course to avoid FK violations
+        // 1. Delete image from storage
+        if (course.getImageUrl() != null && !course.getImageUrl().isBlank()) {
+            storageService.deleteFile(course.getImageUrl());
+        }
+
+        // 2. Cleanup student data for all modules in this course to avoid FK violations
         for (CourseModule module : course.getModules()) {
             cleanupStudentDataForModule(module);
         }

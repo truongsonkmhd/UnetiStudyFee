@@ -17,18 +17,7 @@ import java.util.UUID;
 public interface ContestLessonRepository extends JpaRepository<ContestLesson, UUID> {
 
     @Query("""
-            select new com.truongsonkmhd.unetistudy.dto.contest_lesson.ContestLessonResponseDTO(
-                ct.contestLessonId,
-                ct.title,
-                ct.description,
-                ct.defaultDurationMinutes,
-                ct.totalPoints,
-                ct.defaultMaxAttempts,
-                ct.passingScore,
-                ct.showLeaderboardDefault,
-                ct.instructions,
-                ct.status
-            )
+            select ct
             from ContestLesson ct
                         where
                             (:q is null or :q = '' or lower(ct.title) like lower(concat('%', :q, '%')))
@@ -36,7 +25,7 @@ public interface ContestLessonRepository extends JpaRepository<ContestLesson, UU
                             (:statusContest is null or ct.status = :statusContest)
                         order by ct.createdAt desc
                         """)
-    Page<ContestLessonResponseDTO> searchContestAdvance(
+    Page<ContestLesson> searchContestAdvance(
             @Param("q") String q,
             @Param("statusContest") StatusContest statusContest,
             Pageable pageable);

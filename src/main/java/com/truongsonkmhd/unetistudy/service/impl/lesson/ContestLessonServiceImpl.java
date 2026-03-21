@@ -108,10 +108,12 @@ public class ContestLessonServiceImpl implements ContestLessonService {
         int safeSize = Math.min(Math.max(size, 1), 50);
 
         Pageable pageable = PageRequest.of(safePage, safeSize);
-        Page<ContestLessonResponseDTO> result = contestLessonRepository.searchContestAdvance(q, statusContest,
+        Page<ContestLesson> result = contestLessonRepository.searchContestAdvance(q, statusContest,
                 pageable);
 
-        return buildPageResponse(result);
+        Page<ContestLessonResponseDTO> responsePage = result.map(this::mapToResponseDTO);
+
+        return buildPageResponse(responsePage);
     }
 
     @Override

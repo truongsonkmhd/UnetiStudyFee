@@ -102,4 +102,44 @@ public class SupabaseStorageService {
     public String toDisplayUrl(String url) {
         return url;
     }
+
+    /**
+     * Deletes a file from Supabase storage using its public URL.
+     * 
+     * @param publicUrl The full public URL of the file (e.g., https://xyz.supabase.co/storage/v1/object/public/uneti-study/folder/filename.png)
+     */
+    public void deleteFile(String publicUrl) {
+        if (publicUrl == null || publicUrl.isBlank()) {
+            return;
+        }
+
+        try {
+            // Convert Public URL to Object URL for deletion
+            // From: .../storage/v1/object/public/{bucket}/{path}
+            // To:   .../storage/v1/object/{bucket}/{path}
+            String deleteUrl = publicUrl.replace("/storage/v1/object/public/", "/storage/v1/object/");
+
+            log.info("🗑️ Deleting from Supabase: {}", deleteUrl);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + supabaseKey);
+            headers.set("apikey", supabaseKey);
+
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    deleteUrl,
+                    HttpMethod.DELETE,
+                    requestEntity,
+                    String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Delete OK: {}", publicUrl);
+            } else {
+                log.error("Delete failed: {} - {}", response.getStatusCode(), response.getBody());
+            }
+        } catch (Exception e) {
+            log.error("Supabase delete error: {}", e.getMessage());
+        }
+    }
 }
