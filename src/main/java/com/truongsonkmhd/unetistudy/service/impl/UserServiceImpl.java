@@ -4,6 +4,8 @@ import com.truongsonkmhd.unetistudy.cache.CacheConstants;
 import com.truongsonkmhd.unetistudy.common.UserStatus;
 import com.truongsonkmhd.unetistudy.common.UserType;
 import com.truongsonkmhd.unetistudy.dto.user_dto.*;
+import com.truongsonkmhd.unetistudy.exception.ErrorCode;
+import com.truongsonkmhd.unetistudy.exception.custom_exception.InvalidDataException;
 import com.truongsonkmhd.unetistudy.exception.custom_exception.ResourceNotFoundException;
 import com.truongsonkmhd.unetistudy.mapper.user.UserRequestMapper;
 import com.truongsonkmhd.unetistudy.mapper.user.UserResponseMapper;
@@ -116,6 +118,50 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public UserResponse saveStudent(StudentCreateRequest req) {
+        validateUniqueness(req.getUsername(), req.getEmail(), req.getStudentCode(), null);
+        
+        Set<String> roleCodes = resolveRoleCodes(Collections.singletonList(UserType.STUDENT.getValue()), req.getStudentCode(), null);
+        List<Role> roles = roleRepository.findAllByCodes(roleCodes);
+        validateAllRolesFound(roleCodes, roles);
+
+        User user = buildNewUserFromBase(req, roles);
+        User savedUser = userRepository.save(user);
+
+        studentProfileRepository.save(StudentProfile.builder()
+                .studentId(req.getStudentCode())
+                .classId(req.getClassCode())
+                .user(savedUser)
+                .build());
+
+        return userResponseMapper.toDto(savedUser);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public UserResponse saveTeacher(TeacherCreateRequest req) {
+        validateUniqueness(req.getUsername(), req.getEmail(), null, req.getTeacherID());
+
+        Set<String> roleCodes = resolveRoleCodes(Collections.singletonList(UserType.TEACHER.getValue()), null, req.getTeacherID());
+        List<Role> roles = roleRepository.findAllByCodes(roleCodes);
+        validateAllRolesFound(roleCodes, roles);
+
+        User user = buildNewUserFromBase(req, roles);
+        User savedUser = userRepository.save(user);
+
+        teacherProfileRepository.save(TeacherProfile.builder()
+                .teacherId(req.getTeacherID())
+                .department(req.getDepartment())
+                .academicRank(req.getAcademicRank())
+                .specialization(req.getSpecialization())
+                .user(savedUser)
+                .build());
+
+        return userResponseMapper.toDto(savedUser);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public UserResponse saveUser(@NonNull UserRequest req) {
         Set<String> inputRoleCodes = req.getRoleCodes();
         Set<String> roleCodes = new HashSet<>();
@@ -206,56 +252,22 @@ public class UserServiceImpl implements UserService {
         log.info("Updating user: {} - Evicting cache", userId);
 
         User user = getUserEntityNoCache(userId);
+
+        // 1. Validate uniqueness for update
+        validateUniquenessForExistingUser(user, req);
+
+        // 2. Update user basic info
         userUpdateRequestMapper.partialUpdate(user, req);
 
-        // Xử lý Roles đồng bộ (lọc bỏ "ROLE_")
-        Set<String> roleCodes = new HashSet<>();
-        if (req.getRoles() != null) {
-            for (String code : req.getRoles()) {
-                roleCodes.add(code.startsWith("ROLE_") ? code.substring(5) : code);
-            }
-        }
-
-        // Tự động thêm role nếu có thông tin profile
-        if (req.getStudentCode() != null && !req.getStudentCode().isBlank()) {
-            roleCodes.add(UserType.STUDENT.getValue());
-        }
-        if (req.getTeacherID() != null && !req.getTeacherID().isBlank()) {
-            roleCodes.add(UserType.TEACHER.getValue());
-        }
-
+        // 3. Update roles based on profiles
+        Set<String> roleCodes = resolveRoleCodes(req.getRoles(), req.getStudentCode(), req.getTeacherID());
         if (!roleCodes.isEmpty()) {
             List<Role> roles = roleRepository.findAllByCodes(roleCodes);
             user.setRoles(new HashSet<>(roles));
         }
 
-        // Cập nhật Student Profile
-        if (req.getStudentCode() != null && !req.getStudentCode().isBlank()) {
-            StudentProfile studentProfile = user.getStudentProfile();
-            if (studentProfile == null) {
-                studentProfile = new StudentProfile();
-                studentProfile.setUser(user);
-            }
-            studentProfile.setStudentId(req.getStudentCode());
-            studentProfile.setClassId(req.getClassCode());
-            studentProfileRepository.save(studentProfile);
-            user.setStudentProfile(studentProfile);
-        }
-
-        // Cập nhật Teacher Profile
-        if (req.getTeacherID() != null && !req.getTeacherID().isBlank()) {
-            TeacherProfile teacherProfile = user.getTeacherProfile();
-            if (teacherProfile == null) {
-                teacherProfile = new TeacherProfile();
-                teacherProfile.setUser(user);
-            }
-            teacherProfile.setTeacherId(req.getTeacherID());
-            teacherProfile.setDepartment(req.getDepartment());
-            teacherProfile.setAcademicRank(req.getAcademicRank());
-            teacherProfile.setSpecialization(req.getSpecialization());
-            teacherProfileRepository.save(teacherProfile);
-            user.setTeacherProfile(teacherProfile);
-        }
+        // 4. Update Profiles
+        handleProfileUpdate(user, req);
 
         User savedUser = userRepository.save(user);
         log.info("Updated user and profiles: {}", userId);
@@ -349,5 +361,191 @@ public class UserServiceImpl implements UserService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<User> users = userRepository.searchByKeyWord("%" + keyword.toLowerCase() + "%", pageable);
         return getUserPageResponse(pageNo, pageSize, users);
+    }
+
+    // ==================== HELPER METHODS (SOLID REFACTORING) ====================
+
+    private void validateUniqueness(String username, String email, String studentCode, String teacherId) {
+        if (userRepository.existsByUsername(username)) {
+            throw new InvalidDataException("Tên đăng nhập đã tồn tại", ErrorCode.RESOURCE_CONFLICT);
+        }
+        if (userRepository.existsByEmail(email)) {
+            throw new InvalidDataException("Email đã tồn tại", ErrorCode.RESOURCE_CONFLICT);
+        }
+        if (studentCode != null && !studentCode.isBlank()) {
+            if (studentProfileRepository.existsByStudentId(studentCode)) {
+                throw new InvalidDataException("Mã sinh viên đã tồn tại", ErrorCode.RESOURCE_CONFLICT);
+            }
+        }
+        if (teacherId != null && !teacherId.isBlank()) {
+            if (teacherProfileRepository.existsByTeacherId(teacherId)) {
+                throw new InvalidDataException("Mã giảng viên đã tồn tại", ErrorCode.RESOURCE_CONFLICT);
+            }
+        }
+    }
+
+    private void validateUniquenessForNewUser(UserRequest req) {
+        validateUniqueness(req.getUserName(), req.getEmail(), req.getStudentCode(), req.getTeacherID());
+    }
+
+    private User buildNewUserFromBase(BaseUserRequest req, List<Role> roles) {
+        User user = User.builder()
+                .fullName(req.getFullName())
+                .gender(req.getGender())
+                .birthday(req.getBirthday())
+                .email(req.getEmail())
+                .phone(req.getPhone())
+                .username(req.getUsername())
+                .password(passwordEncoder.encode(req.getPassword()))
+                .currentResidence(req.getCurrentResidence())
+                .contactAddress(req.getContactAddress())
+                .status(UserStatus.ACTIVE)
+                .isDeleted(false)
+                .build();
+        user.setRoles(new HashSet<>(roles));
+        return user;
+    }
+
+    private StudentCreateRequest convertToStudentRequest(UserRequest req) {
+        StudentCreateRequest student = new StudentCreateRequest();
+        copyBaseFields(req, student);
+        student.setStudentCode(req.getStudentCode());
+        student.setClassCode(req.getClassCode());
+        return student;
+    }
+
+    private TeacherCreateRequest convertToTeacherRequest(UserRequest req) {
+        TeacherCreateRequest teacher = new TeacherCreateRequest();
+        copyBaseFields(req, teacher);
+        teacher.setTeacherID(req.getTeacherID());
+        teacher.setDepartment(req.getDepartment());
+        teacher.setAcademicRank(req.getAcademicRank());
+        teacher.setSpecialization(req.getSpecialization());
+        return teacher;
+    }
+
+    private void copyBaseFields(UserRequest source, BaseUserRequest target) {
+        target.setFullName(source.getFullName());
+        target.setUsername(source.getUserName());
+        target.setEmail(source.getEmail());
+        target.setPassword(source.getPassword());
+        target.setPhone(source.getPhone());
+        target.setBirthday(source.getBirthday());
+        target.setGender(source.getGender());
+        target.setContactAddress(source.getContactAddress());
+        target.setCurrentResidence(source.getCurrentResidence());
+    }
+
+    private void validateUniquenessForExistingUser(User user, UserUpdateRequest req) {
+        if (req.getUsername() != null && !req.getUsername().equals(user.getUsername())) {
+            if (userRepository.existsByUsername(req.getUsername())) {
+                throw new InvalidDataException("Tên đăng nhập đã tồn tại", ErrorCode.RESOURCE_CONFLICT);
+            }
+        }
+        if (req.getEmail() != null && !req.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(req.getEmail())) {
+                throw new InvalidDataException("Email đã tồn tại", ErrorCode.RESOURCE_CONFLICT);
+            }
+        }
+        if (req.getStudentCode() != null && !req.getStudentCode().isBlank()) {
+            String currentId = user.getStudentProfile() != null ? user.getStudentProfile().getStudentId() : null;
+            if (!req.getStudentCode().equals(currentId)) {
+                if (studentProfileRepository.existsByStudentId(req.getStudentCode())) {
+                    throw new InvalidDataException("Mã sinh viên đã tồn tại", ErrorCode.RESOURCE_CONFLICT);
+                }
+            }
+        }
+        if (req.getTeacherID() != null && !req.getTeacherID().isBlank()) {
+            String currentId = user.getTeacherProfile() != null ? user.getTeacherProfile().getTeacherId() : null;
+            if (!req.getTeacherID().equals(currentId)) {
+                if (teacherProfileRepository.existsByTeacherId(req.getTeacherID())) {
+                    throw new InvalidDataException("Mã giảng viên đã tồn tại", ErrorCode.RESOURCE_CONFLICT);
+                }
+            }
+        }
+    }
+
+    private Set<String> resolveRoleCodes(Collection<String> inputRoles, String studentCode, String teacherId) {
+        Set<String> roleCodes = new HashSet<>();
+        if (inputRoles != null) {
+            for (String code : inputRoles) {
+                roleCodes.add(code.startsWith("ROLE_") ? code : "ROLE_" + code);
+            }
+        }
+        if (studentCode != null && !studentCode.isBlank()) {
+            roleCodes.add(UserType.STUDENT.getValue());
+        }
+        if (teacherId != null && !teacherId.isBlank()) {
+            roleCodes.add(UserType.TEACHER.getValue());
+        }
+        return roleCodes;
+    }
+
+    private void validateAllRolesFound(Set<String> requestedCodes, List<Role> foundRoles) {
+        if (foundRoles.size() != requestedCodes.size()) {
+            Set<String> foundCodes = foundRoles.stream().map(Role::getCode).collect(Collectors.toSet());
+            Set<String> missing = requestedCodes.stream().filter(c -> !foundCodes.contains(c)).collect(Collectors.toSet());
+            throw new IllegalArgumentException("Roles not found: " + missing);
+        }
+    }
+
+    private User buildNewUser(UserRequest req, List<Role> roles) {
+        User user = User.builder()
+                .fullName(req.getFullName())
+                .gender(req.getGender())
+                .birthday(req.getBirthday())
+                .email(req.getEmail())
+                .phone(req.getPhone())
+                .username(req.getUserName())
+                .password(passwordEncoder.encode(req.getPassword()))
+                .currentResidence(req.getCurrentResidence())
+                .contactAddress(req.getContactAddress())
+                .status(UserStatus.ACTIVE)
+                .isDeleted(false)
+                .build();
+        user.setRoles(new HashSet<>(roles));
+        return user;
+    }
+
+    private void handleProfileCreation(User user, UserRequest req) {
+        if (req.getStudentCode() != null && !req.getStudentCode().isBlank()) {
+            studentProfileRepository.save(StudentProfile.builder()
+                    .studentId(req.getStudentCode())
+                    .classId(req.getClassCode())
+                    .user(user)
+                    .build());
+        }
+        if (req.getTeacherID() != null && !req.getTeacherID().isBlank()) {
+            teacherProfileRepository.save(TeacherProfile.builder()
+                    .teacherId(req.getTeacherID())
+                    .department(req.getDepartment())
+                    .academicRank(req.getAcademicRank())
+                    .specialization(req.getSpecialization())
+                    .user(user)
+                    .build());
+        }
+    }
+
+    private void handleProfileUpdate(User user, UserUpdateRequest req) {
+        // Handle Student Profile
+        if (req.getStudentCode() != null && !req.getStudentCode().isBlank()) {
+            StudentProfile profile = user.getStudentProfile() != null ? user.getStudentProfile() : new StudentProfile();
+            profile.setStudentId(req.getStudentCode());
+            profile.setClassId(req.getClassCode());
+            profile.setUser(user);
+            studentProfileRepository.save(profile);
+            user.setStudentProfile(profile);
+        }
+        // Handle Teacher Profile
+        if (req.getTeacherID() != null && !req.getTeacherID().isBlank()) {
+            TeacherProfile profile = user.getTeacherProfile() != null ? user.getTeacherProfile() : new TeacherProfile();
+            profile.setTeacherId(req.getTeacherID());
+            profile.setDepartment(req.getDepartment());
+            profile.setAcademicRank(req.getAcademicRank());
+            profile.setSpecialization(req.getSpecialization());
+            profile.setUser(user);
+            teacherProfileRepository.save(profile);
+            user.setTeacherProfile(profile);
+        }
     }
 }

@@ -80,11 +80,19 @@ public class GlobalExceptionHandling {
                                 .map(this::buildValidationError)
                                 .collect(Collectors.toList());
 
+                String message = validationErrors.stream()
+                                .map(ErrorResponse.ValidationError::getMessage)
+                                .collect(Collectors.joining(", "));
+
+                if (message.isEmpty()) {
+                        message = "Validation failed for request body";
+                }
+
                 ErrorResponse errorResponse = ErrorResponse.builder()
                                 .timestamp(Instant.now())
                                 .status(HttpStatus.BAD_REQUEST.value())
                                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                                .message("Validation failed for request body")
+                                .message(message)
                                 .path(request.getRequestURI())
                                 .code(ErrorCode.VALIDATION_ERROR.name())
                                 .validationErrors(validationErrors)
@@ -107,11 +115,19 @@ public class GlobalExceptionHandling {
                                 .map(this::buildValidationError)
                                 .collect(Collectors.toList());
 
+                String message = validationErrors.stream()
+                                .map(ErrorResponse.ValidationError::getMessage)
+                                .collect(Collectors.joining(", "));
+
+                if (message.isEmpty()) {
+                        message = "Validation failed for request parameters";
+                }
+
                 ErrorResponse errorResponse = ErrorResponse.builder()
                                 .timestamp(Instant.now())
                                 .status(HttpStatus.BAD_REQUEST.value())
                                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                                .message("Validation failed for request parameters")
+                                .message(message)
                                 .path(request.getRequestURI())
                                 .code(ErrorCode.VALIDATION_ERROR.name())
                                 .validationErrors(validationErrors)

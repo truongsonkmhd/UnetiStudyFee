@@ -8,4 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface TeacherProfileRepository extends JpaRepository<TeacherProfile, UUID> {
+    boolean existsByTeacherId(String teacherId);
 }

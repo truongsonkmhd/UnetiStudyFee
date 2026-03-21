@@ -4,6 +4,8 @@ import com.truongsonkmhd.unetistudy.dto.user_dto.UserPageResponse;
 import com.truongsonkmhd.unetistudy.dto.user_dto.UserResponse;
 import com.truongsonkmhd.unetistudy.dto.user_dto.UserPasswordRequest;
 import com.truongsonkmhd.unetistudy.dto.user_dto.UserRequest;
+import com.truongsonkmhd.unetistudy.dto.user_dto.StudentCreateRequest;
+import com.truongsonkmhd.unetistudy.dto.user_dto.TeacherCreateRequest;
 import com.truongsonkmhd.unetistudy.dto.user_dto.UserUpdateRequest;
 import com.truongsonkmhd.unetistudy.dto.a_common.IResponseMessage;
 import com.truongsonkmhd.unetistudy.dto.a_common.ResponseMessage;
@@ -75,10 +77,22 @@ public class UserController {
         return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(userDetailById));
     }
 
-    @Operation(summary = "Create User", description = "API add new user to database")
+    @Operation(summary = "Create User", description = "API add new user to database (Legacy/Generic)")
     @PostMapping("/add")
     ResponseEntity<IResponseMessage> createUser(@Valid @RequestBody UserRequest request) {
         return ResponseEntity.ok().body(ResponseMessage.CreatedSuccess(userService.saveUser(request)));
+    }
+
+    @Operation(summary = "Create Student", description = "API add new student to database")
+    @PostMapping("/add-student")
+    ResponseEntity<IResponseMessage> createStudent(@Valid @RequestBody StudentCreateRequest request) {
+        return ResponseEntity.ok().body(ResponseMessage.CreatedSuccess(userService.saveStudent(request)));
+    }
+
+    @Operation(summary = "Create Teacher", description = "API add new teacher to database")
+    @PostMapping("/add-teacher")
+    ResponseEntity<IResponseMessage> createTeacher(@Valid @RequestBody TeacherCreateRequest request) {
+        return ResponseEntity.ok().body(ResponseMessage.CreatedSuccess(userService.saveTeacher(request)));
     }
 
     @Operation(summary = "Update User", description = "API update user to database")

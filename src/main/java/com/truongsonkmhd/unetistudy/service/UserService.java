@@ -1,6 +1,8 @@
 package com.truongsonkmhd.unetistudy.service;
 
 import com.truongsonkmhd.unetistudy.dto.user_dto.UserRequest;
+import com.truongsonkmhd.unetistudy.dto.user_dto.StudentCreateRequest;
+import com.truongsonkmhd.unetistudy.dto.user_dto.TeacherCreateRequest;
 import com.truongsonkmhd.unetistudy.dto.user_dto.UserPasswordRequest;
 import com.truongsonkmhd.unetistudy.dto.user_dto.UserUpdateRequest;
 import com.truongsonkmhd.unetistudy.dto.user_dto.UserPageResponse;
@@ -27,6 +29,10 @@ public interface UserService {
     UserResponse findByEmail(String email);
 
     UserResponse saveUser(UserRequest user);
+    
+    UserResponse saveStudent(StudentCreateRequest request);
+    
+    UserResponse saveTeacher(TeacherCreateRequest request);
 
     UserResponse update(UUID userId, UserUpdateRequest user);
 
