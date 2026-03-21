@@ -13,10 +13,12 @@ import com.truongsonkmhd.unetistudy.model.InvalidatedToken;
 import com.truongsonkmhd.unetistudy.model.Role;
 import com.truongsonkmhd.unetistudy.model.Token;
 import com.truongsonkmhd.unetistudy.model.User;
+import com.truongsonkmhd.unetistudy.model.StudentProfile;
 import com.truongsonkmhd.unetistudy.repository.auth.InvalidatedTokenRepository;
 import com.truongsonkmhd.unetistudy.repository.auth.RoleRepository;
 import com.truongsonkmhd.unetistudy.repository.auth.TokenRepository;
 import com.truongsonkmhd.unetistudy.repository.UserRepository;
+import com.truongsonkmhd.unetistudy.repository.StudentProfileRepository;
 import com.truongsonkmhd.unetistudy.security.JwtService;
 import com.truongsonkmhd.unetistudy.security.MyUserDetail;
 import com.truongsonkmhd.unetistudy.service.AuthenticationService;
@@ -64,7 +66,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final PasswordEncoder passwordEncoder;
 
-    InvalidatedTokenRepository invalidatedTokenRepository;
+    private final InvalidatedTokenRepository invalidatedTokenRepository;
+
+    private final StudentProfileRepository studentProfileRepository;
 
     @Transactional
     @Override
@@ -80,7 +84,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new RuntimeException("Email already exists");
         }
 
-        if (userRepository.findByStudentId(request.getStudentId()).isPresent()) {
+        if (userRepository.findByStudentProfile_StudentId(request.getStudentId()).isPresent()) {
             throw new RuntimeException("Student already exists");
         }
 
@@ -95,7 +99,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new RuntimeException("No roles found from roleCodes");
         }
 
-        // 4. Tạo user entity
         User user = User.builder()
                 .fullName(request.getFullName())
                 .username(request.getUserName())
@@ -104,8 +107,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .phone(request.getPhone())
                 .gender(request.getGender())
                 .birthday(request.getBirthday())
-                .studentId(request.getStudentId())
-                .classId(request.getClassId())
                 .currentResidence(request.getCurrentResidence())
                 .contactAddress(request.getContactAddress())
                 .roles(new HashSet<>(roles))
@@ -113,10 +114,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .status(UserStatus.ACTIVE)
                 .build();
 
-        System.out.println(user.getStatus());
-
         // 5. Save user
         userRepository.save(user);
+
+        // 6. Save student profile
+        StudentProfile studentProfile = StudentProfile.builder()
+                .studentId(request.getStudentId())
+                .classId(request.getClassId())
+                .user(user)
+                .build();
+        studentProfileRepository.save(studentProfile);
 
         // 6. AUTO LOGIN – tạo token
         MyUserDetail detail = new MyUserDetail(user);

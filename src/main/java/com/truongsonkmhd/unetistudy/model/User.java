@@ -55,17 +55,14 @@ public class User implements Serializable {
         @Column(name = "avatar")
         String avatar;
 
-        @Column(name = "student_id", length = 20, unique = true)
-        String studentId;
+        @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+        StudentProfile studentProfile;
 
         @Column(name = "contactAddress")
         String contactAddress;
 
         @Column(name = "currentResidence")
         String currentResidence;
-
-        @Column(name = "class_id", length = 20)
-        String classId;
 
         @Column(name = "is_deleted")
         Boolean isDeleted;

@@ -29,7 +29,7 @@ public class UserUpdateRequest implements Serializable {
 
     @NotNull(message = "dateOfBirth must be not null")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    @JsonFormat(pattern = "MM/dd/yyyy")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     Date birthday;
 
     @NotNull(message = "username must be not null")
@@ -49,23 +49,28 @@ public class UserUpdateRequest implements Serializable {
     @NotBlank(message = "currentResidence must not be blank")
     String currentResidence;
 
-    // Mã sinh viên UNETI – bắt buộc – đúng 11 chữ số
-    @NotBlank(message = "studentID must not be blank")
+    // Mã sinh viên UNETI – đúng 11 chữ số
     @jakarta.validation.constraints.Pattern(
             regexp = "^\\d{11}$",
-            message = "studentID must be exactly 11 digits"
+            message = "studentCode must be exactly 11 digits"
     )
-    String studentID;
+    String studentCode;
 
-    // Mã lớp UNETI – bắt buộc – ví dụ: DHTI16A3HN
-    @NotBlank(message = "classID must not be blank")
+    // Mã lớp UNETI – ví dụ: DHTI16A3HN
     @jakarta.validation.constraints.Pattern(
             regexp = "^(DH|CD|LT|VB2|VLVH|TX)"
                     + "(TI|KT|QTKD|TC|CK|DD|OT|XD|TM)"
                     + "\\d{2}[A-Z]\\d"
                     + "(HN|ND|TH)$",
-            message = "Invalid UNETI classID format (e.g. DHTI16A3HN)"
+            message = "Invalid UNETI classCode format (e.g. DHTI16A3HN)"
     )
-    String classID;
+    String classCode;
+
+    // --- Teacher Profile Fields (Optional) ---
+    String teacherID;
+    String department;
+    String academicRank;
+    String specialization;
+
     List<String> roles;
 }

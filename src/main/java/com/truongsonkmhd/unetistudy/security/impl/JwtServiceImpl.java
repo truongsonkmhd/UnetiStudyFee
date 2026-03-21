@@ -82,7 +82,6 @@ public class JwtServiceImpl implements JwtService {
         User user = myUserDetail.user();
         Map<String, Object> claims = new HashMap<>();
         claims.put(CLAIM_USER_ID, user.getId().toString());
-        claims.put(CLAIM_USER_CLASS_ID, user.getClassId());
         claims.put(CLAIM_USER_NAME, user.getUsername());
         claims.put(CLAIM_USER_AVATAR, user.getAvatar());
         claims.put(SCOPE, buildScope(myUserDetail));

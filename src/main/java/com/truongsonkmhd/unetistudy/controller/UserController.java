@@ -1,5 +1,7 @@
 package com.truongsonkmhd.unetistudy.controller;
 
+import com.truongsonkmhd.unetistudy.dto.user_dto.UserPageResponse;
+import com.truongsonkmhd.unetistudy.dto.user_dto.UserResponse;
 import com.truongsonkmhd.unetistudy.dto.user_dto.UserPasswordRequest;
 import com.truongsonkmhd.unetistudy.dto.user_dto.UserRequest;
 import com.truongsonkmhd.unetistudy.dto.user_dto.UserUpdateRequest;
@@ -8,6 +10,7 @@ import com.truongsonkmhd.unetistudy.dto.a_common.ResponseMessage;
 import com.truongsonkmhd.unetistudy.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -48,7 +51,7 @@ public class UserController {
             @RequestParam(defaultValue = "20") int pageSize) {
         log.info("Request get all users with sort by");
 
-        var listAllUsersWithSortBy = userService.getAllUsersWithSortBy(sortBy, pageNo, pageSize);
+        UserPageResponse listAllUsersWithSortBy = userService.getAllUsersWithSortBy(sortBy, pageNo, pageSize);
         return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(listAllUsersWithSortBy));
     }
 
@@ -68,13 +71,13 @@ public class UserController {
     @GetMapping("/{userId}")
     public ResponseEntity<IResponseMessage> getUserDetail(@PathVariable UUID userId) {
         log.info("Get user detail by ID: {}", userId);
-        var userDetailById = userService.findByIdResponse(userId);
+        UserResponse userDetailById = userService.findByIdResponse(userId);
         return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(userDetailById));
     }
 
     @Operation(summary = "Create User", description = "API add new user to database")
     @PostMapping("/add")
-    ResponseEntity<IResponseMessage> createUser(@RequestBody UserRequest request) {
+    ResponseEntity<IResponseMessage> createUser(@Valid @RequestBody UserRequest request) {
         return ResponseEntity.ok().body(ResponseMessage.CreatedSuccess(userService.saveUser(request)));
     }
 
@@ -105,8 +108,17 @@ public class UserController {
     ResponseEntity<IResponseMessage> promoteToTeacher(@PathVariable UUID userId,
             @RequestBody com.truongsonkmhd.unetistudy.dto.user_dto.TeacherPromotionRequest request) {
         log.info("Promoting user {} to teacher", userId);
-        userService.promoteToTeacher(userId, request.getTeacherId(), request.getDepartment());
+        userService.promoteToTeacher(userId, request.getTeacherId(), request.getDepartment(), request.getAcademicRank(), request.getSpecialization());
         return ResponseEntity.ok().body(ResponseMessage.UpdatedSuccess("User promoted to teacher successfully"));
     }
 
+    @Operation(summary = "Search Users", description = "API search users by keyword (name, username, email, phone, studentId)")
+    @GetMapping("/search")
+    ResponseEntity<IResponseMessage> searchUsers(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        log.info("Request search users by keyword: {}", keyword);
+        return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(userService.searchUsers(keyword, page, size)));
+    }
 }
