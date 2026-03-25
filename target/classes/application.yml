@@ -11,9 +11,30 @@ spring:
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: false
+
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+      enabled: true
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        acknowledge-mode: manual
+        retry:
+          enabled: false
+
   jpa:
     hibernate:
-      ddl-auto: none
+        ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -26,12 +47,50 @@ spring:
       timeout: 2000ms
 
   cache:
-    type: redis
-    redis:
-      time-to-live: 10m
-      cache-null-values: false
-      use-key-prefix: true
-      key-prefix: "uneti:"
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=900s,recordStats
+
+# Custom Cache Configuration
+app:
+  cache:
+    type: caffeine
+    default-ttl: 900
+    default-max-size: 1000
+    record-stats: true
+    write-behind-enabled: false
+    write-behind-delay-ms: 5000
+    write-behind-batch-size: 100
+    caches:
+      user_by_id:
+        ttl: 900
+        max-size: 1000
+        eviction-policy: LRU
+      user_by_username:
+        ttl: 900
+        max-size: 1000
+        eviction-policy: LRU
+      course_published_tree:
+        ttl: 3600
+        max-size: 500
+        eviction-policy: LRU
+      quiz_by_id:
+        ttl: 900
+        max-size: 500
+        eviction-policy: LRU
+      roles:
+        ttl: 21600
+        max-size: 100
+        eviction-policy: LFU
+      permissions:
+        ttl: 21600
+        max-size: 100
+        eviction-policy: LFU
+        
+supabase:
+  url: ${SUPABASE_URL:https://xyz.supabase.co}
+  key: ${SUPABASE_KEY:your-service-role-key}
+  bucket: ${SUPABASE_BUCKET:uneti-study}
 
 security:
   jwt:

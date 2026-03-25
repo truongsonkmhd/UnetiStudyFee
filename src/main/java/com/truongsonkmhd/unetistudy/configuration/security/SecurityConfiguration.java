@@ -44,6 +44,9 @@ public class SecurityConfiguration {
                                                                 .requestMatchers(mvc.pattern("/api/permissions/**"))
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
                                                                                 AuthoritiesConstants.SYS_ADMIN)
+                                                                .requestMatchers(mvc.pattern("/api/users/*")).hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.SYS_ADMIN, AuthoritiesConstants.STUDENT, AuthoritiesConstants.TEACHER)
+                                                                .requestMatchers(mvc.pattern("/api/users/upd/*")).hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.SYS_ADMIN, AuthoritiesConstants.STUDENT, AuthoritiesConstants.TEACHER)
+                                                                .requestMatchers(mvc.pattern("/api/users/*/avatar")).hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.SYS_ADMIN, AuthoritiesConstants.STUDENT, AuthoritiesConstants.TEACHER)
                                                                 .requestMatchers(mvc.pattern("/api/users/**"))
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
                                                                                 AuthoritiesConstants.SYS_ADMIN)

@@ -6,16 +6,16 @@ spring:
     add-properties: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/uneti-study
-    username: postgres
-    password: Son01072004jqk@
+    url: jdbc:postgresql://localhost:5433/uneti_study
+    username: vanh
+    password: vanh
   jpa:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: none 
 
   cache:
     type: redis

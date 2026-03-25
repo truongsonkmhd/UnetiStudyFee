@@ -47,6 +47,8 @@ public abstract class BaseUserRequest implements Serializable {
 
     String contactAddress;
 
+    String avatar;
+
     @NotBlank(message = "currentResidence must not be blank")
     String currentResidence;
 }

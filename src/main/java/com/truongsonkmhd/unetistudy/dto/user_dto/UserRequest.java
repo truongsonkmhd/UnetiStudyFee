@@ -49,6 +49,8 @@ public class UserRequest implements Serializable {
         @PhoneNumber(message = "phone invalid format")
         String phone;
 
+        String avatar;
+
         // Địa chỉ liên hệ (không bắt buộc, nhưng nếu có thì không được rỗng)
         String contactAddress;
 
@@ -64,6 +66,8 @@ public class UserRequest implements Serializable {
                         + "\\d{2}[A-Z]\\d"
                         + "(HN|ND|TH)$", message = "Invalid UNETI classCode format (e.g. DHTI16A3HN)")
         String classCode;
+
+
 
         String teacherID;
         String department;

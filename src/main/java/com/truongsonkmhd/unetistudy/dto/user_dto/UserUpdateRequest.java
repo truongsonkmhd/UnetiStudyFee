@@ -72,5 +72,7 @@ public class UserUpdateRequest implements Serializable {
     String academicRank;
     String specialization;
 
+    String avatar;
+
     List<String> roles;
 }

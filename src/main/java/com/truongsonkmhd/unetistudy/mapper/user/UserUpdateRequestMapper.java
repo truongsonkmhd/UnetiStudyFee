@@ -21,7 +21,6 @@ public interface UserUpdateRequestMapper extends EntityMapper<UserUpdateRequest,
     @Override
     @Mapping(target = "id", ignore = true) // ID is not updated
     @Mapping(target = "password", ignore = true) // Password is not updated
-    @Mapping(target = "avatar", ignore = true) // Avatar is not in UserUpdateRequest
     @Mapping(target = "isDeleted", ignore = true) // isDeleted is not updated
     @Mapping(target = "status", ignore = true) // UserStatus is not updated
     @Mapping(target = "token", ignore = true) // Token is not updated
@@ -37,11 +36,11 @@ public interface UserUpdateRequestMapper extends EntityMapper<UserUpdateRequest,
     @Named("partialUpdate")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
-    @Mapping(target = "avatar", ignore = true)
     @Mapping(target = "isDeleted", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "token", ignore = true)
     @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "avatar", ignore = true)
     void partialUpdate(@MappingTarget User user, UserUpdateRequest userUpdateRequest);
 
     // Custom mapping for roles (Set<Role> to List<String>)

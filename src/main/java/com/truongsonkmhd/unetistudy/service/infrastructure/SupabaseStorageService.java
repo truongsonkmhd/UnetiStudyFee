@@ -56,8 +56,9 @@ public class SupabaseStorageService {
 
     public String uploadFile(String folder, MultipartFile file) {
         try {
-            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            // Xóa khoảng trắng trong tên file nếu có
+            String originalName = file.getOriginalFilename();
+            if (originalName == null) originalName = "file";
+            String filename = UUID.randomUUID() + "_" + originalName.replaceAll("\\s+", "_");            // Xóa khoảng trắng trong tên file nếu có
             filename = filename.replace(" ", "_");
 
             String uploadUrl = String.format("%s/storage/v1/object/%s/%s/%s",
@@ -97,6 +98,66 @@ public class SupabaseStorageService {
             log.error("Supabase upload error: {}", e.getMessage(), e);
         }
         return null;
+    }
+
+    public void deleteFile(String fileUrl) {
+        try {
+            if (fileUrl == null || fileUrl.isBlank()) return;
+
+            // Ví dụ URL:
+            // https://xxx.supabase.co/storage/v1/object/public/uneti-study/avatar/abc.jpg
+
+            String[] parts = fileUrl.split("/object/public/");
+
+            if (parts.length < 2) {
+                log.warn("Invalid Supabase URL: {}", fileUrl);
+                return;
+            }
+
+            String path = parts[1];
+            // uneti-study/avatar/abc.jpg
+
+            String[] pathParts = path.split("/", 2);
+
+            if (pathParts.length < 2) {
+                log.warn("Invalid file path: {}", fileUrl);
+                return;
+            }
+
+            String bucket = pathParts[0];        // uneti-study
+            String filePath = pathParts[1];      // avatar/abc.jpg
+
+            String deleteUrl = String.format(
+                    "%s/storage/v1/object/%s/%s",
+                    supabaseUrl,
+                    bucket,
+                    filePath
+            );
+
+            log.info("🗑 Deleting file: {}", deleteUrl);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + supabaseKey);
+            headers.set("apikey", supabaseKey);
+
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    deleteUrl,
+                    HttpMethod.DELETE,
+                    entity,
+                    String.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Delete OK: {}", filePath);
+            } else {
+                log.warn("Delete failed: {} - {}", response.getStatusCode(), response.getBody());
+            }
+
+        } catch (Exception e) {
+            log.error("Delete file failed: {}", fileUrl, e);
+        }
     }
 
     public String toDisplayUrl(String url) {

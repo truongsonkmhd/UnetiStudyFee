@@ -97,7 +97,8 @@ public class UserController {
 
     @Operation(summary = "Update User", description = "API update user to database")
     @PutMapping("/upd/{userId}")
-    ResponseEntity<IResponseMessage> updateUser(@PathVariable UUID userId, @RequestBody UserUpdateRequest request) {
+    ResponseEntity<IResponseMessage> updateUser(@PathVariable UUID userId,
+            @Valid @RequestBody UserUpdateRequest request) {
         log.info("Updating user: {}", request);
         return ResponseEntity.ok().body(ResponseMessage.UpdatedSuccess(userService.update(userId, request)));
     }
@@ -122,7 +123,8 @@ public class UserController {
     ResponseEntity<IResponseMessage> promoteToTeacher(@PathVariable UUID userId,
             @RequestBody com.truongsonkmhd.unetistudy.dto.user_dto.TeacherPromotionRequest request) {
         log.info("Promoting user {} to teacher", userId);
-        userService.promoteToTeacher(userId, request.getTeacherId(), request.getDepartment(), request.getAcademicRank(), request.getSpecialization());
+        userService.promoteToTeacher(userId, request.getTeacherId(), request.getDepartment(), request.getAcademicRank(),
+                request.getSpecialization());
         return ResponseEntity.ok().body(ResponseMessage.UpdatedSuccess("User promoted to teacher successfully"));
     }
 
@@ -134,5 +136,23 @@ public class UserController {
             @RequestParam(defaultValue = "20") int size) {
         log.info("Request search users by keyword: {}", keyword);
         return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(userService.searchUsers(keyword, page, size)));
+    }
+
+    @Operation(summary = "Update Avatar", description = "API update user avatar")
+    @PatchMapping(value = "/{userId}/avatar", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<IResponseMessage> updateAvatar(
+            @PathVariable UUID userId,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        log.info("Request to update avatar for user: {}", userId);
+        String avatarUrl = userService.updateAvatar(userId, file);
+        return ResponseEntity.ok().body(ResponseMessage.UpdatedSuccess(avatarUrl));
+    }
+
+    @GetMapping("/profile/{userId}")
+    public ResponseEntity<IResponseMessage> getUserProfile(@PathVariable UUID userId) {
+        log.info("Get user profile by ID: {}", userId);
+        return ResponseEntity.ok().body(
+                ResponseMessage.LoadedSuccess(userService.getUserProfile(userId))
+        );
     }
 }

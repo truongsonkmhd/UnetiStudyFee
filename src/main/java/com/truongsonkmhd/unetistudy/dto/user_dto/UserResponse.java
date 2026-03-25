@@ -34,5 +34,6 @@ public class UserResponse implements Serializable {
      String department;
      String academicRank;
      String specialization;
+     String avatar;
      Set<RoleResponse> roles;
 }

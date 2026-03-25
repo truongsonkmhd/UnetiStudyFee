@@ -16,6 +16,7 @@ public interface UserResponseMapper extends EntityMapper<UserResponse, User> {
     @Mapping(target = "department", source = "teacherProfile.department")
     @Mapping(target = "academicRank", source = "teacherProfile.academicRank")
     @Mapping(target = "specialization", source = "teacherProfile.specialization")
+//    @Mapping(target = "avatar" , source = "v")
     UserResponse toDto(User entity);
 
     @Override

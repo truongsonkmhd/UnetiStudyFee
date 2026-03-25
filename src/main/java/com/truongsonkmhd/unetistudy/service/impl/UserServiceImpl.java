@@ -20,6 +20,8 @@ import com.truongsonkmhd.unetistudy.repository.TeacherProfileRepository;
 import com.truongsonkmhd.unetistudy.repository.StudentProfileRepository;
 import com.truongsonkmhd.unetistudy.security.MyUserDetail;
 import com.truongsonkmhd.unetistudy.service.UserService;
+import com.truongsonkmhd.unetistudy.service.infrastructure.SupabaseStorageService;
+import com.truongsonkmhd.unetistudy.mapper.user.UserProfileResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -36,6 +38,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.truongsonkmhd.unetistudy.utils.SortBuilder;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -55,6 +59,7 @@ public class UserServiceImpl implements UserService {
     private final UserUpdateRequestMapper userUpdateRequestMapper;
     private final TeacherProfileRepository teacherProfileRepository;
     private final StudentProfileRepository studentProfileRepository;
+    private final SupabaseStorageService storageService;
 
     @Override
     public UserDetailsService userDetailsService() {
@@ -208,6 +213,7 @@ public class UserServiceImpl implements UserService {
                 .username(req.getUserName())
                 .password(passwordEncoder.encode(req.getPassword()))
                 .currentResidence(req.getCurrentResidence())
+                .avatar(req.getAvatar())
                 .contactAddress(req.getContactAddress())
                 .status(UserStatus.ACTIVE)
                 .isDeleted(false)
@@ -248,6 +254,7 @@ public class UserServiceImpl implements UserService {
             @CacheEvict(cacheNames = CacheConstants.USER_BY_ID, key = "'entity:' + #userId"),
             @CacheEvict(cacheNames = CacheConstants.USER_BY_USERNAME, allEntries = true)
     })
+
     public UserResponse update(UUID userId, UserUpdateRequest req) {
         log.info("Updating user: {} - Evicting cache", userId);
 
@@ -259,11 +266,13 @@ public class UserServiceImpl implements UserService {
         // 2. Update user basic info
         userUpdateRequestMapper.partialUpdate(user, req);
 
-        // 3. Update roles based on profiles
-        Set<String> roleCodes = resolveRoleCodes(req.getRoles(), req.getStudentCode(), req.getTeacherID());
-        if (!roleCodes.isEmpty()) {
-            List<Role> roles = roleRepository.findAllByCodes(roleCodes);
-            user.setRoles(new HashSet<>(roles));
+        // 3. Update roles based on profiles (Only if roles are explicitly provided in request)
+        if (req.getRoles() != null) {
+            Set<String> roleCodes = resolveRoleCodes(req.getRoles(), req.getStudentCode(), req.getTeacherID());
+            if (!roleCodes.isEmpty()) {
+                List<Role> roles = roleRepository.findAllByCodes(roleCodes);
+                user.setRoles(new HashSet<>(roles));
+            }
         }
 
         // 4. Update Profiles
@@ -363,6 +372,85 @@ public class UserServiceImpl implements UserService {
         return getUserPageResponse(pageNo, pageSize, users);
     }
 
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConstants.USER_BY_ID, key = "#userId"),
+            @CacheEvict(cacheNames = CacheConstants.USER_BY_ID, key = "'entity:' + #userId"),
+            @CacheEvict(cacheNames = CacheConstants.USER_BY_USERNAME, allEntries = true)
+    })
+    public String updateAvatar(UUID userId, MultipartFile file) {
+        log.info("Updating avatar for user: {}", userId);
+
+        // 1. Validate file
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("File is empty");
+        }
+
+        // 2. Lấy user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 3. Upload file lên Supabase (folder: avatar)
+        String avatarUrl = storageService.uploadFile("avatar", file);
+
+        if (avatarUrl == null) {
+            throw new RuntimeException("Upload avatar failed");
+        }
+
+        // 4. (Optional) Xoá ảnh cũ
+        if (user.getAvatar() != null) {
+            try {
+                storageService.deleteFile(user.getAvatar());
+            } catch (Exception e) {
+                log.warn("Cannot delete old avatar: {}", e.getMessage());
+            }
+        }
+
+        // 5. Update DB
+        user.setAvatar(avatarUrl);
+        userRepository.save(user);
+
+        log.info("Updated avatar successfully for user: {}", userId);
+
+        return avatarUrl;
+    }
+
+    @Override
+    public UserProfileResponse getUserProfile(UUID userId) {
+        User user = findById(userId);
+
+        String role = user.getRoles().stream()
+                .findFirst()
+                .map(r -> r.getName())
+                .orElse("");
+
+        UserProfileResponse.UserProfileResponseBuilder builder =
+                UserProfileResponse.builder()
+                        .id(user.getId())
+                        .fullName(user.getFullName())
+                        .username(user.getUsername())
+                        .avatar(user.getAvatar())
+                        .contactAddress(user.getContactAddress())
+                        .role(role);
+
+        // 🎓 STUDENT
+        if (user.getStudentProfile() != null) {
+            builder
+                    .studentId(user.getStudentProfile().getStudentId())
+                    .classId(user.getStudentProfile().getClassId());
+        }
+
+        // 👨‍🏫 TEACHER
+        if (user.getTeacherProfile() != null) {
+            builder
+                    .teacherId(user.getTeacherProfile().getTeacherId())
+                    .department(user.getTeacherProfile().getDepartment());
+        }
+
+        return builder.build();
+    }
+
     // ==================== HELPER METHODS (SOLID REFACTORING) ====================
 
     private void validateUniqueness(String username, String email, String studentCode, String teacherId) {
@@ -398,6 +486,7 @@ public class UserServiceImpl implements UserService {
                 .username(req.getUsername())
                 .password(passwordEncoder.encode(req.getPassword()))
                 .currentResidence(req.getCurrentResidence())
+                .avatar(req.getAvatar())
                 .contactAddress(req.getContactAddress())
                 .status(UserStatus.ACTIVE)
                 .isDeleted(false)
@@ -548,4 +637,6 @@ public class UserServiceImpl implements UserService {
             user.setTeacherProfile(profile);
         }
     }
+
+
 }
