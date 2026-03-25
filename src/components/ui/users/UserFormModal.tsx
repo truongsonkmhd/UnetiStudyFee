@@ -1,4 +1,5 @@
 import { Modal, Form, Input, Select, DatePicker, Row, Col, Card, Typography } from "antd";
+import { useTheme } from "next-themes";
 import {
   UserOutlined,
   MailOutlined,
@@ -31,9 +32,6 @@ type Props = {
   loading?: boolean;
 };
 
-const labelStyle: React.CSSProperties = { color: "rgba(255,255,255,0.75)", fontWeight: 600, fontSize: "13px" };
-const inputStyle: React.CSSProperties = { borderRadius: 10, background: "rgba(255,255,255,0.04)" };
-
 export default function UserFormModal({
   open,
   form,
@@ -42,6 +40,18 @@ export default function UserFormModal({
   onCancel,
   loading,
 }: Props) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
+  const labelStyle: React.CSSProperties = {
+    color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.85)",
+    fontWeight: 600,
+    fontSize: "13px",
+  };
+  const inputStyle: React.CSSProperties = {
+    borderRadius: 10,
+    background: isDark ? "rgba(255,255,255,0.04)" : "#fff",
+  };
   const [selectedType, setSelectedType] = useState<UserType | null>(null);
   const isEdit = !!editingUser;
 
@@ -88,7 +98,14 @@ export default function UserFormModal({
 
   const renderSelection = () => (
     <div style={{ padding: "10px 0 20px" }}>
-      <p style={{ color: "rgba(255,255,255,0.5)", textAlign: "center", marginBottom: 32, fontSize: 15 }}>
+      <p
+        style={{
+          color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.45)",
+          textAlign: "center",
+          marginBottom: 32,
+          fontSize: 15,
+        }}
+      >
         Vui lòng chọn đối tượng tài khoản bạn muốn khởi tạo
       </p>
       <Row gutter={24} justify="center">
@@ -97,8 +114,8 @@ export default function UserFormModal({
             hoverable
             onClick={() => setSelectedType(UserType.STUDENT)}
             style={{
-              background: "rgba(79, 70, 229, 0.08)",
-              borderColor: "rgba(99, 102, 241, 0.3)",
+              background: isDark ? "rgba(79, 70, 229, 0.08)" : "#f5f3ff",
+              borderColor: isDark ? "rgba(99, 102, 241, 0.3)" : "rgba(99, 102, 241, 0.2)",
               borderRadius: 20,
               textAlign: "center",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -119,8 +136,24 @@ export default function UserFormModal({
             }}>
               <TeamOutlined style={{ fontSize: 32 }} />
             </div>
-            <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 700, margin: "0 0 8px" }}>Học sinh</h3>
-            <Text style={{ color: "rgba(255,255,255,0.45)", fontSize: 13 }}>Dành cho sinh viên đăng ký học và thi</Text>
+            <h3
+              style={{
+                color: isDark ? "#fff" : "rgba(0,0,0,0.85)",
+                fontSize: 18,
+                fontWeight: 700,
+                margin: "0 0 8px",
+              }}
+            >
+              Học sinh
+            </h3>
+            <Text
+              style={{
+                color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)",
+                fontSize: 13,
+              }}
+            >
+              Dành cho sinh viên đăng ký học và thi
+            </Text>
           </Card>
         </Col>
 
@@ -129,8 +162,8 @@ export default function UserFormModal({
             hoverable
             onClick={() => setSelectedType(UserType.TEACHER)}
             style={{
-              background: "rgba(147, 51, 234, 0.08)",
-              borderColor: "rgba(168, 85, 247, 0.3)",
+              background: isDark ? "rgba(147, 51, 234, 0.08)" : "#faf5ff",
+              borderColor: isDark ? "rgba(168, 85, 247, 0.3)" : "rgba(168, 85, 247, 0.2)",
               borderRadius: 20,
               textAlign: "center",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -151,8 +184,24 @@ export default function UserFormModal({
             }}>
               <SolutionOutlined style={{ fontSize: 32 }} />
             </div>
-            <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 700, margin: "0 0 8px" }}>Giáo viên</h3>
-            <Text style={{ color: "rgba(255,255,255,0.45)", fontSize: 13 }}>Dành cho giảng viên và cán bộ quản lý</Text>
+            <h3
+              style={{
+                color: isDark ? "#fff" : "rgba(0,0,0,0.85)",
+                fontSize: 18,
+                fontWeight: 700,
+                margin: "0 0 8px",
+              }}
+            >
+              Giáo viên
+            </h3>
+            <Text
+              style={{
+                color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)",
+                fontSize: 13,
+              }}
+            >
+              Dành cho giảng viên và cán bộ quản lý
+            </Text>
           </Card>
         </Col>
       </Row>
@@ -199,11 +248,11 @@ export default function UserFormModal({
             {isEdit ? <EditOutlined style={{ color: "#fff" }} /> : <PlusOutlined style={{ color: "#fff" }} />}
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ color: "#fff", fontSize: 17, fontWeight: 700 }}>
+            <div style={{ color: isDark ? "#fff" : "rgba(0,0,0,0.85)", fontSize: 17, fontWeight: 700 }}>
               {isEdit ? "Chỉnh sửa thông tin" : "Thêm mới người dùng"}
             </div>
             {selectedType && (
-              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}>
+              <div style={{ color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)", fontSize: 12 }}>
                 Đối tượng: {selectedType === UserType.TEACHER ? "Giáo viên" : "Học sinh"}
               </div>
             )}
@@ -223,17 +272,23 @@ export default function UserFormModal({
         mask: { backdropFilter: "blur(6px)" },
         body: {
           padding: "20px 24px",
-          background: "#1a1f36",
+          background: isDark ? "#1a1f36" : "#fff",
           borderRadius: 20,
         },
       }}
       modalRender={(modal) => (
-        <div style={{
-          background: "#1a1f36",
-          borderRadius: 20,
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 20px 50px rgba(0,0,0,0.4)"
-        }}>
+        <div
+          style={{
+            background: isDark ? "#1a1f36" : "#fff",
+            borderRadius: 20,
+            border: isDark
+              ? "1px solid rgba(255,255,255,0.08)"
+              : "1px solid rgba(0,0,0,0.08)",
+            boxShadow: isDark
+              ? "0 20px 50px rgba(0,0,0,0.4)"
+              : "0 20px 50px rgba(0,0,0,0.1)",
+          }}
+        >
           {modal}
         </div>
       )}
@@ -300,7 +355,15 @@ export default function UserFormModal({
                     label={<span style={labelStyle}>Mật khẩu khởi tạo</span>}
                     rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}
                   >
-                    <Input.Password prefix={<KeyOutlined style={{ color: "rgba(255,255,255,0.3)" }} />} placeholder="••••••••" style={inputStyle} />
+                  <Input.Password
+                    prefix={
+                      <KeyOutlined
+                        style={{ color: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.25)" }}
+                      />
+                    }
+                    placeholder="••••••••"
+                    style={inputStyle}
+                  />
                   </Form.Item>
                 ) : (
                   <Form.Item name="phone" label={<span style={labelStyle}>Số điện thoại</span>}>
@@ -444,11 +507,13 @@ export default function UserFormModal({
               style={{
                 padding: "8px 24px",
                 borderRadius: 10,
-                border: "1px solid rgba(255,255,255,0.1)",
+                border: isDark
+                  ? "1px solid rgba(255,255,255,0.1)"
+                  : "1px solid rgba(0,0,0,0.15)",
                 background: "transparent",
-                color: "rgba(255,255,255,0.6)",
+                color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.45)",
                 cursor: "pointer",
-                fontWeight: 600
+                fontWeight: 600,
               }}
             >
               Hủy bỏ

@@ -48,8 +48,15 @@ const apiService = {
  * @param body - Dữ liệu cần gửi trong body (tùy chọn)
  * @returns Promise<T> - Dữ liệu đã được bóc tách từ response
  */
-  patch<T>(url: string, body?: object): Promise<T> {
-    return axiosClient.patch<T>(url, body);
+  // patch<T>(url: string, body?: object): Promise<T> {
+  //     return axiosClient.patch<T>(url, body);
+  // }
+  patch<T>(url: string, body?: any): Promise<T> {
+    const config: AxiosRequestConfig = {};
+    if (body instanceof FormData) {
+      config.headers = { 'Content-Type': undefined };
+    }
+    return axiosClient.patch<T>(url, body, config);
   },
 
 

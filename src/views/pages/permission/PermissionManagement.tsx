@@ -15,6 +15,7 @@ import {
   ConfigProvider,
   theme as antTheme,
 } from "antd";
+import { useTheme } from "next-themes";
 import {
   PlusOutlined,
   EditOutlined,
@@ -26,8 +27,10 @@ import {
   LeftOutlined,
   RightOutlined,
 } from "@ant-design/icons";
-
 const PermissionManagement = () => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [filtered, setFiltered] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(false);
@@ -117,7 +120,15 @@ const PermissionManagement = () => {
   const columns = [
     {
       title: (
-        <span style={{ color: "rgba(255,255,255,0.45)", fontWeight: 600, fontSize: 11, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+        <span
+          style={{
+            color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)",
+            fontWeight: 600,
+            fontSize: 11,
+            textTransform: "uppercase" as const,
+            letterSpacing: 1,
+          }}
+        >
           id
         </span>
       ),
@@ -144,36 +155,30 @@ const PermissionManagement = () => {
     },
     {
       title: (
-        <span style={{ color: "rgba(255,255,255,0.45)", fontWeight: 600, fontSize: 11, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+        <span
+          style={{
+            color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)",
+            fontWeight: 600,
+            fontSize: 11,
+            textTransform: "uppercase" as const,
+            letterSpacing: 1,
+          }}
+        >
           Tên quyền
         </span>
       ),
       dataIndex: "name",
       render: (name: string) => (
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {/* <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 30,
-              height: 30,
-              borderRadius: 8,
-              background: "linear-gradient(135deg, #3b82f6, #6366f1)",
-              flexShrink: 0,
-            }}
-          >
-            <KeyOutlined style={{ color: "#fff", fontSize: 13 }} />
-          </span> */}
           <Tag
             style={{
               borderRadius: 20,
               fontWeight: 600,
               fontSize: 13,
               padding: "3px 14px",
-              border: "1px solid rgba(99,102,241,0.3)",
-              background: "rgba(99,102,241,0.12)",
-              color: "#a5b4fc",
+              border: isDark ? "1px solid rgba(99,102,241,0.3)" : "1px solid rgba(79,70,229,0.2)",
+              background: isDark ? "rgba(99,102,241,0.12)" : "rgba(79,70,229,0.06)",
+              color: isDark ? "#a5b4fc" : "#4f46e5",
             }}
           >
             {name}
@@ -183,23 +188,47 @@ const PermissionManagement = () => {
     },
     {
       title: (
-        <span style={{ color: "rgba(255,255,255,0.45)", fontWeight: 600, fontSize: 11, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+        <span
+          style={{
+            color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)",
+            fontWeight: 600,
+            fontSize: 11,
+            textTransform: "uppercase" as const,
+            letterSpacing: 1,
+          }}
+        >
           Mô tả
         </span>
       ),
       dataIndex: "description",
       render: (desc: string) =>
         desc ? (
-          <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 13 }}>{desc}</span>
+          <span style={{ color: isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.65)", fontSize: 13 }}>
+            {desc}
+          </span>
         ) : (
-          <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 12, fontStyle: "italic" }}>
+          <span
+            style={{
+              color: isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)",
+              fontSize: 12,
+              fontStyle: "italic",
+            }}
+          >
             Chưa có mô tả
           </span>
         ),
     },
     {
       title: (
-        <span style={{ color: "rgba(255,255,255,0.45)", fontWeight: 600, fontSize: 11, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+        <span
+          style={{
+            color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)",
+            fontWeight: 600,
+            fontSize: 11,
+            textTransform: "uppercase" as const,
+            letterSpacing: 1,
+          }}
+        >
           Thao tác
         </span>
       ),
@@ -275,46 +304,48 @@ const PermissionManagement = () => {
     },
   ];
 
-  /* ---------- Dark theme for Ant Design ---------- */
-  const darkTokens = {
-    algorithm: antTheme.darkAlgorithm,
+  /* ---------- Ant Design theme tokens ---------- */
+  const getThemeTokens = (isDark: boolean) => ({
+    algorithm: isDark ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
     token: {
-      colorBgContainer: "#141726",
-      colorBgElevated: "#1a1f36",
-      colorBorder: "rgba(255,255,255,0.08)",
-      colorText: "rgba(255,255,255,0.85)",
-      colorTextSecondary: "rgba(255,255,255,0.5)",
+      colorBgContainer: isDark ? "#141726" : "#fff",
+      colorBgElevated: isDark ? "#1a1f36" : "#fff",
+      colorBorder: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
+      colorText: isDark ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.85)",
+      colorTextSecondary: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.45)",
       colorPrimary: "#6366f1",
       borderRadius: 10,
     },
     components: {
       Table: {
-        headerBg: "rgba(99,102,241,0.06)",
-        headerColor: "rgba(255,255,255,0.5)",
-        rowHoverBg: "rgba(99,102,241,0.08)",
+        headerBg: isDark ? "rgba(99,102,241,0.06)" : "rgba(99,102,241,0.04)",
+        headerColor: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.45)",
+        rowHoverBg: isDark ? "rgba(99,102,241,0.08)" : "rgba(99,102,241,0.03)",
         colorBgContainer: "transparent",
-        borderColor: "rgba(255,255,255,0.06)",
+        borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
       },
       Modal: {
-        contentBg: "#1a1f36",
-        headerBg: "#1a1f36",
-        titleColor: "#fff",
+        contentBg: isDark ? "#1a1f36" : "#fff",
+        headerBg: isDark ? "#1a1f36" : "#fff",
+        titleColor: isDark ? "#fff" : "#000",
       },
       Input: {
-        colorBgContainer: "rgba(255,255,255,0.05)",
-        colorBorder: "rgba(255,255,255,0.1)",
-        colorText: "#fff",
-        colorTextPlaceholder: "rgba(255,255,255,0.3)",
+        colorBgContainer: isDark ? "rgba(255,255,255,0.05)" : "#fff",
+        colorBorder: isDark ? "rgba(255,255,255,0.1)" : "#d9d9d9",
+        colorText: isDark ? "#fff" : "rgba(0,0,0,0.85)",
+        colorTextPlaceholder: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.25)",
       },
     },
-  };
+  });
 
   return (
-    <ConfigProvider theme={darkTokens}>
+    <ConfigProvider theme={getThemeTokens(isDark)}>
       <div
         style={{
           minHeight: "100vh",
-          background: "linear-gradient(180deg, #0b0e1a 0%, #111427 40%, #0f1222 100%)",
+          background: isDark
+            ? "linear-gradient(180deg, #0b0e1a 0%, #111427 40%, #0f1222 100%)"
+            : "hsl(var(--background))",
           padding: "28px 32px",
         }}
       >
@@ -326,8 +357,12 @@ const PermissionManagement = () => {
             borderRadius: 20,
             padding: "32px 36px",
             marginBottom: 28,
-            background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%)",
-            boxShadow: "0 8px 40px rgba(99,102,241,0.25)",
+            background: isDark
+              ? "linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%)"
+              : "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)",
+            boxShadow: isDark
+              ? "0 8px 40px rgba(99,102,241,0.25)"
+              : "0 8px 30px rgba(99,102,241,0.15)",
           }}
         >
           {/* decorative elements */}
@@ -341,7 +376,13 @@ const PermissionManagement = () => {
                 <h2 style={{ color: "#fff", margin: 0, fontWeight: 800, fontSize: 24, letterSpacing: "-0.02em" }}>
                   Quản lý Quyền truy cập
                 </h2>
-                <p style={{ color: "rgba(199,210,254,0.7)", margin: "4px 0 0", fontSize: 14 }}>
+                <p
+                  style={{
+                    color: isDark ? "rgba(199,210,254,0.7)" : "rgba(255,255,255,0.85)",
+                    margin: "4px 0 0",
+                    fontSize: 14,
+                  }}
+                >
                   Quản lý toàn bộ quyền truy cập hệ thống
                 </p>
               </div>
@@ -356,7 +397,9 @@ const PermissionManagement = () => {
                 height: 44,
                 padding: "0 22px",
                 borderRadius: 12,
-                background: "rgba(255,255,255,0.12)",
+                background: isDark
+                  ? "rgba(255,255,255,0.12)"
+                  : "rgba(255,255,255,0.2)",
                 border: "1px solid rgba(255,255,255,0.25)",
                 color: "#fff",
                 fontWeight: 600,
@@ -381,18 +424,26 @@ const PermissionManagement = () => {
         {/* ── Table Card ── */}
         <div
           style={{
-            background: "rgba(20,23,38,0.8)",
+            background: isDark ? "rgba(20,23,38,0.8)" : "hsl(var(--card))",
             borderRadius: 20,
             padding: "24px 28px",
-            border: "1px solid rgba(255,255,255,0.06)",
-            boxShadow: "0 4px 30px rgba(0,0,0,0.3)",
-            backdropFilter: "blur(12px)",
+            border: isDark
+              ? "1px solid rgba(255,255,255,0.06)"
+              : "1px solid hsl(var(--border))",
+            boxShadow: isDark
+              ? "0 4px 30px rgba(0,0,0,0.3)"
+              : "0 4px 20px rgba(0,0,0,0.05)",
+            backdropFilter: isDark ? "blur(12px)" : "none",
           }}
         >
           {/* Search + Reload */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
             <Input
-              prefix={<SearchOutlined style={{ color: "rgba(255,255,255,0.3)" }} />}
+              prefix={
+                <SearchOutlined
+                  style={{ color: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.25)" }}
+                />
+              }
               placeholder="Tìm kiếm quyền..."
               value={searchText}
               onChange={(e) => handleSearch(e.target.value)}
@@ -401,8 +452,11 @@ const PermissionManagement = () => {
                 width: 320,
                 borderRadius: 12,
                 height: 42,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
+                background: isDark ? "rgba(255,255,255,0.04)" : "#fff",
+                border: isDark
+                  ? "1px solid rgba(255,255,255,0.08)"
+                  : "1px solid #d9d9d9",
+                color: isDark ? "#fff" : "rgba(0,0,0,0.85)",
               }}
             />
             <Tooltip title="Tải lại">
@@ -424,12 +478,12 @@ const PermissionManagement = () => {
                   transition: "all 0.2s",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-                  e.currentTarget.style.color = "#fff";
+                  e.currentTarget.style.background = isDark ? "rgba(255,255,255,0.08)" : "#f0f0f0";
+                  e.currentTarget.style.color = isDark ? "#fff" : "rgba(0,0,0,0.85)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-                  e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+                  e.currentTarget.style.background = isDark ? "rgba(255,255,255,0.04)" : "transparent";
+                  e.currentTarget.style.color = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.45)";
                 }}
               >
                 <ReloadOutlined spin={loading} style={{ fontSize: 14 }} />
@@ -446,10 +500,16 @@ const PermissionManagement = () => {
             pagination={{
               pageSize: 8,
               showSizeChanger: false,
-              showTotal: (total, range) =>
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+              showTotal: (total, range) => (
+                <span
+                  style={{
+                    color: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.45)",
+                    fontSize: 13,
+                  }}
+                >
                   {range[0]}-{range[1]} / {total} quyền
-                </span>,
+                </span>
+              ),
               style: { marginBottom: 0, marginTop: 16 },
               itemRender: (page, type, originalElement) => {
                 const baseStyle: React.CSSProperties = {
@@ -528,7 +588,13 @@ const PermissionManagement = () => {
                   <PlusOutlined style={{ color: "#fff", fontSize: 16 }} />
                 )}
               </div>
-              <span style={{ fontWeight: 700, fontSize: 17, color: "#fff" }}>
+              <span
+                style={{
+                  fontWeight: 700,
+                  fontSize: 17,
+                  color: isDark ? "#fff" : "rgba(0,0,0,0.85)",
+                }}
+              >
                 {editingId ? "Chỉnh sửa quyền" : "Thêm quyền mới"}
               </span>
             </div>
@@ -554,9 +620,9 @@ const PermissionManagement = () => {
             style: {
               borderRadius: 10,
               height: 40,
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "rgba(255,255,255,0.6)",
+              background: isDark ? "rgba(255,255,255,0.06)" : "#f5f5f5",
+              border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid #d9d9d9",
+              color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.45)",
             },
           }}
           style={{ top: "15vh" }}
@@ -567,7 +633,16 @@ const PermissionManagement = () => {
         >
           <Form form={form} layout="vertical" size="large">
             <Form.Item
-              label={<span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>Tên quyền</span>}
+              label={
+                <span
+                  style={{
+                    color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.85)",
+                    fontWeight: 600,
+                  }}
+                >
+                  Tên quyền
+                </span>
+              }
               name="name"
               rules={[{ required: true, message: "Vui lòng nhập tên quyền!" }]}
             >
@@ -578,7 +653,16 @@ const PermissionManagement = () => {
               />
             </Form.Item>
             <Form.Item
-              label={<span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>Mô tả</span>}
+              label={
+                <span
+                  style={{
+                    color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.85)",
+                    fontWeight: 600,
+                  }}
+                >
+                  Mô tả
+                </span>
+              }
               name="description"
             >
               <Input.TextArea

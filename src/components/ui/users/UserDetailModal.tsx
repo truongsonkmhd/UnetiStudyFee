@@ -22,6 +22,7 @@ import {
   BookOutlined,
   CrownOutlined,
 } from "@ant-design/icons";
+import { useTheme } from "next-themes";
 import { useState } from "react";
 import { User } from "@/types/User";
 import { UserStatus } from "@/components/enum/UserStatus";
@@ -36,6 +37,9 @@ type Props = {
 };
 
 export default function UserDetailModal({ open, user, onClose }: Props) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const [openPromote, setOpenPromote] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
@@ -116,7 +120,7 @@ const roleTag = (roleName: string) => {
         title={null}
         bodyStyle={{
           padding: 0,
-          background: "#0f172a",
+          background: isDark ? "#0f172a" : "#fff",
           borderRadius: 16,
           overflow: "hidden",
         }}

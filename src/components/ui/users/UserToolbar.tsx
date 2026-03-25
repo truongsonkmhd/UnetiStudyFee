@@ -1,5 +1,6 @@
 import { Input, Tooltip } from "antd";
 import { SearchOutlined, ReloadOutlined, PlusOutlined } from "@ant-design/icons";
+import { useTheme } from "next-themes";
 
 type Props = {
   onSearch: (value: string) => void;
@@ -22,6 +23,9 @@ const btnBase: React.CSSProperties = {
 };
 
 const UserToolbar = ({ onSearch, onReload, onAdd, loading }: Props) => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   return (
     <div
       style={{
@@ -32,17 +36,26 @@ const UserToolbar = ({ onSearch, onReload, onAdd, loading }: Props) => {
       }}
     >
       <Input
-        prefix={<SearchOutlined style={{ color: "rgba(255,255,255,0.3)" }} />}
+        prefix={
+          <SearchOutlined
+            style={{ color: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.25)" }}
+          />
+        }
         placeholder="Tìm kiếm người dùng..."
         allowClear
         onPressEnter={(e) => onSearch((e.target as HTMLInputElement).value)}
-        onChange={(e) => { if (!e.target.value) onSearch(""); }}
+        onChange={(e) => {
+          if (!e.target.value) onSearch("");
+        }}
         style={{
           width: 320,
           borderRadius: 12,
           height: 42,
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: isDark ? "rgba(255,255,255,0.04)" : "#fff",
+          border: isDark
+            ? "1px solid rgba(255,255,255,0.08)"
+            : "1px solid #d9d9d9",
+          color: isDark ? "#fff" : "rgba(0,0,0,0.85)",
         }}
       />
 
@@ -52,17 +65,17 @@ const UserToolbar = ({ onSearch, onReload, onAdd, loading }: Props) => {
             onClick={onReload}
             style={{
               ...btnBase,
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              color: "rgba(255,255,255,0.6)",
+              background: isDark ? "rgba(255,255,255,0.04)" : "#f5f5f5",
+              border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid #d9d9d9",
+              color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.45)",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-              e.currentTarget.style.color = "#fff";
+              e.currentTarget.style.background = isDark ? "rgba(255,255,255,0.08)" : "#e8e8e8";
+              e.currentTarget.style.color = isDark ? "#fff" : "rgba(0,0,0,0.85)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-              e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+              e.currentTarget.style.background = isDark ? "rgba(255,255,255,0.04)" : "#f5f5f5";
+              e.currentTarget.style.color = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.45)";
             }}
           >
             <ReloadOutlined spin={loading} style={{ fontSize: 14 }} />
@@ -74,17 +87,24 @@ const UserToolbar = ({ onSearch, onReload, onAdd, loading }: Props) => {
           onClick={onAdd}
           style={{
             ...btnBase,
-            background: "rgba(255,255,255,0.12)",
-            border: "1px solid rgba(255,255,255,0.25)",
+            background: isDark
+              ? "rgba(255,255,255,0.12)"
+              : "linear-gradient(135deg, #4f46e5, #6366f1)",
+            border: isDark ? "1px solid rgba(255,255,255,0.25)" : "none",
             color: "#fff",
             fontWeight: 600,
-            backdropFilter: "blur(8px)",
+            backdropFilter: isDark ? "blur(8px)" : "none",
+            boxShadow: isDark ? "none" : "0 4px 12px rgba(79,70,229,0.2)",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(255,255,255,0.2)";
+            e.currentTarget.style.background = isDark
+              ? "rgba(255,255,255,0.2)"
+              : "linear-gradient(135deg, #4338ca, #4f46e5)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(255,255,255,0.12)";
+            e.currentTarget.style.background = isDark
+              ? "rgba(255,255,255,0.12)"
+              : "linear-gradient(135deg, #4f46e5, #6366f1)";
           }}
         >
           <PlusOutlined />

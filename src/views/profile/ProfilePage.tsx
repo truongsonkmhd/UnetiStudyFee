@@ -1,259 +1,471 @@
-export interface ExerciseTestCase {
-  testCaseId?: string;
-  input: string;
-  expectedOutput: string;
-  isPublic: boolean;
-  explanation?: string;
-  orderIndex?: number;
-}import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import defaultAvatar from "@/assets/img/avatar-default.png";
 import { Separator } from "@/components/ui/separator";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   User,
-  GraduationCap,
-  Clock,
-  LayoutList,
-  Inbox,
   ArrowLeft,
+  LayoutList,
+  Clock,
+  Inbox,
+  GraduationCap,
+  Hash,
+  School,
+  Building,
+  Phone,
+  Mail,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { actionAuth } from "@/components/context/AuthContext";
-
-type UserProfile = {
-  fullName: string;
-  username: string; // mã tài khoản
-  className?: string;
-  email?: string;
-  dob?: string; // dd/mm/yyyy
-  gender?: string;
-  address?: string;
-  bio?: string;
-  avatarInitials: string; // "LQ"
-};
-
-type JoinedClass = {
-  id: string;
-  stt: number;
-  subject: string;
-  group: string;
-  semester: string;
-  status: string;
-};
+import userService from "@/services/userService";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
-  const { jwtClaims } = actionAuth();
+  const { jwtClaims, hasRole, updateAvatar } = actionAuth();
   const navigate = useNavigate();
 
-  const joinedClasses: JoinedClass[] = [];
+  const [user, setUser] = useState<any>(null);
+  const [form, setForm] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+  const [showDetail, setShowDetail] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const userId = jwtClaims?.userID;
+
+  const isAdmin = hasRole(["ROLE_ADMIN", "Quản trị viên"]);
+  const canShowClass = !isAdmin;
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        if (!userId) return;
+
+        const data = await userService.getUserById(userId);
+
+        setUser(data);
+
+        // 🔥 CHUẨN HOÁ: chỉ dùng avatar
+        setForm({
+          ...data,
+          avatar: data.avatar,
+        });
+      } catch (err) {
+        console.error("Lỗi load user:", err);
+        toast.error("Không tải được thông tin người dùng");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [userId]);
+
+  // cleanup blob preview
+  useEffect(() => {
+    return () => {
+      if (form.avatar?.startsWith("blob:")) {
+        URL.revokeObjectURL(form.avatar);
+      }
+    };
+  }, [form.avatar]);
+
+  const handleChange = (key: string, value: any) => {
+    setForm((prev: any) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      // Tách avatar và các trường không liên quan ra khỏi payload cập nhật cơ bản
+      // Quan trọng: Tách 'roles' ra để Backend không tự động gán lại Role sinh viên
+      const { avatar, roles, ...rest } = form;
+
+      const payload = {
+        ...rest,
+        studentCode: form.studentID,
+        classCode: form.classID,
+        roles: null, // Đảm bảo Backend không cập nhật Role khi đang chỉnh sửa Profile
+      };
+
+      const updated = await userService.update(user.id, payload);
+
+      setUser(updated);
+      setForm({
+        ...updated,
+        avatar: updated.avatar,
+      });
+
+      setEditing(false);
+      toast.success("Cập nhật thông tin thành công 🎉");
+    } catch (err) {
+      console.error("Update failed", err);
+      toast.error("Cập nhật thất bại ❌");
+    }
+  };
+
+  const handleUploadAvatar = async (e: any) => {
+    try {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // validate
+      if (!file.type.startsWith("image/")) {
+        toast.error("Chỉ được chọn file ảnh");
+        return;
+      }
+
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("Ảnh tối đa 2MB");
+        return;
+      }
+
+      setUploading(true);
+
+      // preview trước
+      const preview = URL.createObjectURL(file);
+      setForm((prev: any) => ({
+        ...prev,
+        avatar: preview,
+      }));
+
+      const avatarUrl = await userService.uploadAvatar(user.id, file);
+
+      // update UI
+      setUser((prev: any) => ({
+        ...prev,
+        avatar: avatarUrl,
+      }));
+
+      setForm((prev: any) => ({
+        ...prev,
+        avatar: avatarUrl,
+      }));
+
+      // 🔥 Cập nhật Context toàn cục
+      updateAvatar(avatarUrl);
+
+      toast.success("Cập nhật avatar thành công 🎉");
+    } catch (err) {
+      console.error(err);
+      toast.error("Upload thất bại ❌");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-10 text-muted-foreground">
+        Đang tải dữ liệu...
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* HEADER */}
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-          title="Quay lại"
-        >
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-
         <h1 className="text-lg font-semibold">Hồ sơ người dùng</h1>
       </div>
 
       <div className="grid grid-cols-12 gap-6">
-        <Card className="col-span-12 lg:col-span-3 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center text-center">
-              <div className="h-44 w-44 rounded-full border-2 border-primary/20 bg-muted flex items-center justify-center shadow-inner">
-                <span className="text-6xl font-semibold text-muted-foreground/40">
-                  {/* {jwtClaims.userInfor?.avatar} */}
-                  <User size={80} />
-                </span>
+        {/* LEFT */}
+        <Card className="col-span-12 lg:col-span-3">
+          <CardContent className="p-6 flex flex-col items-center gap-4">
+
+            {/* AVATAR */}
+            <div className="h-24 w-24 rounded-full overflow-hidden bg-muted relative">
+              <img
+                src={
+                  form.avatar ||
+                  defaultAvatar
+                }
+                alt="avatar"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = defaultAvatar;
+                }}
+              />
+
+              {/* overlay upload */}
+              <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 text-white text-xs">
+                {uploading ? "Đang tải..." : "Đổi ảnh"}
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={handleUploadAvatar}
+                />
+              </label>
+            </div>
+
+            <div className="text-lg font-semibold">
+              {user?.fullName || jwtClaims?.userName}
+            </div>
+
+            <Button
+              className="w-full"
+              onClick={() => {
+                setShowDetail(true);
+                setEditing(false);
+              }}
+            >
+              Xem / Chỉnh sửa
+            </Button>
+
+
+            <div className="w-full space-y-4 text-sm mt-4">
+              {/* Nhóm tài khoản */}
+              <div className="space-y-1.5">
+                <InfoRow label="Tên tài khoản" value={user?.username} icon={<User className="h-3.5 w-3.5" />} />
+                {user?.studentID && <InfoRow label="Mã sinh viên" value={user.studentID} icon={<Hash className="h-3.5 w-3.5" />} />}
+                {user?.teacherID && <InfoRow label="Mã giảng viên" value={user.teacherID} icon={<Hash className="h-3.5 w-3.5" />} />}
+                {user?.classID && <InfoRow label="Lớp" value={user.classID} icon={<School className="h-3.5 w-3.5" />} />}
+                {user?.department && <InfoRow label="Khoa/Phòng" value={user.department} icon={<Building className="h-3.5 w-3.5" />} />}
               </div>
 
-              <div className="mt-4 text-red-700 font-semibold">
-                {/* {jwtClaims.userInfor?.fullName} */}
-              </div>
+              <Separator className="opacity-50" />
 
-              <Button className="mt-6 w-full font-bold shadow-lg shadow-primary/20">
-                Chỉnh sửa hồ sơ
-              </Button>
-
-              <div className="mt-5 w-full space-y-2 text-left text-sm">
-                <InfoRow
-                  icon={<User className="h-4 w-4" />}
-                  label="Tài khoản"
-                  value={
-                    jwtClaims.userName || ""
-                  }
-                />
-                <InfoRow
-                  icon={<GraduationCap className="h-4 w-4" />}
-                  label="Lớp"
-                  value={jwtClaims.classId || ""}
-                />
-                {/* <InfoRow
-                  icon={<Mail className="h-4 w-4" />}
-                  label="Email"
-                  value={
-                    jwtClaims.userInfor?.email || ""
-                  }
-                /> */}
-                {/* <InfoRow
-                  icon={<CalendarDays className="h-4 w-4" />}
-                  label="Ngày sinh"
-                  value={jwtClaims.userInfor?.birthday || ""}
-                />
-                <InfoRow
-                  icon={<Info className="h-4 w-4" />}
-                  label="Giới tính"
-                  value={jwtClaims.userInfor?.gender || ""}
-                />
-                <InfoRow
-                  icon={<MapPin className="h-4 w-4" />}
-                  label="Địa chỉ liên hệ"
-                  value={jwtClaims.userInfor?.contactAddress || ""}
-                />
-                <InfoRow
-                  icon={<Info className="h-4 w-4" />}
-                  label="Địa chỉ nơi ở hiện tại"
-                  value={jwtClaims.userInfor?.currentResidence || ""}
-                /> */}
+              {/* Nhóm liên lạc */}
+              <div className="space-y-1.5">
+                {user?.phone && <InfoRow label="SĐT" value={user.phone} icon={<Phone className="h-3.5 w-3.5" />} />}
+                {user?.email && <InfoRow label="Email" value={user.email} icon={<Mail className="h-3.5 w-3.5" />} />}
               </div>
             </div>
+
           </CardContent>
         </Card>
 
-        <Card className="col-span-12 lg:col-span-9 shadow-sm">
-          <CardHeader className="pb-0">
-            <CardTitle className="text-base"></CardTitle>
-          </CardHeader>
+        {/* RIGHT */}
+        <div className="col-span-12 lg:col-span-9">
+          <Tabs defaultValue="overview">
+            <TabsList className="bg-transparent gap-6">
+              <TabsTrigger value="overview">
+                <LayoutList className="h-4 w-4 mr-1" />
+                Tổng quan
+              </TabsTrigger>
+              <TabsTrigger value="history">
+                <Clock className="h-4 w-4 mr-1" />
+                Lịch sử
+              </TabsTrigger>
+            </TabsList>
 
-          <CardContent className="pt-3">
-            <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="bg-transparent p-0 gap-2">
-                <TabsTrigger
-                  value="overview"
-                  className="data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none font-bold"
-                >
-                  <LayoutList className="h-4 w-4 mr-2" />
-                  Tổng quan
-                </TabsTrigger>
+            <Separator className="my-3" />
 
-                <TabsTrigger
-                  value="history"
-                  className="data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none font-bold"
-                >
-                  <Clock className="h-4 w-4 mr-2" />
-                  Lịch sử
-                </TabsTrigger>
-              </TabsList>
+            <TabsContent value="overview">
+              <div className="text-center py-10 text-muted-foreground">
+                {isAdmin
+                  ? "Admin không có lớp học"
+                  : "Chưa có dữ liệu"}
+              </div>
+            </TabsContent>
 
-              <Separator className="my-3" />
+            <TabsContent value="history">
+              <div className="text-muted-foreground">
+                Chưa có dữ liệu lịch sử
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
 
-              <TabsContent value="overview" className="mt-0">
-                <SectionTitle title="Danh sách lớp học đã tham gia:" />
+      {/* MODAL */}
+      {showDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
 
-                <div className="rounded-xl border border-border overflow-hidden">
-                  <div className="bg-muted/50 px-3 py-2 border-b border-border">
-                    <div className="grid grid-cols-12 text-sm font-medium text-muted-foreground">
-                      <div className="col-span-1 text-center">STT</div>
-                      <div className="col-span-4">Môn học</div>
-                      <div className="col-span-2">Nhóm</div>
-                      <div className="col-span-3">Học kỳ</div>
-                      <div className="col-span-2">Trạng thái</div>
-                    </div>
+          <div
+            className="absolute inset-0 bg-black/20"
+            onClick={() => setShowDetail(false)}
+          />
+
+          <div className="relative z-10 w-full max-w-[650px] rounded-3xl bg-background border shadow-2xl p-8 space-y-6">
+            <div className="flex justify-between items-center pb-2">
+              <h2 className="text-2xl font-black bg-gradient-to-r from-primary to-slate-500 bg-clip-text text-transparent">
+                {editing ? "Chỉnh sửa thông tin" : "Thông tin chi tiết"}
+              </h2>
+              <Button variant="ghost" size="icon" onClick={() => setShowDetail(false)}>
+                ✕
+              </Button>
+            </div>
+
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+              {/* Nhóm 1: Thông tin cơ bản */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold text-primary flex items-center gap-2">
+                  <User className="h-4 w-4" /> Thông tin cơ bản
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1 col-span-2">
+                    <Label className="text-xs">Họ và tên</Label>
+                    <Input
+                      value={form.fullName || ""}
+                      disabled={!editing}
+                      onChange={(e) => handleChange("fullName", e.target.value)}
+                    />
                   </div>
-
-                  {joinedClasses.length === 0 ? (
-                    <EmptyState />
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[60px] text-center">
-                            STT
-                          </TableHead>
-                          <TableHead>Môn học</TableHead>
-                          <TableHead>Nhóm</TableHead>
-                          <TableHead>Học kỳ</TableHead>
-                          <TableHead>Trạng thái</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {joinedClasses.map((c) => (
-                          <TableRow key={c.id}>
-                            <TableCell className="text-center">
-                              {c.stt}
-                            </TableCell>
-                            <TableCell>{c.subject}</TableCell>
-                            <TableCell>{c.group}</TableCell>
-                            <TableCell>{c.semester}</TableCell>
-                            <TableCell>{c.status}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
+                  <div className="space-y-1">
+                    <Label className="text-xs">Ngày sinh</Label>
+                    <Input
+                      type="date"
+                      value={form.birthday ? new Date(form.birthday).toISOString().split('T')[0] : ""}
+                      disabled={!editing}
+                      onChange={(e) => handleChange("birthday", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Giới tính</Label>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                      value={form.gender || ""}
+                      disabled={!editing}
+                      onChange={(e) => handleChange("gender", e.target.value)}
+                    >
+                      <option value="MALE">Nam</option>
+                      <option value="FEMALE">Nữ</option>
+                      <option value="OTHER">Khác</option>
+                    </select>
+                  </div>
                 </div>
-              </TabsContent>
+              </div>
 
-              <TabsContent value="history" className="mt-0">
-                <SectionTitle title="Lịch sử hoạt động:" />
-                <div className="rounded-md border p-6 text-sm text-muted-foreground">
-                  Chưa có dữ liệu lịch sử.
+              {/* Nhóm 2: Liên lạc */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold text-primary flex items-center gap-2">
+                  <Mail className="h-4 w-4" /> Liên lạc
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1 col-span-2">
+                    <Label className="text-xs">Email</Label>
+                    <Input
+                      value={form.email || ""}
+                      disabled={!editing}
+                      onChange={(e) => handleChange("email", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1 col-span-2">
+                    <Label className="text-xs">Số điện thoại</Label>
+                    <Input
+                      value={form.phone || ""}
+                      disabled={!editing}
+                      onChange={(e) => handleChange("phone", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1 col-span-2">
+                    <Label className="text-xs">Hộ khẩu thường trú</Label>
+                    <Input
+                      value={form.currentResidence || ""}
+                      disabled={!editing}
+                      onChange={(e) => handleChange("currentResidence", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1 col-span-2">
+                    <Label className="text-xs">Địa chỉ liên hệ</Label>
+                    <Textarea
+                      value={form.contactAddress || ""}
+                      disabled={!editing}
+                      onChange={(e) => handleChange("contactAddress", e.target.value)}
+                    />
+                  </div>
                 </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
+              </div>
+
+              {/* Nhóm 3: Thông tin định danh (Chỉ hiện cho SV/GV) */}
+              {!isAdmin && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-primary flex items-center gap-2">
+                    <Building className="h-4 w-4" /> Danh tính & Đơn vị
+                  </h3>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-3 bg-muted/30 p-4 rounded-lg">
+                    {user?.studentID && (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-muted-foreground">Mã sinh viên</span>
+                        <span className="font-semibold">{user.studentID}</span>
+                      </div>
+                    )}
+                    {user?.classID && (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-muted-foreground">Lớp</span>
+                        <span className="font-semibold">{user.classID}</span>
+                      </div>
+                    )}
+                    {user?.teacherID && (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-muted-foreground">Mã giảng viên</span>
+                        <span className="font-semibold">{user.teacherID}</span>
+                      </div>
+                    )}
+                    {user?.department && (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-muted-foreground">Khoa/Phòng</span>
+                        <span className="font-semibold">{user.department}</span>
+                      </div>
+                    )}
+                    {user?.academicRank && (
+                      <div className="flex flex-col col-span-2 border-t pt-2 mt-1">
+                        <span className="text-xs text-muted-foreground">Học hàm/Học vị</span>
+                        <span className="font-semibold">{user.academicRank}</span>
+                      </div>
+                    )}
+                    {user?.specialization && (
+                      <div className="flex flex-col col-span-2">
+                        <span className="text-xs text-muted-foreground">Chuyên môn</span>
+                        <span className="font-semibold">{user.specialization}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-4 border-t mt-2">
+              {!editing ? (
+                <Button className="w-full h-11 text-lg font-bold" onClick={() => setEditing(true)}>
+                  Chỉnh sửa
+                </Button>
+              ) : (
+                <>
+                  <Button className="w-6/12 h-11 text-lg font-bold" onClick={handleSave}>Lưu thay đổi</Button>
+                  <Button
+                    variant="outline"
+                    className="w-6/12 h-11 text-lg font-bold"
+                    onClick={() => {
+                      setEditing(false);
+                      setForm(user);
+                    }}
+                  >
+                    Hủy
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function InfoRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
+/* COMPONENT */
+function InfoRow({ label, value, icon }: any) {
   return (
-    <div className="flex items-start gap-2 text-foreground/70">
-      <div className="mt-0.5 text-primary/70">{icon}</div>
-      <div className="flex-1">
-        <span className="font-bold text-xs uppercase tracking-tight text-muted-foreground">{label}:</span>{" "}
-        <div className="text-foreground font-semibold">{value || "N/A"}</div>
-      </div>
-    </div>
-  );
-}
-
-function SectionTitle({ title }: { title: string }) {
-  return <div className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-    <div className="w-1 h-4 bg-primary rounded-full" />
-    {title}
-  </div>;
-}
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-      <Inbox className="h-10 w-10 opacity-50" />
-      <div className="mt-2 text-sm">No data</div>
+    <div className="flex items-center gap-2 text-sm">
+      {icon && <span className="text-muted-foreground/70">{icon}</span>}
+      <span className="text-muted-foreground shrink-0">{label}: </span>
+      <span className="font-medium text-foreground truncate" title={value}>
+        {value || "N/A"}
+      </span>
     </div>
   );
 }

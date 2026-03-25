@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ConfigProvider, Form, message, theme as antTheme } from "antd";
+import { useTheme } from "next-themes";
 import dayjs from "dayjs";
 import { useUsers } from "@/hooks/useUsers";
 import { User } from "@/types/User";
@@ -14,48 +15,51 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 
-/* ── Ant Design dark theme ── */
-const darkTokens = {
-  algorithm: antTheme.darkAlgorithm,
+/* ── Ant Design theme tokens ── */
+const getThemeTokens = (isDark: boolean) => ({
+  algorithm: isDark ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
   token: {
-    colorBgContainer: "#141726",
-    colorBgElevated: "#1a1f36",
-    colorBorder: "rgba(255,255,255,0.08)",
-    colorText: "rgba(255,255,255,0.85)",
-    colorTextSecondary: "rgba(255,255,255,0.5)",
+    colorBgContainer: isDark ? "#141726" : "#fff",
+    colorBgElevated: isDark ? "#1a1f36" : "#fff",
+    colorBorder: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
+    colorText: isDark ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.85)",
+    colorTextSecondary: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.45)",
     colorPrimary: "#6366f1",
     borderRadius: 10,
   },
   components: {
     Table: {
-      headerBg: "rgba(99,102,241,0.06)",
-      headerColor: "rgba(255,255,255,0.5)",
-      rowHoverBg: "rgba(99,102,241,0.08)",
+      headerBg: isDark ? "rgba(99,102,241,0.06)" : "rgba(99,102,241,0.04)",
+      headerColor: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.45)",
+      rowHoverBg: isDark ? "rgba(99,102,241,0.08)" : "rgba(99,102,241,0.03)",
       colorBgContainer: "transparent",
-      borderColor: "rgba(255,255,255,0.06)",
+      borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
     },
     Modal: {
-      contentBg: "#1a1f36",
-      headerBg: "#1a1f36",
-      titleColor: "#fff",
+      contentBg: isDark ? "#1a1f36" : "#fff",
+      headerBg: isDark ? "#1a1f36" : "#fff",
+      titleColor: isDark ? "#fff" : "#000",
     },
     Input: {
-      colorBgContainer: "rgba(255,255,255,0.05)",
-      colorBorder: "rgba(255,255,255,0.1)",
-      colorText: "#fff",
-      colorTextPlaceholder: "rgba(255,255,255,0.3)",
+      colorBgContainer: isDark ? "rgba(255,255,255,0.05)" : "#fff",
+      colorBorder: isDark ? "rgba(255,255,255,0.1)" : "#d9d9d9",
+      colorText: isDark ? "#fff" : "rgba(0,0,0,0.85)",
+      colorTextPlaceholder: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.25)",
     },
     Select: {
-      colorBgContainer: "rgba(255,255,255,0.05)",
-      colorBorder: "rgba(255,255,255,0.1)",
-      colorText: "#fff",
+      colorBgContainer: isDark ? "rgba(255,255,255,0.05)" : "#fff",
+      colorBorder: isDark ? "rgba(255,255,255,0.1)" : "#d9d9d9",
+      colorText: isDark ? "#fff" : "rgba(0,0,0,0.85)",
       optionSelectedBg: "rgba(99,102,241,0.2)",
-      colorBgElevated: "#1a1f36",
+      colorBgElevated: isDark ? "#1a1f36" : "#fff",
     },
   },
-};
+});
 
 export default function ManagerPerson() {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const { users, total, page, loading, setPage, setKeyword, reload } = useUsers();
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -131,11 +135,13 @@ export default function ManagerPerson() {
   };
 
   return (
-    <ConfigProvider theme={darkTokens}>
+    <ConfigProvider theme={getThemeTokens(isDark)}>
       <div
         style={{
           minHeight: "100vh",
-          background: "linear-gradient(180deg, #0b0e1a 0%, #111427 40%, #0f1222 100%)",
+          background: isDark
+            ? "linear-gradient(180deg, #0b0e1a 0%, #111427 40%, #0f1222 100%)"
+            : "hsl(var(--background))",
           padding: "28px 32px",
         }}
       >
@@ -147,8 +153,12 @@ export default function ManagerPerson() {
             borderRadius: 20,
             padding: "32px 36px",
             marginBottom: 28,
-            background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%)",
-            boxShadow: "0 8px 40px rgba(99,102,241,0.25)",
+            background: isDark
+              ? "linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%)"
+              : "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)",
+            boxShadow: isDark
+              ? "0 8px 40px rgba(99,102,241,0.25)"
+              : "0 8px 30px rgba(99,102,241,0.15)",
           }}
         >
           {/* decorative blobs */}
@@ -177,7 +187,13 @@ export default function ManagerPerson() {
               <h2 style={{ color: "#fff", margin: 0, fontWeight: 800, fontSize: 24, letterSpacing: "-0.02em" }}>
                 Quản lý Người dùng
               </h2>
-              <p style={{ color: "rgba(199,210,254,0.7)", margin: "4px 0 0", fontSize: 14 }}>
+              <p
+                style={{
+                  color: isDark ? "rgba(199,210,254,0.7)" : "rgba(255,255,255,0.85)",
+                  margin: "4px 0 0",
+                  fontSize: 14,
+                }}
+              >
                 Quản lý toàn bộ tài khoản và quyền truy cập người dùng
               </p>
             </div>
@@ -187,12 +203,16 @@ export default function ManagerPerson() {
         {/* ── Table Card ── */}
         <div
           style={{
-            background: "rgba(20,23,38,0.8)",
+            background: isDark ? "rgba(20,23,38,0.8)" : "hsl(var(--card))",
             borderRadius: 20,
             padding: "24px 28px",
-            border: "1px solid rgba(255,255,255,0.06)",
-            boxShadow: "0 4px 30px rgba(0,0,0,0.3)",
-            backdropFilter: "blur(12px)",
+            border: isDark
+              ? "1px solid rgba(255,255,255,0.06)"
+              : "1px solid hsl(var(--border))",
+            boxShadow: isDark
+              ? "0 4px 30px rgba(0,0,0,0.3)"
+              : "0 4px 20px rgba(0,0,0,0.05)",
+            backdropFilter: isDark ? "blur(12px)" : "none",
           }}
         >
           <UserToolbar

@@ -1,4 +1,5 @@
 import { Table, Tag, Space, Tooltip, Popconfirm } from "antd";
+import { useTheme } from "next-themes";
 import {
   EyeOutlined,
   EditOutlined,
@@ -22,10 +23,10 @@ interface Props {
   onDetail: (user: User) => void;
 }
 
-const colLabel = (text: string) => (
+const colLabel = (text: string, isDark: boolean) => (
   <span
     style={{
-      color: "rgba(255,255,255,0.45)",
+      color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)",
       fontWeight: 600,
       fontSize: 11,
       textTransform: "uppercase",
@@ -36,13 +37,13 @@ const colLabel = (text: string) => (
   </span>
 );
 
-const genderLabel = (g: Gender | string) => {
+const genderLabel = (g: Gender | string, isDark: boolean) => {
   const key = g?.toUpperCase();
 
   const map: Record<string, { label: string; color: string }> = {
-    MALE: { label: "Nam", color: "#60a5fa" },
-    FEMALE: { label: "Nữ", color: "#f472b6" },
-    OTHER: { label: "Khác", color: "#a78bfa" },
+    MALE: { label: "Nam", color: isDark ? "#60a5fa" : "#2563eb" },
+    FEMALE: { label: "Nữ", color: isDark ? "#f472b6" : "#db2777" },
+    OTHER: { label: "Khác", color: isDark ? "#a78bfa" : "#7c3aed" },
   };
 
   const info = map[key] ?? { label: key, color: "#94a3b8" };
@@ -64,9 +65,12 @@ export default function UserTable({
   onDelete,
   onDetail,
 }: Props) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const columns = [
     {
-      title: colLabel("ID"),
+      title: colLabel("ID", isDark),
       width: 52,
       render: (_: any, __: User, index: number) => (
         <span
@@ -88,7 +92,7 @@ export default function UserTable({
       ),
     },
     {
-      title: colLabel("Họ tên"),
+      title: colLabel("Họ tên", isDark),
       dataIndex: "fullName",
       render: (name: string, record: User) => (
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -112,33 +116,47 @@ export default function UserTable({
             )}
           </div>
           <div>
-            <div style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600, fontSize: 13 }}>{name}</div>
-            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>{record.username}</div>
+            <div
+              style={{
+                color: isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)",
+                fontWeight: 600,
+                fontSize: 13,
+              }}
+            >
+              {name}
+            </div>
+            <div style={{ color: isDark ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.45)", fontSize: 11 }}>
+              {record.username}
+            </div>
           </div>
         </div>
       ),
     },
     {
-      title: colLabel("Email"),
+      title: colLabel("Email", isDark),
       dataIndex: "email",
       render: (email: string) => (
-        <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 13 }}>{email}</span>
+        <span style={{ color: isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.65)", fontSize: 13 }}>
+          {email}
+        </span>
       ),
     },
     {
-      title: colLabel("Điện thoại"),
+      title: colLabel("Điện thoại", isDark),
       dataIndex: "phone",
       render: (phone: string) => (
-        <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 13 }}>{phone ?? "—"}</span>
+        <span style={{ color: isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.65)", fontSize: 13 }}>
+          {phone ?? "—"}
+        </span>
       ),
     },
     {
-      title: colLabel("Giới tính"),
+      title: colLabel("Giới tính", isDark),
       dataIndex: "gender",
-      render: (g: Gender) => genderLabel(g),
+      render: (g: Gender) => genderLabel(g, isDark),
     },
     {
-      title: colLabel("Trạng thái"),
+      title: colLabel("Trạng thái", isDark),
       dataIndex: "status",
       render: (status: UserStatus | string) => {
         const key = status?.toUpperCase(); 
@@ -175,7 +193,7 @@ export default function UserTable({
     }
     },
     {
-      title: colLabel("Thao tác"),
+      title: colLabel("Thao tác", isDark),
       width: 140,
       render: (_: any, record: User) => (
         <Space size={6}>
@@ -290,7 +308,7 @@ export default function UserTable({
         total,
         showSizeChanger: false,
         showTotal: (tot, range) => (
-          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+          <span style={{ color: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.45)", fontSize: 13 }}>
             {range[0]}-{range[1]} / {tot} người dùng
           </span>
         ),

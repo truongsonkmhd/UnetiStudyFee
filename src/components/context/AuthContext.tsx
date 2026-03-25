@@ -21,6 +21,7 @@ interface AuthContextType {
   isLoading: boolean;
   hasRole: (allowedRoles: string[]) => boolean;
   hasPermission: (allowedPermissions: string[]) => boolean;
+  updateAvatar: (newAvatarUrl: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -81,6 +82,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return allowedPermissions.some((perm) => permissions.includes(perm));
   };
 
+  const updateAvatar = (newAvatarUrl: string) => {
+    setJwtClaims((prev) => {
+      if (!prev) return prev;
+      return { ...prev, avatar: newAvatarUrl };
+    });
+  };
+
   const value = {
     jwtClaims,
     isAuthenticated: !!jwtClaims,
@@ -91,6 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     hasRole,
     hasPermission,
+    updateAvatar,
   };
 
   return (

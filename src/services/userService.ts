@@ -42,7 +42,17 @@ const userService = {
     apiService.delete<string>(`${USER_BASE_ENDPOINT}/del/${id}`),
 
   promotetoTeacher: (id: string, data: any): Promise<User> => 
-    apiService.post<User>(`${USER_BASE_ENDPOINT}/promote-teacher/${id}`, data)
+    apiService.post<User>(`${USER_BASE_ENDPOINT}/promote-teacher/${id}`, data),
+
+  getUserById: (id: string): Promise<User> => 
+    apiService.get<User>(`${USER_BASE_ENDPOINT}/${id}`),
+
+  uploadAvatar: (id: string, file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiService.patch<string>(`${USER_BASE_ENDPOINT}/${id}/avatar`, formData);
+  },
+  
   
 }
 

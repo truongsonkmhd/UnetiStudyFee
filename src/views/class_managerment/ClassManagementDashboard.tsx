@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Users, Trophy, Clock, Search, Edit2, Trash2, Eye, AlertCircle, CheckCircle, XCircle, PlayCircle, Link, Copy, RefreshCw, ExternalLink, Brain } from 'lucide-react';
+import { Calendar, Plus, Users, Trophy, Clock, Search, Edit2, Trash2, Eye, AlertCircle, CheckCircle, XCircle, PlayCircle, Link, Copy, RefreshCw, ExternalLink, Brain, QrCode } from 'lucide-react';
+import { QRCode, Popover, Button } from 'antd';
 import { ClazzResponse } from '@/model/class/ClazzResponse';
 import classService from '@/services/classService';
 import classContestService from '@/services/classContestService';
@@ -354,10 +355,52 @@ const ClassManagementDashboard = () => {
                           Làm mới mã
                         </button>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-background border border-border px-3 py-2 rounded-lg font-mono text-sm text-foreground overflow-hidden whitespace-nowrap text-ellipsis">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex-1 min-w-[200px] bg-background border border-border px-3 py-2 rounded-lg font-mono text-sm text-foreground overflow-hidden whitespace-nowrap text-ellipsis">
                           {window.location.origin}/join-class?code={cls.inviteCode}
                         </div>
+                        <Popover
+                          content={
+                            <div className="p-3 bg-white rounded-xl flex flex-col items-center gap-3">
+                              <div id={`qr-code-${cls.classId}`} className="bg-white p-2 rounded-lg border border-slate-100">
+                                <QRCode 
+                                  value={`${window.location.origin}/join-class?code=${cls.inviteCode}`} 
+                                  size={200}
+                                  bordered={false}
+                                  errorLevel="H"
+                                />
+                              </div>
+                              <Button
+                                size="small"
+                                type="primary"
+                                className="w-full font-bold"
+                                onClick={() => {
+                                  const canvas = document.getElementById(`qr-code-${cls.classId}`)?.querySelector('canvas');
+                                  if (canvas) {
+                                    const url = canvas.toDataURL();
+                                    const a = document.createElement('a');
+                                    a.download = `QR_Lop_${cls.classCode}.png`;
+                                    a.href = url;
+                                    a.click();
+                                  }
+                                }}
+                              >
+                                Tải mã QR về máy
+                              </Button>
+                            </div>
+                          }
+                          title={<span className="font-bold text-foreground">Mã QR tham gia lớp</span>}
+                          trigger="click"
+                          placement="bottomRight"
+                        >
+                          <button
+                            className="flex items-center gap-2 px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-primary hover:text-white transition-all shadow-sm text-sm font-medium border border-border group"
+                          >
+                            <QrCode className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                            Mã QR
+                          </button>
+                        </Popover>
+
                         <button
                           onClick={() => copyInviteLink(cls.inviteCode || '')}
                           className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-all shadow-sm text-sm font-medium"
