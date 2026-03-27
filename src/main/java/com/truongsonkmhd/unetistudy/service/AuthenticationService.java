@@ -18,4 +18,10 @@ public interface AuthenticationService {
     void logout(LogoutDTORequest request) throws ParseException, JOSEException;
 
     IntrospectDTOResponse introspect(IntrospectDTORequest request) throws JOSEException, ParseException;
+
+    void forgotPasswordRequest(String email);
+
+    void verifyOtp(String email, String otp);
+
+    void resetPassword(String email, String otp, String newPassword);
 }

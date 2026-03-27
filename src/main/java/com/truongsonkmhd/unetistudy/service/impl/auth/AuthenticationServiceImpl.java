@@ -21,7 +21,10 @@ import com.truongsonkmhd.unetistudy.repository.UserRepository;
 import com.truongsonkmhd.unetistudy.repository.StudentProfileRepository;
 import com.truongsonkmhd.unetistudy.security.JwtService;
 import com.truongsonkmhd.unetistudy.security.MyUserDetail;
+import com.truongsonkmhd.unetistudy.repository.auth.OtpRepository;
 import com.truongsonkmhd.unetistudy.service.AuthenticationService;
+import com.truongsonkmhd.unetistudy.service.infrastructure.EmailService;
+import com.truongsonkmhd.unetistudy.model.Otp;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +72,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final InvalidatedTokenRepository invalidatedTokenRepository;
 
     private final StudentProfileRepository studentProfileRepository;
+
+    private final OtpRepository otpRepository;
+
+    private final EmailService emailService;
 
     @Transactional
     @Override
@@ -305,6 +312,62 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .build();
 
         invalidatedTokenRepository.save(invalidatedToken);
+    }
+
+    @Override
+    public void forgotPasswordRequest(String email) {
+        // 1. Check if user exists
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Email not found in our system"));
+
+        // 2. Generate 6-digit OTP
+        String otpCode = String.valueOf((int) (Math.random() * (999999 - 100000 + 1) + 100000));
+
+        // 3. Save OTP with 2 mins expiration
+        Otp otp = Otp.builder()
+                .user(user)
+                .otpCode(otpCode)
+                .expiryTime(Instant.now().plusSeconds(120)) // 2 minutes
+                .used(false)
+                .build();
+        otpRepository.save(otp);
+
+        // 4. Send Email
+        emailService.sendOtpEmail(email, otpCode);
+    }
+
+    @Override
+    public void verifyOtp(String email, String otpCode) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Otp otp = otpRepository.findByUserAndOtpCodeAndUsedFalse(user, otpCode)
+                .orElseThrow(() -> new RuntimeException("Invalid or already used OTP"));
+
+        if (otp.getExpiryTime().isBefore(Instant.now())) {
+            throw new RuntimeException("OTP has expired");
+        }
+    }
+
+    @Transactional
+    @Override
+    public void resetPassword(String email, String otpCode, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Otp otp = otpRepository.findByUserAndOtpCodeAndUsedFalse(user, otpCode)
+                .orElseThrow(() -> new RuntimeException("Invalid or already used OTP"));
+
+        if (otp.getExpiryTime().isBefore(Instant.now())) {
+            throw new RuntimeException("OTP has expired");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        // Mark OTP as used
+        otp.setUsed(true);
+        otpRepository.save(otp);
     }
 
     private SignedJWT verifyToken(String token) throws JOSEException, ParseException {

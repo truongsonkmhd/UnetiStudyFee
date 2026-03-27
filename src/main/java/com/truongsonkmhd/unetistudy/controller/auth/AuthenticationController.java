@@ -58,7 +58,7 @@ public class AuthenticationController {
     @PostMapping("/introspect")
     ApiResponse<IntrospectDTOResponse> authenticate(@RequestBody IntrospectDTORequest request)
             throws ParseException, JOSEException {
-        var result = authenticationService.introspect(request);
+        IntrospectDTOResponse result = authenticationService.introspect(request);
         return ApiResponse.<IntrospectDTOResponse>builder()
                 .result(result)
                 .build();
@@ -71,6 +71,27 @@ public class AuthenticationController {
         authenticationService.logout(request);
         return ApiResponse.<Void>builder()
                 .build();
+    }
+
+    @PostMapping("/forgot-password/request")
+    @Operation(summary = "Yêu cầu khôi phục mật khẩu (Gửi OTP)")
+    ResponseEntity<IResponseMessage> forgotPasswordRequest(@RequestBody ForgotPasswordRequest request) {
+        authenticationService.forgotPasswordRequest(request.getEmail());
+        return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess("OTP has been sent to your email."));
+    }
+
+    @PostMapping("/forgot-password/verify")
+    @Operation(summary = "Xác thực mã OTP")
+    ResponseEntity<IResponseMessage> verifyOtp(@RequestBody VerifyOtpRequest request) {
+        authenticationService.verifyOtp(request.getEmail(), request.getOtp());
+        return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess("OTP is valid."));
+    }
+
+    @PostMapping("/forgot-password/reset")
+    @Operation(summary = "Đặt lại mật khẩu mới")
+    ResponseEntity<IResponseMessage> resetPassword(@RequestBody ResetPasswordRequest request) {
+        authenticationService.resetPassword(request.getEmail(), request.getOtp(), request.getNewPassword());
+        return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess("Password has been reset successfully."));
     }
 
     // B1: Thêm id cho claimset

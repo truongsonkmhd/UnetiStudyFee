@@ -21,6 +21,19 @@ spring:
       max-request-size: 500MB
       enabled: true
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${SPRING_MAIL_USERNAME:your-email@gmail.com}
+    password: ${SPRING_MAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+
   rabbitmq:
     host: rabbitmq
     port: 5672
@@ -111,6 +124,7 @@ jhipster:
     allowed-origins:
       - "http://localhost:3000"
       - "http://localhost:5173"
+      - "http://localhost:8080"
     allowed-methods: "*"
     allowed-headers: "*"
     exposed-headers: "Authorization,Link,X-Total-Count,X-${jhipster.clientApp.name}-alert,X-${jhipster.clientApp.name}-error,X-${jhipster.clientApp.name}-params"
