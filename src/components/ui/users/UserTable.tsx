@@ -28,7 +28,7 @@ const colLabel = (text: string, isDark: boolean) => (
     style={{
       color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)",
       fontWeight: 600,
-      fontSize: 11,
+      fontSize: 13,
       textTransform: "uppercase",
       letterSpacing: 1,
     }}
@@ -49,7 +49,7 @@ const genderLabel = (g: Gender | string, isDark: boolean) => {
   const info = map[key] ?? { label: key, color: "#94a3b8" };
 
   return (
-    <span style={{ color: info.color, fontWeight: 500, fontSize: 13 }}>
+    <span style={{ color: info.color, fontWeight: 500, fontSize: 14 }}>
       {info.label}
     </span>
   );
@@ -83,7 +83,7 @@ export default function UserTable({
             borderRadius: 8,
             background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
             color: "#fff",
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: 700,
           }}
         >
@@ -120,12 +120,12 @@ export default function UserTable({
               style={{
                 color: isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)",
                 fontWeight: 600,
-                fontSize: 13,
+                fontSize: 14,
               }}
             >
               {name}
             </div>
-            <div style={{ color: isDark ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.45)", fontSize: 11 }}>
+            <div style={{ color: isDark ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.45)", fontSize: 13 }}>
               {record.username}
             </div>
           </div>
@@ -136,7 +136,7 @@ export default function UserTable({
       title: colLabel("Email", isDark),
       dataIndex: "email",
       render: (email: string) => (
-        <span style={{ color: isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.65)", fontSize: 13 }}>
+        <span style={{ color: isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.65)", fontSize: 14 }}>
           {email}
         </span>
       ),
@@ -145,7 +145,7 @@ export default function UserTable({
       title: colLabel("Điện thoại", isDark),
       dataIndex: "phone",
       render: (phone: string) => (
-        <span style={{ color: isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.65)", fontSize: 13 }}>
+        <span style={{ color: isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.65)", fontSize: 14 }}>
           {phone ?? "—"}
         </span>
       ),
@@ -166,11 +166,11 @@ export default function UserTable({
             style={{
             borderRadius: 20,
             fontWeight: 600,
-            fontSize: 12,
             padding: "2px 12px",
             border: "1px solid rgba(34,197,94,0.35)",
             background: "rgba(34,197,94,0.1)",
             color: "#4ade80",
+            fontSize: 14,
             }}
           >
             ACTIVE
@@ -180,11 +180,11 @@ export default function UserTable({
             style={{
               borderRadius: 20,
               fontWeight: 600,
-              fontSize: 12,
               padding: "2px 12px",
               border: "1px solid rgba(239,68,68,0.35)",
               background: "rgba(239,68,68,0.08)",
               color: "#f87171",
+              fontSize: 14,
             }}
           >
             {key}

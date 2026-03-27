@@ -97,13 +97,13 @@ const navigationItems: {
       requiredRoles: [RoleEnum.ROLE_STUDENT],
     },
     {
-      title: "Quản lý sinh viên và giáo viên",
+      title: "Quản lý người dùng",
       url: PATHS.MANAGER_PERSONS,
       icon: managerIcon,
       requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
     },
     {
-      title: "Quản lý quyền",
+      title: "Quản lý phân quyền",
       url: PATHS.MANAGER_INTEREST,
       icon: quyenIcon,
       requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],

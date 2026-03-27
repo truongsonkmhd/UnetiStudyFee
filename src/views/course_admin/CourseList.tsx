@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CourseCardResponse } from '@/model/course-admin/CourseCardResponse';
 import CourseService from '@/services/courseService';
-import { Search, Filter, Plus, Book, Trash2, Edit3, Eye, Calendar, Users, GraduationCap, Layers, Loader2 } from 'lucide-react';
+import { Search, Filter, Plus, Book, BookOpen, Trash2, Edit3, Eye, Calendar, Users, GraduationCap, Layers, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 
@@ -183,7 +183,10 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
       >
         <div className="space-y-1">
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">Quản lý nội dung học tập</h1>
-          <p className="text-muted-foreground font-medium">Xây dựng và tối ưu giảng đường số của bạn</p>
+          <p className="text-muted-foreground font-medium flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            Xây dựng và tối ưu giảng đường số của bạn
+          </p>
         </div>
         <button
           onClick={onCreate}

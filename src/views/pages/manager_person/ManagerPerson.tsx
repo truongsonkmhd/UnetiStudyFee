@@ -146,54 +146,15 @@ export default function ManagerPerson() {
         }}
       >
         {/* ── Header Banner ── */}
-        <div
-          style={{
-            position: "relative",
-            overflow: "hidden",
-            borderRadius: 20,
-            padding: "32px 36px",
-            marginBottom: 28,
-            background: isDark
-              ? "linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%)"
-              : "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)",
-            boxShadow: isDark
-              ? "0 8px 40px rgba(99,102,241,0.25)"
-              : "0 8px 30px rgba(99,102,241,0.15)",
-          }}
-        >
-          {/* decorative blobs */}
-          <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
-          <div style={{ position: "absolute", bottom: -30, right: 100, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }} />
-          <div style={{ position: "absolute", top: 20, left: "60%", width: 200, height: 200, borderRadius: "50%", background: "rgba(129,140,248,0.06)" }} />
-
-          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 18 }}>
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 16,
-                background: "rgba(255,255,255,0.1)",
-                backdropFilter: "blur(8px)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "1px solid rgba(255,255,255,0.15)",
-                flexShrink: 0,
-              }}
-            >
-              <TeamOutlined style={{ fontSize: 26, color: "#c7d2fe" }} />
-            </div>
-            <div>
-              <h2 style={{ color: "#fff", margin: 0, fontWeight: 800, fontSize: 24, letterSpacing: "-0.02em" }}>
-                Quản lý Người dùng
-              </h2>
-              <p
-                style={{
-                  color: isDark ? "rgba(199,210,254,0.7)" : "rgba(255,255,255,0.85)",
-                  margin: "4px 0 0",
-                  fontSize: 14,
-                }}
-              >
+        {/* ── Header Section ── */}
+        <div className="mb-8 overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+                Quản lý người dùng
+              </h1>
+              <p className="text-muted-foreground font-medium flex items-center gap-2">
+                <TeamOutlined className="w-4 h-4" />
                 Quản lý toàn bộ tài khoản và quyền truy cập người dùng
               </p>
             </div>

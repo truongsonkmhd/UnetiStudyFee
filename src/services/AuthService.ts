@@ -8,6 +8,9 @@ import { JwtClaims } from "@/types/JwtClaims";
 const LOGIN_ENDPOINT = "/authenticate";
 const LOGOUT_ENDPOINT = "/authenticate/logout";
 const REGISTER_ENDPOINT = "/authenticate/register";
+const FORGOT_PASSWORD_REQUEST = "/authenticate/forgot-password/request";
+const FORGOT_PASSWORD_VERIFY = "/authenticate/forgot-password/verify";
+const FORGOT_PASSWORD_RESET = "/authenticate/forgot-password/reset";
 
 const ACCESS_TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
@@ -94,6 +97,18 @@ const authService = {
   getAccessToken: (): string | null => getTokenFromAnyStorage(ACCESS_TOKEN_KEY),
   getRefreshToken: (): string | null =>
     getTokenFromAnyStorage(REFRESH_TOKEN_KEY),
+
+  forgotPasswordRequest: (email: string) => {
+    return apiService.post(FORGOT_PASSWORD_REQUEST, { email });
+  },
+
+  verifyOtp: (email: string, otp: string) => {
+    return apiService.post(FORGOT_PASSWORD_VERIFY, { email, otp });
+  },
+
+  resetPassword: (payload: any) => {
+    return apiService.post(FORGOT_PASSWORD_RESET, payload);
+  },
 
   clear: () => clearAuthStorage(),
 };

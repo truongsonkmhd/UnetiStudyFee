@@ -14,9 +14,10 @@ import logoUneti from "@/assets/img/logo_uneti.png";
 import { FormInputComp } from "@/components/ui/FormInput";
 import { X } from "lucide-react";
 import { FormSelectComp } from "@/components/ui/FormSelect";
+import ForgotPasswordFlow from "./ForgotPasswordFlow";
 
 export default function AuthScreen() {
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register" | "forgot">("login");
 
   return (
     <div className="min-h-screen bg-white">
@@ -59,10 +60,20 @@ export default function AuthScreen() {
       <main className="px-4">
         <div className="mx-auto max-w-[1100px] py-10">
           <div className="grid place-items-center">
-            {!isRegisterMode ? (
-              <LoginCard onSwitchToRegister={() => setIsRegisterMode(true)} />
-            ) : (
-              <RegisterCard onSwitchToLogin={() => setIsRegisterMode(false)} />
+            {authMode === "login" && (
+              <LoginCard
+                onSwitchToRegister={() => setAuthMode("register")}
+                onForgotPassword={() => setAuthMode("forgot")}
+              />
+            )}
+            {authMode === "register" && (
+              <RegisterCard onSwitchToLogin={() => setAuthMode("login")} />
+            )}
+            {authMode === "forgot" && (
+              <ForgotPasswordFlow
+                onBackToLogin={() => setAuthMode("login")}
+                onSuccess={() => setAuthMode("login")}
+              />
             )}
           </div>
         </div>
@@ -71,7 +82,13 @@ export default function AuthScreen() {
   );
 }
 
-function LoginCard({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
+function LoginCard({
+  onSwitchToRegister,
+  onForgotPassword,
+}: {
+  onSwitchToRegister: () => void;
+  onForgotPassword: () => void;
+}) {
   return (
     <Card className="w-full max-w-[440px] shadow-lg border rounded-lg overflow-hidden">
       {/* Background inside card (nhẹ, giống ảnh) */}
@@ -92,7 +109,10 @@ function LoginCard({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
 
           {/* Form */}
           <div className="mt-6">
-            <SignIn onSwitchToRegister={onSwitchToRegister} />
+            <SignIn
+              onSwitchToRegister={onSwitchToRegister}
+              onForgotPassword={onForgotPassword}
+            />
           </div>
         </CardContent>
       </div>
@@ -100,7 +120,13 @@ function LoginCard({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
   );
 }
 
-function SignIn({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
+function SignIn({
+  onSwitchToRegister,
+  onForgotPassword,
+}: {
+  onSwitchToRegister: () => void;
+  onForgotPassword: () => void;
+}) {
   const { login } = actionAuth();
   const navigate = useNavigate();
 
@@ -204,9 +230,7 @@ function SignIn({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
           <button
             type="button"
             className="text-sm text-red-600 hover:underline"
-            onClick={() =>
-              toast.info("Chức năng quên mật khẩu (chưa triển khai)")
-            }
+            onClick={onForgotPassword}
           >
             Quên mật khẩu?
           </button>

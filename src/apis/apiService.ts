@@ -72,6 +72,7 @@ const apiService = {
   postDowload<T>(url: string, body?: object): Promise<any> {
     return axiosClientDowload.postDowload<T>(url, body);
   },
+
 };
 
 export default apiService;
