@@ -138,6 +138,9 @@ const codingExerciseTemplateService = {
       .replace(/[^\w\s-]/g, "")
       .replace(/[\s_-]+/g, "-")
       .replace(/^-+|-+$/g, ""),
+
+  togglePublish: (id: string, published: boolean): Promise<ApiResponse<any>> =>
+    apiService.patch(`${CODING_EXERCISE_TEMPLATE_ENDPOINT}/${id}/publish`, { published }),
 };
 
 export default codingExerciseTemplateService;

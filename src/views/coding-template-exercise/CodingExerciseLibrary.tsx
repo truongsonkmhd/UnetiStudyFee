@@ -162,8 +162,21 @@ const CodingExerciseLibrary: React.FC = () => {
     };
 
     const handleToggleStatus = async (templateId: string, currentStatus: boolean) => {
+        const action = currentStatus ? 'gỡ xuất bản' : 'xuất bản';
+        if (!window.confirm(`Bạn có muốn ${action} bài tập này không?`)) return;
 
-        toast.info('Tính năng đang được phát triển');
+        try {
+            await codingExerciseTemplateService.togglePublish(templateId, !currentStatus);
+            toast.success(`${currentStatus ? 'Gỡ xuất bản' : 'Xuất bản'} thành công`);
+
+            // Update local state
+            setTemplates(prev => prev.map(t =>
+                t.templateId === templateId ? { ...t, isPublished: !currentStatus } : t
+            ));
+        } catch (err: any) {
+            toast.error(`Không thể ${action} bài tập`);
+            console.error(err);
+        }
     };
 
     const handleDelete = async (templateId: string) => {

@@ -31,6 +31,17 @@ const classService = {
       apiService.get<UserResponse[]>(
         `${ADMIN_BASE_ENDPOINT}/${classId}/students`
       ),
+
+    update: (classId: string, payload: CreateClazzRequest): Promise<ClazzResponse> =>
+      apiService.put<ClazzResponse>(
+        `${ADMIN_BASE_ENDPOINT}/update/${classId}`,
+        payload
+      ),
+
+    delete: (classId: string): Promise<void> =>
+      apiService.delete<void>(
+        `${ADMIN_BASE_ENDPOINT}/delete/${classId}`
+      ),
   },
 
   student: {

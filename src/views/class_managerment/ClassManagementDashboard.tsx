@@ -20,6 +20,8 @@ const ClassManagementDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterActive, setFilterActive] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [editingClassId, setEditingClassId] = useState<string | null>(null);
 
   const [classes, setClasses] = useState<ClazzResponse[]>([]);
   const [selectedClassContests, setSelectedClassContests] = useState<ClassContestResponse[]>([]);
@@ -41,10 +43,9 @@ const ClassManagementDashboard = () => {
 
   const handleCreateClass = async () => {
     try {
-
       setLoading(true);
 
-      await classService.admin.create({
+      const payload = {
         classCode: createForm.classCode,
         className: createForm.className,
         instructorId: jwtClaims.userID,
@@ -53,30 +54,74 @@ const ClassManagementDashboard = () => {
           ? new Date(createForm.endDate).toISOString()
           : null,
         maxStudents: createForm.maxStudents
-      });
+      };
+
+      if (isEdit && editingClassId) {
+        await classService.admin.update(editingClassId, payload);
+        toast.success("Cập nhật lớp học thành công!");
+      } else {
+        await classService.admin.create(payload);
+        toast.success("Tạo lớp học thành công!");
+      }
 
       // reload danh sách lớp
       const data = await classService.admin.getAll();
       setClasses(data);
 
-      // đóng modal + reset form
-      setShowCreateModal(false);
-      setCreateForm({
-        classCode: "",
-        className: "",
-        startDate: "",
-        endDate: "",
-        maxStudents: 0
-      });
-
-      toast.success("Tạo lớp học thành công!");
+      handleCloseModal();
     } catch (e) {
       console.error(e);
-      toast.error("Tạo lớp học thất bại!");
+      toast.error(isEdit ? "Cập nhật lớp học thất bại!" : "Tạo lớp học thất bại!");
     } finally {
       setLoading(false);
     }
   }
+
+  const handleEditClick = (cls: ClazzResponse) => {
+    setEditingClassId(cls.classId || null);
+    setIsEdit(true);
+    setCreateForm({
+      classCode: cls.classCode || "",
+      className: cls.className || "",
+      startDate: cls.startDate ? cls.startDate.split('T')[0] : "",
+      endDate: cls.endDate ? cls.endDate.split('T')[0] : "",
+      maxStudents: cls.maxStudents || 0
+    });
+    setShowCreateModal(true);
+  };
+
+  const handleDeleteClass = async (classId: string) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa lớp học này? Hành động này không thể hoàn tác.")) return;
+    try {
+      setLoading(true);
+      await classService.admin.delete(classId);
+      toast.success("Đã xóa lớp học thành công");
+      const data = await classService.admin.getAll();
+      setClasses(data);
+      if (selectedClass?.classId === classId) {
+        setSelectedClass(null);
+        setSelectedClassContests([]);
+      }
+    } catch (err) {
+      console.error("Error deleting class:", err);
+      toast.error("Không thể xóa lớp học");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowCreateModal(false);
+    setIsEdit(false);
+    setEditingClassId(null);
+    setCreateForm({
+      classCode: "",
+      className: "",
+      startDate: "",
+      endDate: "",
+      maxStudents: 0
+    });
+  };
 
 
   useEffect(() => {
@@ -222,7 +267,18 @@ const ClassManagementDashboard = () => {
             </p>
           </div>
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              setIsEdit(false);
+              setEditingClassId(null);
+              setCreateForm({
+                classCode: "",
+                className: "",
+                startDate: "",
+                endDate: "",
+                maxStudents: 0
+              });
+              setShowCreateModal(true);
+            }}
             className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
           >
             <Plus size={20} />
@@ -308,10 +364,18 @@ const ClassManagementDashboard = () => {
                     >
                       <Eye className="w-5 h-5" />
                     </button>
-                    <button className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors" title="Edit">
+                    <button
+                      onClick={() => handleEditClick(cls)}
+                      className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+                      title="Edit"
+                    >
                       <Edit2 className="w-5 h-5" />
                     </button>
-                    <button className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors" title="Delete">
+                    <button
+                      onClick={() => cls.classId && handleDeleteClass(cls.classId)}
+                      className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                      title="Delete"
+                    >
                       <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
@@ -363,8 +427,8 @@ const ClassManagementDashboard = () => {
                           content={
                             <div className="p-3 bg-white rounded-xl flex flex-col items-center gap-3">
                               <div id={`qr-code-${cls.classId}`} className="bg-white p-2 rounded-lg border border-slate-100">
-                                <QRCode 
-                                  value={`${window.location.origin}/join-class?code=${cls.inviteCode}`} 
+                                <QRCode
+                                  value={`${window.location.origin}/join-class?code=${cls.inviteCode}`}
                                   size={200}
                                   bordered={false}
                                   errorLevel="H"
@@ -553,7 +617,9 @@ const ClassManagementDashboard = () => {
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-xl shadow-xl border border-border max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-border">
-              <h2 className="text-xl font-bold text-foreground">Tạo lớp học mới</h2>
+              <h2 className="text-xl font-bold text-foreground">
+                {isEdit ? 'Chỉnh sửa lớp học' : 'Tạo lớp học mới'}
+              </h2>
             </div>
             <div className="p-6">
               <div className="space-y-4">
@@ -621,7 +687,7 @@ const ClassManagementDashboard = () => {
             </div>
             <div className="p-6 border-t border-border flex justify-end gap-3">
               <button
-                onClick={() => setShowCreateModal(false)}
+                onClick={handleCloseModal}
                 className="px-4 py-2.5 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors font-medium"
               >
                 Hủy
@@ -630,7 +696,7 @@ const ClassManagementDashboard = () => {
                 onClick={handleCreateClass}
                 className="px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors font-bold shadow-lg shadow-primary/20"
               >
-                Tạo lớp học
+                {isEdit ? 'Lưu thay đổi' : 'Tạo lớp học'}
               </button>
             </div>
           </div>
