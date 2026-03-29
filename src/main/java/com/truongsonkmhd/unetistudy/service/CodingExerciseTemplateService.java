@@ -33,4 +33,5 @@ public interface CodingExerciseTemplateService {
         CursorResponse<CodingExerciseTemplateCardResponse> searchTemplatesCursor(
                         String cursor, int size, String q, Difficulty difficulty,
                         String category, String language);
+        CodingExerciseTemplate togglePublish(UUID id, boolean published);
 }

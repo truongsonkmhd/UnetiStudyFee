@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -115,5 +116,16 @@ public class CodingExerciseTemplateController {
                 return ResponseEntity.ok(
                                 codingExerciseTemplateService.searchTemplatesCursor(cursor, size, q, difficulty,
                                                 category, language));
+        }
+
+        @PatchMapping("/{id}/publish")
+        @Operation(summary = "Toggle publish status of coding exercise template")
+        public ResponseEntity<IResponseMessage> togglePublish(
+                        @PathVariable UUID id,
+                        @RequestBody Map<String, Boolean> request) {
+                boolean published = request.getOrDefault("published", false);
+                codingExerciseTemplateService.togglePublish(id, published);
+                return ResponseEntity.ok(
+                                ResponseMessage.UpdatedSuccess(id));
         }
 }

@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -14,7 +15,9 @@ import java.time.Instant;
 public class UpdateClazzRequest {
 
     String className;
+    UUID instructorId;
     Instant startDate;
     Instant endDate;
+    Integer maxStudents;
     Boolean isActive;
 }

@@ -317,4 +317,21 @@ public class CodingExerciseTemplateServiceImpl implements CodingExerciseTemplate
                 .hasNext(hasNext)
                 .build();
     }
+
+    @Override
+    @Transactional
+    public CodingExerciseTemplate togglePublish(UUID id, boolean published) {
+        log.info("Toggling publish status for coding exercise template: {} to {}", id, published);
+
+        CodingExerciseTemplate template = repository.findById(id)
+                .orElseThrow(() -> new com.truongsonkmhd.unetistudy.exception.custom_exception.ResourceNotFoundException("CodingExerciseTemplate", id));
+
+        template.setIsPublished(published);
+        CodingExerciseTemplate saved = repository.save(template);
+
+        // Xóa cache sau khi cập nhật thành công (evictTemplateById also evicts list)
+        exerciseCacheService.evictTemplateById(id);
+
+        return saved;
+    }
 }

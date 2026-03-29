@@ -11,6 +11,6 @@ import java.util.UUID;
 @Repository
 public interface ClassRepository extends JpaRepository<Clazz, UUID> {
     Optional<Clazz> findByInviteCode(String inviteCode);
-
+    Optional<Clazz> findByClassCode(String classCode);
     List<Clazz> findByStudents_Id(UUID studentId);
 }

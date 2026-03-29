@@ -2,6 +2,7 @@ package com.truongsonkmhd.unetistudy.service;
 
 import com.truongsonkmhd.unetistudy.dto.class_dto.ClazzResponse;
 import com.truongsonkmhd.unetistudy.dto.class_dto.CreateClazzRequest;
+import com.truongsonkmhd.unetistudy.dto.class_dto.UpdateClazzRequest;
 import com.truongsonkmhd.unetistudy.dto.user_dto.UserResponse;
 
 import java.util.List;
@@ -10,9 +11,12 @@ import java.util.UUID;
 public interface ClassService {
     ClazzResponse saveClass(CreateClazzRequest createClazzRequest);
 
-    List<ClazzResponse> getALlClass();
+    ClazzResponse updateClass(UUID classId, UpdateClazzRequest updateClazzRequest);
 
+    List<ClazzResponse> getALlClass();
+    void deleteClass(UUID classId);
     ClazzResponse regenerateInviteCode(UUID classId);
+
 
     void joinClass(String inviteCode, UUID studentId);
 

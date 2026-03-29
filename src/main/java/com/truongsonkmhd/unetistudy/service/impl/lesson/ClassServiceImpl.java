@@ -2,6 +2,7 @@ package com.truongsonkmhd.unetistudy.service.impl.lesson;
 
 import com.truongsonkmhd.unetistudy.dto.class_dto.ClazzResponse;
 import com.truongsonkmhd.unetistudy.dto.class_dto.CreateClazzRequest;
+import com.truongsonkmhd.unetistudy.dto.class_dto.UpdateClazzRequest;
 import com.truongsonkmhd.unetistudy.dto.contest_lesson.ClassContestResponse;
 import com.truongsonkmhd.unetistudy.mapper.user.UserResponseMapper;
 import com.truongsonkmhd.unetistudy.model.User;
@@ -43,8 +44,12 @@ public class ClassServiceImpl implements ClassService {
         @Override
         public ClazzResponse saveClass(CreateClazzRequest createClazzRequest) {
 
+                if (classRepository.findByClassCode(createClazzRequest.getClassCode()).isPresent()) {
+                        throw new BusinessRuleException("Class code đã tồn tại!");
+                }
+
                 User user = userRepository.findById(createClazzRequest.getInstructorId())
-                                .orElseThrow(() -> new RuntimeException("Instructor not found"));
+                                .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
 
                 Clazz clazz = Clazz.builder()
                                 .classCode(createClazzRequest.getClassCode())
@@ -58,18 +63,37 @@ public class ClassServiceImpl implements ClassService {
 
                 Clazz clazzSaved = classRepository.save(clazz);
 
-                return ClazzResponse.builder()
-                                .classId(clazzSaved.getClassId())
-                                .classCode(clazzSaved.getClassCode())
-                                .className(clazzSaved.getClassName())
-                                .instructorName(clazzSaved.getInstructor().getFullName())
-                                .inviteCode(clazzSaved.getInviteCode())
-                                .startDate(clazzSaved.getStartDate())
-                                .endDate(clazzSaved.getEndDate())
-                                .isActive(clazzSaved.getIsActive())
-                                .createdAt(clazzSaved.getCreatedAt())
-                                .updatedAt(clazzSaved.getUpdatedAt())
-                                .build();
+                return mapToResponse(clazzSaved);
+        }
+
+        @Override
+        public ClazzResponse updateClass(UUID classId, UpdateClazzRequest updateClazzRequest) {
+                Clazz clazz = classRepository.findById(classId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học"));
+
+                if (updateClazzRequest.getClassName() != null) {
+                        clazz.setClassName(updateClazzRequest.getClassName());
+                }
+                if (updateClazzRequest.getInstructorId() != null) {
+                        User instructor = userRepository.findById(updateClazzRequest.getInstructorId())
+                                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy giảng viên"));
+                        clazz.setInstructor(instructor);
+                }
+                if (updateClazzRequest.getStartDate() != null) {
+                        clazz.setStartDate(updateClazzRequest.getStartDate());
+                }
+                if (updateClazzRequest.getEndDate() != null) {
+                        clazz.setEndDate(updateClazzRequest.getEndDate());
+                }
+                if (updateClazzRequest.getMaxStudents() != null) {
+                        clazz.setMaxStudents(updateClazzRequest.getMaxStudents());
+                }
+                if (updateClazzRequest.getIsActive() != null) {
+                        clazz.setIsActive(updateClazzRequest.getIsActive());
+                }
+
+                Clazz saved = classRepository.save(clazz);
+                return mapToResponse(saved);
         }
 
         @Override
@@ -79,6 +103,13 @@ public class ClassServiceImpl implements ClassService {
                 return classes.stream()
                                 .map(this::mapToResponse)
                                 .toList();
+        }
+
+        @Override
+        public void deleteClass(UUID classId) {
+                Clazz clazz = classRepository.findById(classId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học"));
+                classRepository.delete(clazz);
         }
 
         @Override
