@@ -144,3 +144,7 @@ logging:
     org.springframework: INFO
     org.apache: OFF
     kafka: OFF
+
+# ML Service (FastAPI - UnetistudyML)
+ml-service:
+  url: ${ML_SERVICE_URL:http://localhost:8000}

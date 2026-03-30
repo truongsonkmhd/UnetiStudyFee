@@ -45,4 +45,10 @@ public class StudentClassController {
     public ResponseEntity<IResponseMessage> getClassById(@PathVariable UUID classId) {
         return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(classService.findById(classId)));
     }
+
+    @GetMapping("/{classId}/courses")
+    @Operation(summary = "Get required courses of a class (student view)")
+    public ResponseEntity<IResponseMessage> getCoursesInClass(@PathVariable UUID classId) {
+        return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(classService.getCoursesInClass(classId)));
+    }
 }

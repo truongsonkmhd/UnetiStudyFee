@@ -226,12 +226,10 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         Course course = courseRepository.findById(theId)
                 .orElseThrow(() -> new DataNotFoundException("course not found: " + theId));
 
-        // 1. Delete image from storage
         if (course.getImageUrl() != null && !course.getImageUrl().isBlank()) {
             storageService.deleteFile(course.getImageUrl());
         }
 
-        // 2. Cleanup student data for all modules in this course to avoid FK violations
         for (CourseModule module : course.getModules()) {
             cleanupStudentDataForModule(module);
         }
@@ -258,8 +256,7 @@ public class CourseTreeServiceImpl implements CourseTreeService {
     public PageResponse<CourseCardResponse> getAllCourses(Integer page, Integer size, String q, String status,
             String category) {
         log.debug("getAllCourses - page={}, size={}, q={}, status={}, category={}", page, size, q, status, category);
-        return courseCacheService.getCourseCatalog(page, size, q, status, category,
-                () -> this.queryCourseCatalog(page, size, q, status, category));
+        return queryCourseCatalog(page, size, q, status, category);
     }
 
     /**

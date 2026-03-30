@@ -34,6 +34,5 @@ public class ClazzResponse {
     Instant createdAt;
     Instant updatedAt;
 
-    // Contests trong lớp
     List<ClassContestResponse> contests;
 }

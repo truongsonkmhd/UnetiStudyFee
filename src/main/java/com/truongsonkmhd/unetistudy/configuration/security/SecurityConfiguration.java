@@ -123,6 +123,16 @@ public class SecurityConfiguration {
                                                                                 AuthoritiesConstants.TEACHER,
                                                                                 AuthoritiesConstants.STUDENT)
                                                                 .requestMatchers(mvc.pattern(
+                                                                                "/api/student/class-contests/**"))
+                                                                .hasAnyAuthority(AuthoritiesConstants.ADMIN,
+                                                                                AuthoritiesConstants.SYS_ADMIN,
+                                                                                AuthoritiesConstants.TEACHER,
+                                                                                AuthoritiesConstants.STUDENT)
+                                                                .requestMatchers(mvc.pattern("/api/class/**"))
+                                                                .hasAnyAuthority(AuthoritiesConstants.ADMIN,
+                                                                                AuthoritiesConstants.SYS_ADMIN,
+                                                                                AuthoritiesConstants.TEACHER)
+                                                                .requestMatchers(mvc.pattern(
                                                                                 "/api/admin/quiz-templates/**"))
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
                                                                                 AuthoritiesConstants.SYS_ADMIN,

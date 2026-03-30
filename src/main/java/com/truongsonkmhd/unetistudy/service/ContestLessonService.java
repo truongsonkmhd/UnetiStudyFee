@@ -23,5 +23,13 @@ public interface ContestLessonService {
                         int size,
                         String q);
 
+        ContestLessonResponseDTO updateContestLesson(UUID id, ContestLessonRequestDTO request);
+        
+        void deleteContestLesson(UUID id);
+
+        void archiveContestLesson(UUID id);
+
         void publishContestLesson(UUID id);
+
+        void updateStatus(UUID id, StatusContest status);
 }

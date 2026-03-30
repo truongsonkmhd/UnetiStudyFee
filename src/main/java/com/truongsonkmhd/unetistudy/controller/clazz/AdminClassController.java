@@ -2,6 +2,7 @@ package com.truongsonkmhd.unetistudy.controller.clazz;
 
 import com.truongsonkmhd.unetistudy.dto.a_common.IResponseMessage;
 import com.truongsonkmhd.unetistudy.dto.a_common.ResponseMessage;
+import com.truongsonkmhd.unetistudy.dto.class_dto.ClassCourseRequest;
 import com.truongsonkmhd.unetistudy.dto.class_dto.CreateClazzRequest;
 import com.truongsonkmhd.unetistudy.service.ClassService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,5 +45,32 @@ public class AdminClassController {
     @Operation(summary = "Get list of students in a class")
     public ResponseEntity<IResponseMessage> getStudentsInClass(@PathVariable UUID classId) {
         return ResponseEntity.ok().body(ResponseMessage.LoadedSuccess(classService.getStudentsInClass(classId)));
+    }
+
+    // ====== Class-Course Management ======
+
+    @PostMapping("/{classId}/courses")
+    @Operation(summary = "Gán khóa học bắt buộc vào lớp (giáo viên)")
+    public ResponseEntity<IResponseMessage> addCoursesToClass(
+            @PathVariable UUID classId,
+            @RequestBody ClassCourseRequest request) {
+        return ResponseEntity.ok().body(
+                ResponseMessage.CreatedSuccess(classService.addCoursesToClass(classId, request)));
+    }
+
+    @DeleteMapping("/{classId}/courses/{courseId}")
+    @Operation(summary = "Gỡ khóa học khỏi lớp (giáo viên)")
+    public ResponseEntity<IResponseMessage> removeCourseFromClass(
+            @PathVariable UUID classId,
+            @PathVariable UUID courseId) {
+        classService.removeCourseFromClass(classId, courseId);
+        return ResponseEntity.ok().body(ResponseMessage.DeletedSuccess(null));
+    }
+
+    @GetMapping("/{classId}/courses")
+    @Operation(summary = "Xem danh sách khóa học bắt buộc của lớp")
+    public ResponseEntity<IResponseMessage> getCoursesInClass(@PathVariable UUID classId) {
+        return ResponseEntity.ok().body(
+                ResponseMessage.LoadedSuccess(classService.getCoursesInClass(classId)));
     }
 }

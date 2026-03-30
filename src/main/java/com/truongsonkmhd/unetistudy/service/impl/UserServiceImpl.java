@@ -39,9 +39,6 @@ import com.truongsonkmhd.unetistudy.utils.SortBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Service quản lý User với tích hợp Caching
- */
 @Service
 @Slf4j(topic = "USER-SERVICE")
 @RequiredArgsConstructor
@@ -120,8 +117,9 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public UserResponse saveStudent(StudentCreateRequest req) {
         validateUniqueness(req.getUsername(), req.getEmail(), req.getStudentCode(), null);
-        
-        Set<String> roleCodes = resolveRoleCodes(Collections.singletonList(UserType.STUDENT.getValue()), req.getStudentCode(), null);
+
+        Set<String> roleCodes = resolveRoleCodes(Collections.singletonList(UserType.STUDENT.getValue()),
+                req.getStudentCode(), null);
         List<Role> roles = roleRepository.findAllByCodes(roleCodes);
         validateAllRolesFound(roleCodes, roles);
 
@@ -142,7 +140,8 @@ public class UserServiceImpl implements UserService {
     public UserResponse saveTeacher(TeacherCreateRequest req) {
         validateUniqueness(req.getUsername(), req.getEmail(), null, req.getTeacherID());
 
-        Set<String> roleCodes = resolveRoleCodes(Collections.singletonList(UserType.TEACHER.getValue()), null, req.getTeacherID());
+        Set<String> roleCodes = resolveRoleCodes(Collections.singletonList(UserType.TEACHER.getValue()), null,
+                req.getTeacherID());
         List<Role> roles = roleRepository.findAllByCodes(roleCodes);
         validateAllRolesFound(roleCodes, roles);
 
@@ -160,86 +159,24 @@ public class UserServiceImpl implements UserService {
         return userResponseMapper.toDto(savedUser);
     }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public UserResponse saveUser(@NonNull UserRequest req) {
-        Set<String> inputRoleCodes = req.getRoleCodes();
-        Set<String> roleCodes = new HashSet<>();
+     @Override
+     @Transactional(rollbackFor = Exception.class)
+     public UserResponse saveUser(@NonNull UserRequest req) {
+     // Fallback for generic UserRequest (Admin creation or old API)
+     if (req.getStudentCode() != null && !req.getStudentCode().isBlank()) {
+     return saveStudent(convertToStudentRequest(req));
+     } else if (req.getTeacherID() != null && !req.getTeacherID().isBlank()) {
+     return saveTeacher(convertToTeacherRequest(req));
+     }
 
-        // Chuẩn hóa role codes: loại bỏ ROLE_ prefix nếu có
-        if (inputRoleCodes != null) {
-            for (String code : inputRoleCodes) {
-                String normalizedCode = code.startsWith("ROLE_") ? code : "ROLE_" + code;
-                roleCodes.add(normalizedCode);
-            }
-        }
-
-        // Tự động đồng bộ Role dựa trên thông tin Profile
-        if (req.getStudentCode() != null && !req.getStudentCode().isBlank()) {
-            roleCodes.add(UserType.STUDENT.getValue());
-        }
-        if (req.getTeacherID() != null && !req.getTeacherID().isBlank()) {
-            roleCodes.add(UserType.TEACHER.getValue());
-        }
-
-        if (roleCodes.isEmpty()) {
-            roleCodes.add(UserType.STUDENT.getValue());
-        }
-
-        List<Role> roles = roleRepository.findAllByCodes(roleCodes);
-
-        if (roles.size() != roleCodes.size()) {
-            Set<String> foundCodes = roles.stream()
-                    .map(Role::getCode)
-                    .collect(Collectors.toSet());
-            Set<String> notFoundCodes = roleCodes.stream()
-                    .filter(code -> !foundCodes.contains(code))
-                    .collect(Collectors.toSet());
-
-            throw new IllegalArgumentException("Roles not found: " + notFoundCodes);
-        }
-
-        User user = User.builder()
-                .fullName(req.getFullName())
-                .gender(req.getGender())
-                .birthday(req.getBirthday())
-                .email(req.getEmail())
-                .phone(req.getPhone())
-                .username(req.getUserName())
-                .password(passwordEncoder.encode(req.getPassword()))
-                .currentResidence(req.getCurrentResidence())
-                .contactAddress(req.getContactAddress())
-                .status(UserStatus.ACTIVE)
-                .isDeleted(false)
-                .build();
-
-        user.setRoles(new HashSet<>(roles));
-        User savedUser = userRepository.save(user);
-
-        // Lưu Profile tương ứng
-        if (roleCodes.contains(UserType.STUDENT.getValue())) {
-            StudentProfile studentProfile = StudentProfile.builder()
-                    .studentId(req.getStudentCode())
-                    .classId(req.getClassCode())
-                    .user(savedUser)
-                    .build();
-            studentProfileRepository.save(studentProfile);
-        }
-
-        if (roleCodes.contains(UserType.TEACHER.getValue())) {
-            TeacherProfile teacherProfile = TeacherProfile.builder()
-                    .teacherId(req.getTeacherID())
-                    .department(req.getDepartment())
-                    .academicRank(req.getAcademicRank())
-                    .specialization(req.getSpecialization())
-                    .user(savedUser)
-                    .build();
-            teacherProfileRepository.save(teacherProfile);
-        }
-
-        log.info("User has added successfully, userId={}", savedUser.getId());
-        return userResponseMapper.toDto(savedUser);
-    }
+     // Default Case (e.g. Admin or simple user)
+     validateUniqueness(req.getUserName(), req.getEmail(), null, null);
+     Set<String> roleCodes = resolveRoleCodes(req.getRoleCodes(), null, null);
+     List<Role> roles = roleRepository.findAllByCodes(roleCodes);
+     User user = buildNewUser(req, roles);
+     User savedUser = userRepository.save(user);
+     return userResponseMapper.toDto(savedUser);
+     }
 
     @Override
     @Transactional
@@ -324,7 +261,8 @@ public class UserServiceImpl implements UserService {
             @CacheEvict(cacheNames = CacheConstants.USER_BY_ID, key = "'entity:' + #userId"),
             @CacheEvict(cacheNames = CacheConstants.USER_BY_USERNAME, allEntries = true)
     })
-    public void promoteToTeacher(UUID userId, String teacherId, String department, String academic, String specialization) {
+    public void promoteToTeacher(UUID userId, String teacherId, String department, String academic,
+            String specialization) {
         User user = getUserEntityNoCache(userId);
 
         // 1️⃣ Remove student role
@@ -337,7 +275,8 @@ public class UserServiceImpl implements UserService {
             user.getRoles().add(teacherRole);
         }
 
-        // 3️⃣ Remove StudentProfile reference to avoid ObjectDeletedException during save
+        // 3️⃣ Remove StudentProfile reference to avoid ObjectDeletedException during
+        // save
         if (user.getStudentProfile() != null) {
             studentProfileRepository.delete(user.getStudentProfile());
             user.setStudentProfile(null);
@@ -356,6 +295,7 @@ public class UserServiceImpl implements UserService {
         // 5️⃣ Save user entity (cascades to TeacherProfile)
         userRepository.save(user);
     }
+
     @Override
     public UserPageResponse searchUsers(String keyword, int pageNo, int pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
@@ -484,7 +424,8 @@ public class UserServiceImpl implements UserService {
     private void validateAllRolesFound(Set<String> requestedCodes, List<Role> foundRoles) {
         if (foundRoles.size() != requestedCodes.size()) {
             Set<String> foundCodes = foundRoles.stream().map(Role::getCode).collect(Collectors.toSet());
-            Set<String> missing = requestedCodes.stream().filter(c -> !foundCodes.contains(c)).collect(Collectors.toSet());
+            Set<String> missing = requestedCodes.stream().filter(c -> !foundCodes.contains(c))
+                    .collect(Collectors.toSet());
             throw new IllegalArgumentException("Roles not found: " + missing);
         }
     }

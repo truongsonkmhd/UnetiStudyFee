@@ -42,4 +42,25 @@ public interface UserQuizAttemptRepository extends JpaRepository<UserQuizAttempt
 
     @Query("SELECT COUNT(a) > 0 FROM UserQuizAttempt a WHERE a.quiz.id IN (SELECT q.id FROM CourseLesson cl JOIN cl.quizzes q WHERE cl.module.moduleId = :moduleId)")
     boolean existsByQuizCourseLessonModuleModuleId(@Param("moduleId") UUID moduleId);
+
+    // ===== Analytics by class scope =====
+
+    /**
+     * Điểm quiz trung bình và số lần thử của mỗi student trong danh sách courses.
+     * Returns: [userId (UUID), avgScore (Double), attemptCount (Long)]
+     */
+    @Query("""
+                select a.userId, avg(a.score), count(a)
+                from UserQuizAttempt a
+                where a.userId in :studentIds
+                  and a.quiz.id in (
+                      select q.id from CourseLesson cl
+                      join cl.quizzes q
+                      where cl.module.course.courseId in :courseIds
+                  )
+                group by a.userId
+            """)
+    List<Object[]> avgQuizScoreByStudents(
+            @Param("studentIds") List<UUID> studentIds,
+            @Param("courseIds") List<UUID> courseIds);
 }

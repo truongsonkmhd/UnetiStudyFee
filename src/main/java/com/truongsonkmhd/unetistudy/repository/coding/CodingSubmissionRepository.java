@@ -63,4 +63,41 @@ public interface CodingSubmissionRepository extends JpaRepository<CodingSubmissi
 
   @Query("SELECT COUNT(cs) > 0 FROM CodingSubmission cs WHERE cs.exercise.exerciseId IN (SELECT e.exerciseId FROM CourseLesson cl JOIN cl.codingExercises e WHERE cl.module.moduleId = :moduleId)")
   boolean existsByExerciseCourseLessonModuleModuleId(@Param("moduleId") UUID moduleId);
+
+  /**
+   * Tìm bài nộp coding có điểm cao nhất của user cho 1 exercise
+   * Dùng khi chấm điểm contest: lấy điểm tốt nhất student đã đạt được
+   */
+  @Query("""
+      SELECT cs FROM CodingSubmission cs
+      WHERE cs.user.id = :userId
+        AND cs.exercise.exerciseId = :exerciseId
+      ORDER BY cs.score DESC, cs.submittedAt DESC
+      """)
+  List<CodingSubmission> findBestByUserAndExercise(
+      @Param("userId") UUID userId,
+      @Param("exerciseId") UUID exerciseId);
+
+  // ===== Analytics by class scope =====
+
+  /**
+   * Tỉ lệ pass coding và số lần submit của mỗi student trong danh sách courses.
+   * Returns: [userId (UUID), passRate (Double), submitCount (Long)]
+   */
+  @Query("""
+      select cs.user.id,
+             avg(case when cs.passedTestcases = cs.totalTestcases then 1.0 else 0.0 end),
+             count(cs)
+      from CodingSubmission cs
+      where cs.user.id in :studentIds
+        and cs.exercise.exerciseId in (
+            select e.exerciseId from CourseLesson cl
+            join cl.codingExercises e
+            where cl.module.course.courseId in :courseIds
+        )
+      group by cs.user.id
+      """)
+  List<Object[]> codePassRateByStudents(
+      @Param("studentIds") List<UUID> studentIds,
+      @Param("courseIds") List<UUID> courseIds);
 }

@@ -55,6 +55,34 @@ public class ContestLessonController {
                 contestLessonService.getPageReadyContestLessons(page, size, q)));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<IResponseMessage> updateContestLesson(@PathVariable UUID id, @RequestBody ContestLessonRequestDTO request) {
+        return ResponseEntity.ok()
+                .body(ResponseMessage.UpdatedSuccess(contestLessonService.updateContestLesson(id, request)));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<IResponseMessage> deleteContestLesson(@PathVariable UUID id) {
+        contestLessonService.deleteContestLesson(id);
+        return ResponseEntity.ok()
+                .body(ResponseMessage.DeletedSuccess("Contest lesson deleted successfully"));
+    }
+
+    @PostMapping("/{id}/archive")
+    public ResponseEntity<IResponseMessage> archiveContestLesson(@PathVariable UUID id) {
+        contestLessonService.archiveContestLesson(id);
+        return ResponseEntity.ok()
+                .body(ResponseMessage.UpdatedSuccess("Contest lesson archived successfully"));
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<IResponseMessage> updateStatus(@PathVariable UUID id, @RequestBody java.util.Map<String, String> body) {
+        StatusContest status = StatusContest.valueOf(body.get("status"));
+        contestLessonService.updateStatus(id, status);
+        return ResponseEntity.ok()
+                .body(ResponseMessage.UpdatedSuccess("Status updated successfully"));
+    }
+
     @PostMapping("/{id}/publish")
     public ResponseEntity<IResponseMessage> publishContestLesson(@PathVariable UUID id) {
         contestLessonService.publishContestLesson(id);
