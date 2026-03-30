@@ -13,6 +13,8 @@ import {
 import TemplateSelector from './TemplateSelector';
 import lessonService from '@/services/lessonService';
 import { toast } from 'sonner';
+import CourseGuideView from './CourseGuideView';
+import CourseSettingsView from './CourseSettingsView';
 
 interface CourseFormProps {
   course?: CourseTreeResponse;
@@ -21,10 +23,12 @@ interface CourseFormProps {
 }
 
 const SECTIONS = [
+  { id: 'guide', label: 'Hướng dẫn', icon: HelpCircle },
   { id: 'basic', label: 'Thông tin cơ bản', icon: Info },
   { id: 'content', label: 'Cấu trúc bài học', icon: Layout },
   { id: 'extra', label: 'Chi tiết mở rộng', icon: BookOpen },
   { id: 'publish', label: 'Hoàn thiện & Xuất bản', icon: Rocket },
+  { id: 'settings', label: 'Cài đặt', icon: Settings },
 ] as const;
 
 const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) => {
@@ -344,6 +348,12 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
             <p className="font-bold">Đã xảy ra lỗi:</p>
             <p className="font-medium opacity-90">{error}</p>
           </div>
+        </div>
+      )}
+
+      {activeSection === 'guide' && (
+        <div className="animate-in fade-in slide-in-from-bottom-6 duration-500">
+          <CourseGuideView />
         </div>
       )}
 
@@ -838,6 +848,12 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
         </div>
       )}
 
+      {activeSection === 'settings' && (
+        <div className="animate-in fade-in slide-in-from-bottom-6 duration-500">
+          <CourseSettingsView courseId={(course as any)?.courseId} />
+        </div>
+      )}
+
       {/* Publish Section */}
       {activeSection === 'publish' && (
         <div className="space-y-10 rounded-[3rem] border border-border bg-card p-12 text-foreground shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-500">
@@ -863,7 +879,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                 className="w-full rounded-3xl border border-border bg-muted/50 px-8 py-5 text-lg font-black text-foreground transition-all focus:bg-muted outline-none"
               >
                 <option value={CourseStatus.DRAFT} className="bg-card text-foreground">Bản nháp (Nội bộ)</option>
-                <option value={CourseStatus.PUBLISHED} className="bg-card text-foreground">Đã kiểm duyệt (Công khai)</option>
+                <option value={CourseStatus.APPROVED} className="bg-card text-foreground">Đã kiểm duyệt (Đã duyệt)</option>
                 <option value={CourseStatus.ARCHIVED} className="bg-card text-foreground">Lưu trữ (Ẩn)</option>
               </select>
             </div>

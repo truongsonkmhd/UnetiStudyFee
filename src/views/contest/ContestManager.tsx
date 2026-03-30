@@ -41,6 +41,8 @@ const ContestManager = () => {
   const [quizzes, setQuizzes] = useState<QuizTemplateDetail[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isExercisesModalOpen, setIsExercisesModalOpen] = useState(false);
+  const [isQuizzesModalOpen, setIsQuizzesModalOpen] = useState(false);
 
   const [selectedExercises, setSelectedExercises] = useState<Set<string>>(new Set());
   const [selectedQuizzes, setSelectedQuizzes] = useState<Set<string>>(new Set());
@@ -129,7 +131,13 @@ const ContestManager = () => {
         maxAttempts: contest.defaultMaxAttempts || 3,
         totalPoints: contest.totalPoints || 100,
         showLeaderboardDefault: contest.showLeaderboardDefault !== undefined ? contest.showLeaderboardDefault : true,
-      })
+      });
+
+      // Sync selections
+      const exerciseIds = new Set<string>(contest.codingExercises?.map((ex: any) => String(ex.templateId)) || []);
+      const quizIds = new Set<string>(contest.quizzes?.map((q: any) => String(q.templateId)) || []);
+      setSelectedExercises(exerciseIds);
+      setSelectedQuizzes(quizIds);
 
       setView('create-class');
     } catch (error) {
@@ -152,6 +160,31 @@ const ContestManager = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEditContestContent = () => {
+    if (!selectedContest) return;
+
+    // Sync selections for the libraries
+    const exerciseIds = new Set<string>(selectedContest.codingExercises?.map((ex: any) => String(ex.templateId)) || []);
+    const quizIds = new Set<string>(selectedContest.quizzes?.map((q: any) => String(q.templateId)) || []);
+
+    setSelectedExercises(exerciseIds);
+    setSelectedQuizzes(quizIds);
+
+    // Sync newClass state
+    setNewClass({
+      contestLessonId: selectedContest.contestLessonId,
+      title: selectedContest.title,
+      description: selectedContest.description || '',
+      durationMinutes: selectedContest.defaultDurationMinutes || 60,
+      passingScore: selectedContest.passingScore || 70,
+      maxAttempts: selectedContest.defaultMaxAttempts || 3,
+      totalPoints: selectedContest.totalPoints || 100,
+      showLeaderboardDefault: selectedContest.showLeaderboardDefault ?? true,
+    });
+
+    setView('library_coding');
   };
 
   const handleUpdateStatus = async (contestId: string, status: string) => {
@@ -224,7 +257,7 @@ const ContestManager = () => {
   };
 
   const handleViewQuiz = (quizId: string) => {
-    // navigate(`/quizzes/${quizId}`);
+    navigate(`${PATHS.QUIZ_LIBRARY}?view=${quizId}`);
   };
 
   const handleEditQuiz = (id: string) => {
@@ -361,11 +394,11 @@ const ContestManager = () => {
   };
 
   const LibraryTabs = () => (
-    <div className="flex p-1.5 bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl w-fit border border-slate-200 dark:border-slate-800 shadow-inner">
+    <div className="flex p-1.5 bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl w-fit border border-slate-200 dark:border-slate-800">
       <button
         onClick={() => setView('library_coding')}
         className={`px-8 py-3 rounded-xl font-black text-[13px] uppercase tracking-widest transition-all duration-300 ${view === 'library_coding'
-          ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-lg shadow-indigo-500/10'
+          ? 'bg-white dark:bg-slate-800 text-indigo-600'
           : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'
           }`}
       >
@@ -374,7 +407,7 @@ const ContestManager = () => {
       <button
         onClick={() => setView('library_quiz')}
         className={`px-8 py-3 rounded-xl font-black text-[13px] uppercase tracking-widest transition-all duration-300 ${view === 'library_quiz'
-          ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-lg shadow-indigo-500/10'
+          ? 'bg-white dark:bg-slate-800 text-indigo-600'
           : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'
           }`}
       >
@@ -392,7 +425,7 @@ const ContestManager = () => {
           placeholder={type === 'coding' ? "Tìm kiếm thử thách lập trình..." : "Tìm kiếm bộ câu hỏi trắc nghiệm..."}
           value={type === 'coding' ? searchQuery : quizSearchQuery}
           onChange={(e) => type === 'coding' ? setSearchQuery(e.target.value) : setQuizSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none font-bold text-slate-900 dark:text-white placeholder:text-slate-300 transition-all shadow-sm"
+          className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none font-bold text-slate-900 dark:text-white placeholder:text-slate-300 transition-all"
         />
       </div>
 
@@ -401,7 +434,7 @@ const ContestManager = () => {
           <select
             value={filters.difficulty}
             onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
-            className="px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl font-black text-[13px] uppercase tracking-widest text-slate-600 dark:text-slate-300 outline-none focus:border-indigo-500 transition-all shadow-sm cursor-pointer"
+            className="px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl font-black text-[13px] uppercase tracking-widest text-slate-600 dark:text-slate-300 outline-none focus:border-indigo-500 transition-all cursor-pointer"
           >
             <option value="">Độ khó</option>
             <option value="EASY">Dễ</option>
@@ -411,7 +444,7 @@ const ContestManager = () => {
           <select
             value={filters.language}
             onChange={(e) => setFilters({ ...filters, language: e.target.value })}
-            className="px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl font-black text-[13px] uppercase tracking-widest text-slate-600 dark:text-slate-300 outline-none focus:border-indigo-500 transition-all shadow-sm cursor-pointer"
+            className="px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl font-black text-[13px] uppercase tracking-widest text-slate-600 dark:text-slate-300 outline-none focus:border-indigo-500 transition-all cursor-pointer"
           >
             <option value="">Ngôn ngữ</option>
             <option value="JAVA">Java</option>
@@ -443,7 +476,7 @@ const ContestManager = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={handleCreateNewExercise}
-            className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground hover:bg-muted rounded-lg transition-colors font-medium shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground hover:bg-muted rounded-lg transition-colors font-medium"
           >
             <Plus size={18} />
             Tạo bài mới
@@ -451,7 +484,7 @@ const ContestManager = () => {
           <button
             onClick={() => setView('create-class')}
             disabled={selectedExercises.size + selectedQuizzes.size === 0}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors font-medium disabled:opacity-50"
           >
             Xác nhận lựa chọn ({selectedExercises.size + selectedQuizzes.size})
             <ChevronRight size={18} />
@@ -459,7 +492,7 @@ const ContestManager = () => {
         </div>
       </motion.div>
 
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-md p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <LibraryTabs />
         <div className="flex-1 max-w-2xl">
           <FilterBar type="coding" />
@@ -472,9 +505,9 @@ const ContestManager = () => {
           <div
             key={ex.templateId}
             onClick={() => toggleExerciseSelection(ex.templateId)}
-            className={`group bg-white dark:bg-slate-900 rounded-[2rem] border-2 p-8 transition-all duration-500 cursor-pointer relative flex flex-col ${selectedExercises.has(ex.templateId)
-              ? 'border-indigo-500 shadow-2xl shadow-indigo-500/10 scale-[1.02]'
-              : 'border-transparent shadow-sm hover:shadow-xl hover:translate-y-[-4px] hover:border-slate-100 dark:hover:border-slate-800'
+            className={`group bg-white dark:bg-slate-900/50 rounded-[2rem] border-2 p-8 transition-all duration-500 cursor-pointer relative flex flex-col ${selectedExercises.has(ex.templateId)
+              ? 'border-indigo-500 scale-[1.02]'
+              : 'border-transparent hover:translate-y-[-4px] hover:border-slate-100 dark:hover:border-slate-800'
               }`}
           >
             {/* Selection Indicator */}
@@ -587,7 +620,7 @@ const ContestManager = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={handleCreateNewQuiz}
-            className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground hover:bg-muted rounded-lg transition-colors font-medium shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground hover:bg-muted rounded-lg transition-colors font-medium"
           >
             <Plus size={18} />
             Kiến tạo Quiz
@@ -595,7 +628,7 @@ const ContestManager = () => {
           <button
             onClick={() => setView('create-class')}
             disabled={selectedExercises.size + selectedQuizzes.size === 0}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors font-medium disabled:opacity-50"
           >
             Xác nhận lựa chọn ({selectedExercises.size + selectedQuizzes.size})
             <ChevronRight size={18} />
@@ -603,7 +636,7 @@ const ContestManager = () => {
         </div>
       </motion.div>
 
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-slate-900/50 backdrop-blur-md p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <LibraryTabs />
         <div className="flex-1 max-w-2xl">
           <FilterBar type="quiz" />
@@ -616,9 +649,9 @@ const ContestManager = () => {
           <div
             key={quiz.templateId}
             onClick={() => toggleQuizSelection(quiz.templateId)}
-            className={`group bg-white dark:bg-slate-900 rounded-[2rem] border-2 p-8 transition-all duration-500 cursor-pointer relative flex flex-col ${selectedQuizzes.has(quiz.templateId)
-              ? 'border-indigo-500 shadow-2xl shadow-indigo-500/10 scale-[1.02]'
-              : 'border-transparent shadow-sm hover:shadow-xl hover:translate-y-[-4px] hover:border-slate-100 dark:hover:border-slate-800'
+            className={`group bg-white dark:bg-slate-900/50 rounded-[2rem] border-2 p-8 transition-all duration-500 cursor-pointer relative flex flex-col ${selectedQuizzes.has(quiz.templateId)
+              ? 'border-indigo-500 scale-[1.02]'
+              : 'border-transparent hover:translate-y-[-4px] hover:border-slate-100 dark:hover:border-slate-800'
               }`}
           >
             {/* Selection Indicator */}
@@ -743,7 +776,7 @@ const ContestManager = () => {
             setSelectedQuizzes(new Set());
             setView('library_coding');
           }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
+          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors font-medium"
         >
           <Plus size={20} />
           Thiết lập bài thi mới
@@ -762,11 +795,11 @@ const ContestManager = () => {
           {classes.map((cls) => (
             <div
               key={cls.contestLessonId}
-              className="bg-card rounded-[2rem] border border-border shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 overflow-hidden group flex flex-col"
+              className="bg-card rounded-[2rem] border border-border shadow-none hover:border-primary/50 transition-all duration-500 overflow-hidden group flex flex-col"
             >
               <div className="p-8 flex-grow">
                 <div className="flex justify-between items-start mb-6">
-                  <div className={`px-4 py-1.5 rounded-xl text-[12px] font-black uppercase tracking-widest shadow-sm ${getStatusColor(cls.status)}`}>
+                  <div className={`px-4 py-1.5 rounded-xl text-[12px] font-black uppercase tracking-widest ${getStatusColor(cls.status)}`}>
                     {cls.status}
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0">
@@ -775,7 +808,7 @@ const ContestManager = () => {
                         e.stopPropagation();
                         handleEditContest(cls.contestLessonId);
                       }}
-                      className="p-3 text-muted-foreground hover:text-primary hover:bg-muted rounded-xl transition-all shadow-sm"
+                      className="p-3 text-muted-foreground hover:text-primary hover:bg-muted rounded-xl transition-all"
                       title="Chỉnh sửa"
                     >
                       <Edit size={20} />
@@ -785,7 +818,7 @@ const ContestManager = () => {
                         e.stopPropagation();
                         handleDeleteContest(cls.contestLessonId);
                       }}
-                      className="p-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all shadow-sm"
+                      className="p-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all"
                       title="Xóa"
                     >
                       <Trash2 size={20} />
@@ -849,7 +882,7 @@ const ContestManager = () => {
                 action={
                   <button
                     onClick={() => setView('library_coding')}
-                    className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+                    className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-bold uppercase tracking-widest text-xs"
                   >
                     Khởi tạo ngay
                   </button>
@@ -891,9 +924,8 @@ const ContestManager = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-8 space-y-8">
-          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none p-10">
+          <div className="bg-white dark:bg-slate-900/50 backdrop-blur-md rounded-[2.5rem] border border-slate-100 dark:border-slate-800 p-10">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-8 flex items-center gap-3">
-              <div className="w-2 h-8 bg-indigo-600 rounded-full"></div>
               Thông tin bài thi
             </h2>
 
@@ -907,7 +939,7 @@ const ContestManager = () => {
                   value={newClass.title}
                   onChange={(e) => setNewClass({ ...newClass, title: e.target.value })}
                   placeholder="Ví dụ: Kiểm tra Giữa kỳ - Cấu trúc dữ liệu & Giải thuật"
-                  className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl text-slate-900 dark:text-white font-bold outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 shadow-inner"
+                  className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl text-slate-900 dark:text-white font-bold outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 shadow-none"
                 />
               </div>
 
@@ -918,18 +950,23 @@ const ContestManager = () => {
                   onChange={(e) => setNewClass({ ...newClass, description: e.target.value })}
                   placeholder="Lược thuật về phạm vi kiến thức và mục tiêu đánh giá..."
                   rows={4}
-                  className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl text-slate-900 dark:text-white font-bold outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 shadow-inner resize-none"
+                  className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl text-slate-900 dark:text-white font-bold outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 shadow-none resize-none"
                 />
               </div>
 
               <div className="pt-8 border-t border-slate-100 dark:border-slate-800">
-                <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mb-6">Nội dung đã chọn</h3>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Nội dung đã chọn</h3>
+                  <button
+                    onClick={() => setView('library_coding')}
+                    className="text-xs font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest transition-colors flex items-center gap-1"
+                  >
+                    Thêm bài tập/Quiz
+                  </button>
+                </div>
 
                 {selectedExercises.size + selectedQuizzes.size === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700">
-                    <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm mb-4">
-                      <AlertCircle className="text-slate-300" size={32} />
-                    </div>
                     <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Chưa có dữ liệu hội tụ</p>
                   </div>
                 ) : (
@@ -939,7 +976,7 @@ const ContestManager = () => {
                       .map((ex) => (
                         <div key={ex.templateId} className="flex items-center justify-between p-5 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-[1.5rem] border border-indigo-100 dark:border-indigo-900/30 group">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-indigo-600 dark:text-indigo-400">
+                            <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                               <Code size={20} strokeWidth={2.5} />
                             </div>
                             <div>
@@ -958,7 +995,7 @@ const ContestManager = () => {
                       .map((q) => (
                         <div key={q.templateId} className="flex items-center justify-between p-5 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-[1.5rem] border border-emerald-100 dark:border-emerald-900/30 group">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-emerald-600 dark:text-emerald-400">
+                            <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                               <BookOpen size={20} strokeWidth={2.5} />
                             </div>
                             <div>
@@ -980,15 +1017,14 @@ const ContestManager = () => {
 
         {/* Sidebar Parameters */}
         <div className="lg:col-span-4 space-y-8">
-          <div className="bg-slate-900 dark:bg-indigo-950 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-indigo-500/20 sticky top-32">
+          <div className="bg-slate-900 dark:bg-slate-900/80 backdrop-blur-xl rounded-[2.5rem] p-10 text-white sticky top-32 border border-white/5">
             <h2 className="text-xl font-black uppercase tracking-widest mb-10 flex items-center gap-2">
-              <Zap size={20} className="fill-indigo-400 text-indigo-400" />
               Chỉ số vận hành
             </h2>
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em]">Thời lượng (phút)</label>
+                <label className="text-[13px] font-black text-indigo-300 uppercase tracking-[0.2em]">Thời lượng (phút)</label>
                 <input
                   type="number"
                   value={newClass.durationMinutes}
@@ -998,7 +1034,7 @@ const ContestManager = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em]">Điểm đạt chuẩn (%)</label>
+                <label className="text-[13px] font-black text-indigo-300 uppercase tracking-[0.2em]">Điểm đạt chuẩn (%)</label>
                 <input
                   type="number"
                   value={newClass.passingScore}
@@ -1009,7 +1045,7 @@ const ContestManager = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em]">Số lượt thử</label>
+                  <label className="text-[13px] font-black text-indigo-300 uppercase tracking-[0.2em]">Số lượt thử</label>
                   <input
                     type="number"
                     value={newClass.maxAttempts}
@@ -1041,7 +1077,7 @@ const ContestManager = () => {
                     <div className="text-xs font-bold">{newClass.showLeaderboardDefault ? 'Công khai vinh danh' : 'Ẩn danh sách'}</div>
                   </div>
                   <div className={`w-10 h-6 rounded-full relative transition-colors ${newClass.showLeaderboardDefault ? 'bg-indigo-400' : 'bg-white/20'}`}>
-                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-lg transition-transform ${newClass.showLeaderboardDefault ? 'translate-x-5' : 'translate-x-1'}`} />
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${newClass.showLeaderboardDefault ? 'translate-x-5' : 'translate-x-1'}`} />
                   </div>
                 </button>
               </div>
@@ -1050,8 +1086,8 @@ const ContestManager = () => {
                 <button
                   onClick={handleCreateClass}
                   disabled={selectedExercises.size + selectedQuizzes.size === 0}
-                  className={`w-full py-5 rounded-2xl font-black text-lg transition-all shadow-xl hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 ${selectedExercises.size + selectedQuizzes.size > 0
-                    ? 'bg-indigo-500 text-white shadow-indigo-500/40'
+                  className={`w-full py-5 rounded-2xl font-black text-lg transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 ${selectedExercises.size + selectedQuizzes.size > 0
+                    ? 'bg-indigo-500 text-white'
                     : 'bg-white/10 text-white/20 cursor-not-allowed'
                     }`}
                 >
@@ -1059,7 +1095,7 @@ const ContestManager = () => {
                   <Check size={24} strokeWidth={3} />
                 </button>
                 <button
-                  onClick={() => setView('library_coding')}
+                  onClick={() => setView('classes')}
                   className="w-full py-4 rounded-2xl font-bold text-white/40 hover:text-white transition-colors"
                 >
                   Hủy cấu hình
@@ -1091,12 +1127,12 @@ const ContestManager = () => {
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl text-foreground">
               {selectedContest?.title}
             </h1>
-            <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm ${getStatusColor(selectedContest?.status)}`}>
+            <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${getStatusColor(selectedContest?.status)}`}>
               {selectedContest?.status}
             </span>
           </div>
           <p className="text-muted-foreground font-medium ml-10 line-clamp-1">
-            {selectedContest?.description || 'Hệ thống đánh giá chuyên sâu đang trong trạng thái vận hành.'}
+            {selectedContest?.description}
           </p>
         </div>
 
@@ -1104,7 +1140,7 @@ const ContestManager = () => {
           {selectedContest?.status === 'DRAFT' && (
             <button
               onClick={() => handlePublishContest(selectedContest.contestLessonId)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium text-sm transition-all shadow-sm"
+              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium text-sm transition-all"
             >
               <Check size={18} />
               Xuất bản
@@ -1113,7 +1149,7 @@ const ContestManager = () => {
           {selectedContest?.status === 'READY' && (
             <button
               onClick={() => handleArchiveContest(selectedContest.contestLessonId)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium text-sm transition-all shadow-sm"
+              className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium text-sm transition-all"
             >
               <Archive size={18} />
               Lưu trữ
@@ -1132,17 +1168,16 @@ const ContestManager = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Statistics & Parameters */}
         <div className="lg:col-span-4 space-y-8">
-          <div className="bg-slate-900 dark:bg-indigo-950 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-indigo-500/20 relative overflow-hidden group">
+          <div className="bg-slate-900 dark:bg-slate-900/80 backdrop-blur-xl rounded-[2.5rem] p-10 text-white relative overflow-hidden group border border-white/5">
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-400/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-700"></div>
 
             <h3 className="text-xl font-black uppercase tracking-widest mb-10 flex items-center gap-3">
-              <Zap size={20} className="fill-indigo-400 text-indigo-400" />
               Kiến trúc lõi
             </h3>
 
             <div className="grid grid-cols-1 gap-6">
               <div className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors group">
-                <p className="text-[10px] text-indigo-300 font-black uppercase tracking-[0.2em] mb-2">Thời lượng vận hành</p>
+                <p className="text-[13px] text-indigo-300 font-black uppercase tracking-[0.2em] mb-2">Thời lượng vận hành</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-black">{selectedContest?.defaultDurationMinutes || selectedContest?.durationMinutes}</span>
                   <span className="text-xs font-bold text-white/40 uppercase tracking-tighter">PHÚT</span>
@@ -1150,7 +1185,7 @@ const ContestManager = () => {
               </div>
 
               <div className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
-                <p className="text-[10px] text-indigo-300 font-black uppercase tracking-[0.2em] mb-2">Chỉ số đạt chuẩn</p>
+                <p className="text-[13px] text-indigo-300 font-black uppercase tracking-[0.2em] mb-2">Chỉ số đạt chuẩn</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-black text-emerald-400">{selectedContest?.passingScore}</span>
                   <span className="text-xs font-bold text-white/40 uppercase tracking-tighter">PHẦN TRĂM</span>
@@ -1159,22 +1194,22 @@ const ContestManager = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
-                  <p className="text-[10px] text-indigo-300 font-black uppercase tracking-[0.2em] mb-2">Lượt làm</p>
+                  <p className="text-[13px] text-indigo-300 font-black uppercase tracking-[0.2em] mb-2">Lượt làm</p>
                   <span className="text-2xl font-black text-blue-400">{selectedContest?.defaultMaxAttempts || selectedContest?.maxAttempts} LẦN</span>
                 </div>
                 <div className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
-                  <p className="text-[10px] text-indigo-300 font-black uppercase tracking-[0.2em] mb-2">Hạn mức</p>
+                  <p className="text-[13px] text-indigo-300 font-black uppercase tracking-[0.2em] mb-2">Hạn mức</p>
                   <span className="text-2xl font-black text-purple-400">{selectedContest?.totalPoints} PTS</span>
                 </div>
               </div>
             </div>
 
             <div className="mt-10 pt-10 border-t border-white/10 flex flex-col gap-2">
-              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-white/30">
+              <div className="flex items-center justify-between text-[13px] font-black uppercase tracking-widest text-white/30">
                 <span>Khởi tạo hệ thống</span>
                 <span className="text-white/60">{new Date(selectedContest?.createdAt || Date.now()).toLocaleDateString('vi-VN')}</span>
               </div>
-              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-white/30">
+              <div className="flex items-center justify-between text-[13px] font-black uppercase tracking-widest text-white/30">
                 <span>Cập nhật cấu trúc</span>
                 <span className="text-white/60">{new Date(selectedContest?.updatedAt || Date.now()).toLocaleDateString('vi-VN')}</span>
               </div>
@@ -1184,36 +1219,41 @@ const ContestManager = () => {
 
         {/* Content Structure */}
         <div className="lg:col-span-8 space-y-10">
-          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none p-10">
+          <div className="bg-white dark:bg-slate-900/50 backdrop-blur-md rounded-[2.5rem] border border-slate-100 dark:border-slate-800 p-10">
             <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-8 flex items-center gap-3">
-              <div className="w-2 h-8 bg-indigo-600 rounded-full"></div>
               Cấu trúc nội dung
             </h3>
 
             <div className="grid grid-cols-1 gap-6">
               <div className="group bg-indigo-50/50 dark:bg-indigo-900/10 rounded-[2rem] border border-indigo-100 dark:border-indigo-900/30 p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-all hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
                 <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-white dark:bg-slate-800 shadow-xl shadow-indigo-500/5 flex items-center justify-center text-indigo-600 dark:text-indigo-400 transform group-hover:rotate-6 transition-transform duration-500">
-                    <Code size={32} strokeWidth={2.5} />
-                  </div>
+
                   <div>
-                    <h4 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-2">Thử thách Lập trình</h4>
+                    <h4 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-2">Kiểm tra lập trình</h4>
                     <p className="text-indigo-600/60 font-black uppercase tracking-widest text-xs">
                       {selectedContest?.codingExerciseCount} Bài tập tinh hoa đã được gán
                     </p>
                   </div>
                 </div>
-                <button className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 rounded-xl font-black text-xs uppercase tracking-widest shadow-sm hover:shadow-md transition-all active:scale-95 border border-indigo-100 dark:border-indigo-900/50">
-                  XEM CHI TIẾT
-                  <ChevronRight size={16} strokeWidth={3} />
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setIsExercisesModalOpen(true)}
+                    className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 rounded-xl font-black text-xs uppercase tracking-widest hover:shadow-none transition-all active:scale-95 border border-indigo-100 dark:border-indigo-900/50"
+                  >
+                    XEM CHI TIẾT
+                  </button>
+                  <button
+                    onClick={handleEditContestContent}
+                    className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all active:scale-95"
+                  >
+                    CHỈNH SỬA
+                  </button>
+                </div>
               </div>
 
               <div className="group bg-emerald-50/50 dark:bg-emerald-900/10 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/30 p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-all hover:bg-emerald-50 dark:hover:bg-emerald-900/20">
                 <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-white dark:bg-slate-800 shadow-xl shadow-emerald-500/5 flex items-center justify-center text-emerald-600 dark:text-emerald-400 transform group-hover:-rotate-6 transition-transform duration-500">
-                    <BookOpen size={32} strokeWidth={2.5} />
-                  </div>
+
                   <div>
                     <h4 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-2">Kiểm tra Trắc nghiệm</h4>
                     <p className="text-emerald-600/60 font-black uppercase tracking-widest text-xs">
@@ -1221,10 +1261,20 @@ const ContestManager = () => {
                     </p>
                   </div>
                 </div>
-                <button className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 rounded-xl font-black text-xs uppercase tracking-widest shadow-sm hover:shadow-md transition-all active:scale-95 border border-emerald-100 dark:border-emerald-900/50">
-                  XEM CHI TIẾT
-                  <ChevronRight size={16} strokeWidth={3} />
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setIsQuizzesModalOpen(true)}
+                    className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 rounded-xl font-black text-xs uppercase tracking-widest hover:shadow-none transition-all active:scale-95 border border-emerald-100 dark:border-emerald-900/50"
+                  >
+                    XEM CHI TIẾT
+                  </button>
+                  <button
+                    onClick={handleEditContestContent}
+                    className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all active:scale-95"
+                  >
+                    CHỈNH SỬA
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1255,6 +1305,161 @@ const ContestManager = () => {
           {view === 'manage-contest' && <ManageContestView />}
         </div>
       )}
+
+      {/* Exercises Detail Modal */}
+      <AnimatePresence>
+        {isExercisesModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsExercisesModalOpen(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[2.5rem] border border-white/10 overflow-hidden flex flex-col max-h-[85vh] shadow-none"
+            >
+              <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-indigo-50/30 dark:bg-indigo-950/20">
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Chi tiết Thử thách Lập trình</h3>
+                  <p className="text-indigo-600/60 font-black uppercase tracking-widest text-[10px]">Danh sách các bài tập cấu thành bài thi</p>
+                </div>
+                <button
+                  onClick={() => setIsExercisesModalOpen(false)}
+                  className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-colors text-slate-400 hover:text-red-500"
+                >
+                  <X size={24} strokeWidth={3} />
+                </button>
+              </div>
+
+              <div className="p-8 overflow-y-auto custom-scrollbar">
+                {selectedContest?.codingExercises && selectedContest.codingExercises.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedContest.codingExercises.map((ex: any) => (
+                      <div key={ex.exerciseId} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-700 group hover:border-indigo-400/50 transition-all">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-700 flex items-center justify-center text-indigo-500">
+                            <Code size={24} />
+                          </div>
+                          <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${getDifficultyColor(ex.difficulty)}`}>
+                            {ex.difficulty}
+                          </span>
+                        </div>
+                        <h4 className="text-lg font-black text-slate-900 dark:text-white mb-2 line-clamp-1 uppercase tracking-tight group-hover:text-indigo-600 transition-colors">
+                          {ex.title}
+                        </h4>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs font-medium line-clamp-2 h-8 mb-4">
+                          {ex.description || 'Thử thách lập trình nhằm đánh giá kỹ năng giải quyết vấn đề.'}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
+                          <span className="flex items-center gap-1.5"><Zap size={14} className="text-amber-500" /> {ex.points} PTS</span>
+                          <span className="flex items-center gap-1.5"><Code size={14} className="text-blue-500" /> {ex.programmingLanguage}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-20 text-center">
+                    <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <AlertCircle size={40} className="text-slate-300" />
+                    </div>
+                    <p className="text-slate-500 font-black uppercase tracking-[0.2em]">Không tìm thấy bài tập nào được gán</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-8 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                <button
+                  onClick={() => setIsExercisesModalOpen(false)}
+                  className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-sm uppercase tracking-widest hover:opacity-90 transition-all"
+                >
+                  Đóng cửa sổ
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Quizzes Detail Modal */}
+      <AnimatePresence>
+        {isQuizzesModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsQuizzesModalOpen(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[2.5rem] border border-white/10 overflow-hidden flex flex-col max-h-[85vh] shadow-none"
+            >
+              <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-emerald-50/30 dark:bg-emerald-950/20">
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Chi tiết Nội dung Quiz</h3>
+                  <p className="text-emerald-600/60 font-black uppercase tracking-widest text-[10px]">Các bộ câu hỏi trắc nghiệm đã được thiết lập</p>
+                </div>
+                <button
+                  onClick={() => setIsQuizzesModalOpen(false)}
+                  className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-colors text-slate-400 hover:text-red-500"
+                >
+                  <X size={24} strokeWidth={3} />
+                </button>
+              </div>
+
+              <div className="p-8 overflow-y-auto custom-scrollbar">
+                {selectedContest?.quizzes && selectedContest.quizzes.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedContest.quizzes.map((quiz: any) => (
+                      <div key={quiz.quizId} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-700 group hover:border-emerald-400/50 transition-all">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-700 flex items-center justify-center text-emerald-500">
+                            <BookOpen size={24} />
+                          </div>
+                          <span className="px-3 py-1 rounded-lg text-[10px] bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 font-black uppercase tracking-widest">
+                            Ready
+                          </span>
+                        </div>
+                        <h4 className="text-lg font-black text-slate-900 dark:text-white mb-2 line-clamp-1 uppercase tracking-tight group-hover:text-emerald-600 transition-colors">
+                          {quiz.title}
+                        </h4>
+                        <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
+                          <span className="flex items-center gap-1.5"><Calendar size={14} className="text-emerald-500" /> {quiz.totalQuestions} Câu hỏi</span>
+                          <span className="flex items-center gap-1.5"><Trophy size={14} className="text-amber-500" /> {quiz.passScore}% Đạt chuẩn</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-20 text-center">
+                    <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <AlertCircle size={40} className="text-slate-300" />
+                    </div>
+                    <p className="text-slate-500 font-black uppercase tracking-[0.2em]">Không tìm thấy Quiz nào được gán</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-8 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                <button
+                  onClick={() => setIsQuizzesModalOpen(false)}
+                  className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-sm uppercase tracking-widest hover:opacity-90 transition-all"
+                >
+                  Đóng cửa sổ
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

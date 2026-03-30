@@ -31,15 +31,25 @@ const classService = {
       apiService.get<UserResponse[]>(
         `${ADMIN_BASE_ENDPOINT}/${classId}/students`
       ),
+    addCoursesToClass: (classId: string, courseIds: string[]): Promise<any[]> =>
+      apiService.post<any[]>(
+        `${ADMIN_BASE_ENDPOINT}/${classId}/courses`,
+        { courseIds }
+      ),
 
-    update: (classId: string, payload: CreateClazzRequest): Promise<ClazzResponse> =>
+    getCoursesInClass: (classId: string): Promise<any[]> =>
+      apiService.get<any[]>(
+        `${ADMIN_BASE_ENDPOINT}/${classId}/courses`
+      ),
+
+    update: (classId: string, payload: any): Promise<ClazzResponse> =>
       apiService.put<ClazzResponse>(
         `${ADMIN_BASE_ENDPOINT}/update/${classId}`,
         payload
       ),
 
-    delete: (classId: string): Promise<void> =>
-      apiService.delete<void>(
+    delete: (classId: string): Promise<string> =>
+      apiService.delete<string>(
         `${ADMIN_BASE_ENDPOINT}/delete/${classId}`
       ),
   },
@@ -64,6 +74,11 @@ const classService = {
     getById: (classId: string): Promise<ClazzResponse> =>
       apiService.get<ClazzResponse>(
         `${STUDENT_BASE_ENDPOINT}/${classId}`
+      ),
+
+    getCoursesInClass: (classId: string): Promise<any[]> =>
+      apiService.get<any[]>(
+        `${STUDENT_BASE_ENDPOINT}/${classId}/courses`
       ),
   },
 

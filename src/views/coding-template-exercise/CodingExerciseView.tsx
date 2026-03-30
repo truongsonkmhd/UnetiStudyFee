@@ -114,6 +114,7 @@ const CodingExerciseView: React.FC = () => {
     const courseSlug = searchParams.get('courseSlug');
     const fromLesson = searchParams.get('fromLesson');
     const courseIdParam = searchParams.get('courseId');
+    const fromExam = searchParams.get('fromExam');
     const [exerciseDetail, setExerciseDetail] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
     const [code, setCode] = useState('');
@@ -387,11 +388,13 @@ const CodingExerciseView: React.FC = () => {
     const loadExercise = async (targetId: string) => {
         try {
             let data: any;
-            if (courseSlug) {
+            if (courseSlug || fromExam) {
+                // Từ lesson hoặc exam → dùng exercise API (judge)
                 const response = await codingExerciseService.getExerciseDetail(targetId);
                 data = response;
                 console.log('API response for exercise detail:', data);
             } else {
+                // Từ quản lý template → dùng template API
                 data = await codingExerciseTemplateService.getById(targetId);
             }
             if (data) {
@@ -422,7 +425,7 @@ const CodingExerciseView: React.FC = () => {
         if (id) {
             loadExercise(id);
         }
-    }, [id, courseSlug]);
+    }, [id, courseSlug, fromExam]);
 
     const handleRunCurrentCase = async () => {
         const targetExerciseId = exerciseDetail?.exerciseId || exerciseDetail?.templateId;

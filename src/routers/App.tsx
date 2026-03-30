@@ -35,6 +35,8 @@ import CourseLearn from "@/views/student/course-learn/CourseLearn";
 import JoinClass from "@/views/student/JoinClass";
 import ClassDetail from "@/views/student/my-learning/ClassDetail";
 import ExamSession from "@/views/student/my-learning/ExamSession";
+import TutorialPage from "@/views/pages/TutorialPage";
+import SettingsPage from "@/views/pages/SettingsPage";
 
 import { RippleEffect } from "@/components/common/RippleEffect";
 
@@ -324,9 +326,9 @@ const App = () => (
 
             <Route
               path={PATHS.TUTORIAL}
-              element={<div>Hướng dẫn (Sắp Ra Mắt)</div>}
+              element={<TutorialPage />}
             />
-            <Route path={PATHS.SETTINGS} element={<div>Cài Đặt</div>} />
+            <Route path={PATHS.SETTINGS} element={<SettingsPage />} />
 
             <Route
               path={PATHS.MY_ENROLLMENTS}

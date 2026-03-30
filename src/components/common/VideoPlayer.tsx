@@ -429,13 +429,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 )}
             </div>
 
-            {/* Smart Overlay Mask & Initial State */}
             <div
                 className={`absolute inset-0 z-10 cursor-pointer transition-all duration-700 
                   ${!isPlaying || !hasStarted ? 'bg-black/80' : 'bg-transparent'}`}
                 onClick={togglePlay}
             >
-                {/* Buffering Indicator */}
                 {isBuffering && (
                     <div className="absolute inset-0 flex items-center justify-center z-20">
                         <Loader2 size={48} className="text-primary animate-spin" />

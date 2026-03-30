@@ -8,7 +8,6 @@ import axios, {
 } from "axios";
 import queryString from "query-string";
 import { toast } from "sonner";
-import { PATHS } from "@/constants/paths";
 
 const baseUrlRaw = import.meta.env.VITE_API_URL || "http://localhost:8097/api";
 const refreshEndpointRaw =
@@ -67,15 +66,24 @@ axiosClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (originalRequest.url?.includes(urlRefreshToken) ||
-      originalRequest.url?.includes("/forgot-password/") ||
-      window.location.pathname.startsWith(PATHS.AUTH)
-    ) {
-      console.log("Skipping refresh/redirect for public or auth-level request.");
+    if (originalRequest.url?.includes(urlRefreshToken)) {
+      console.error("Refresh token request itself failed. Aborting.");
       return Promise.reject(error);
     }
 
-    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
+    console.log("error.response", error);
+
+    // 403 = Forbidden (không có quyền truy cập), không cần refresh token
+    if (error.response?.status === 403) {
+      return Promise.reject({
+        message:
+          (error.response.data as any)?.message ||
+          "Bạn không có quyền thực hiện thao tác này.",
+        statusCode: 403,
+      });
+    }
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
       // Logic refresh token (giữ nguyên như hiện tại)
       if (isRefreshing) {
         return new Promise((resolve) => {
