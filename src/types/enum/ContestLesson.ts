@@ -16,4 +16,6 @@ export interface ContestLesson {
   quizQuestionCount: number;
   createdAt: string;
   updatedAt: string;
+  codingExercises?: any[];
+  quizzes?: any[];
 }

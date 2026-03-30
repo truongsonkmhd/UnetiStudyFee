@@ -73,7 +73,17 @@ axiosClient.interceptors.response.use(
 
     console.log("error.response", error);
 
-    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
+    // 403 = Forbidden (không có quyền truy cập), không cần refresh token
+    if (error.response?.status === 403) {
+      return Promise.reject({
+        message:
+          (error.response.data as any)?.message ||
+          "Bạn không có quyền thực hiện thao tác này.",
+        statusCode: 403,
+      });
+    }
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
       // Logic refresh token (giữ nguyên như hiện tại)
       if (isRefreshing) {
         return new Promise((resolve) => {

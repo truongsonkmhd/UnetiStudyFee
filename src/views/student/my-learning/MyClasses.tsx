@@ -20,7 +20,13 @@ const MyClasses: React.FC = () => {
         setLoading(true);
         try {
             const classes = await classService.student.getMyClasses(jwtClaims.userID);
-            setMyClasses(classes || []);
+            // Ẩn lớp học đã hết thời gian diễn ra (endDate < hiện tại)
+            const now = new Date();
+            const activeClasses = (classes || []).filter(cls => {
+                if (!cls.endDate) return true; // Không có endDate → luôn hiển thị
+                return new Date(cls.endDate) >= now;
+            });
+            setMyClasses(activeClasses);
         } catch (error) {
             console.error("Failed to fetch my classes", error);
         } finally {

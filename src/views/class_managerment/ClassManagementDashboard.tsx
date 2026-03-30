@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Users, Trophy, Clock, Search, Edit2, Trash2, Eye, AlertCircle, CheckCircle, XCircle, PlayCircle, Link, Copy, RefreshCw, ExternalLink, Brain, QrCode } from 'lucide-react';
+import { Calendar, Plus, Users, Trophy, Clock, Search, Edit2, Trash2, Eye, AlertCircle, CheckCircle, XCircle, PlayCircle, Link, Copy, RefreshCw, ExternalLink, Brain, QrCode, BookOpen, X } from 'lucide-react';
 import { QRCode, Popover, Button } from 'antd';
 import { ClazzResponse } from '@/model/class/ClazzResponse';
 import classService from '@/services/classService';
 import classContestService from '@/services/classContestService';
+import courseService from '@/services/courseService';
 import { actionAuth } from '@/components/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,7 +30,9 @@ const ClassManagementDashboard = () => {
   const [contestToReschedule, setContestToReschedule] = useState<ClassContestResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { jwtClaims } = actionAuth();
-  const [detailTab, setDetailTab] = useState<'contests' | 'ai-insights'>('contests');
+  const [detailTab, setDetailTab] = useState<'contests'>('contests');
+  const [showAiInsights, setShowAiInsights] = useState(false);
+  const [aiInsightsClass, setAiInsightsClass] = useState<ClazzResponse | null>(null);
 
   const [createForm, setCreateForm] = useState({
     classCode: "",
@@ -38,13 +41,16 @@ const ClassManagementDashboard = () => {
     endDate: "",
     maxStudents: 0
   });
+  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
+  const [availableCourses, setAvailableCourses] = useState<any[]>([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [courseSearch, setCourseSearch] = useState('');
 
   const handleCreateClass = async () => {
     try {
-
       setLoading(true);
 
-      await classService.admin.create({
+      const created = await classService.admin.create({
         classCode: createForm.classCode,
         className: createForm.className,
         instructorId: jwtClaims.userID,
@@ -55,19 +61,24 @@ const ClassManagementDashboard = () => {
         maxStudents: createForm.maxStudents
       });
 
+      // Gán khóa học đã chọn (nếu có)
+      if (selectedCourseIds.length > 0 && created?.classId) {
+        try {
+          await classService.admin.addCoursesToClass(created.classId, selectedCourseIds);
+        } catch {
+          toast.warning('Tạo lớp thành công nhưng không gán được khóa học. Bạn có thể gán sau.');
+        }
+      }
+
       // reload danh sách lớp
       const data = await classService.admin.getAll();
       setClasses(data);
 
       // đóng modal + reset form
       setShowCreateModal(false);
-      setCreateForm({
-        classCode: "",
-        className: "",
-        startDate: "",
-        endDate: "",
-        maxStudents: 0
-      });
+      setCreateForm({ classCode: "", className: "", startDate: "", endDate: "", maxStudents: 0 });
+      setSelectedCourseIds([]);
+      setCourseSearch('');
 
       toast.success("Tạo lớp học thành công!");
     } catch (e) {
@@ -77,6 +88,30 @@ const ClassManagementDashboard = () => {
       setLoading(false);
     }
   }
+
+  // Load courses khi mở modal tạo lớp
+  useEffect(() => {
+    if (!showCreateModal) return;
+    setLoadingCourses(true);
+    courseService.getAllCourses({ size: 100, status: 'APPROVED' })
+      .then(res => {
+        console.log('[ClassManagement] getAllCourses response:', res);
+        const courses = res?.items || [];
+        console.log('[ClassManagement] courses loaded:', courses.length);
+        setAvailableCourses(courses);
+      })
+      .catch((err) => {
+        console.error('[ClassManagement] getAllCourses error:', err);
+        toast.error('Không tải được danh sách khóa học');
+      })
+      .finally(() => setLoadingCourses(false));
+  }, [showCreateModal]);
+
+  const toggleCourseSelection = (courseId: string) => {
+    setSelectedCourseIds(prev =>
+      prev.includes(courseId) ? prev.filter(id => id !== courseId) : [...prev, courseId]
+    );
+  };
 
 
   useEffect(() => {
@@ -414,24 +449,27 @@ const ClassManagementDashboard = () => {
                       </p>
                     </div>
 
-                    <div className="flex gap-4 mb-6 border-b border-border">
+                    <div className="flex items-center justify-between mb-6 border-b border-border pb-1">
+                      <div className="flex gap-4">
+                        <button
+                          onClick={() => setDetailTab('contests')}
+                          className={`pb-2 text-sm font-medium transition-colors border-b-2 ${detailTab === 'contests' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                        >
+                          Bài thi của lớp
+                        </button>
+                      </div>
                       <button
-                        onClick={() => setDetailTab('contests')}
-                        className={`pb-2 text-sm font-medium transition-colors border-b-2 ${detailTab === 'contests' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-                      >
-                        Bài thi của lớp
-                      </button>
-                      <button
-                        onClick={() => setDetailTab('ai-insights')}
-                        className={`flex items-center gap-2 pb-2 text-sm font-medium transition-colors border-b-2 ${detailTab === 'ai-insights' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                        onClick={() => { setAiInsightsClass(cls); setShowAiInsights(true); }}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+                        style={{ background: 'linear-gradient(135deg,#6c63ff,#8b5cf6)', boxShadow: '0 4px 16px rgba(108,99,255,.3)' }}
                       >
                         <Brain className="w-4 h-4" />
-                        AI Insights
+                        🧠 AI Analytics
                       </button>
                     </div>
 
-                    {detailTab === 'ai-insights' ? (
-                      <ClassAiInsights classId={cls.classId || ''} className={cls.className || ''} />
+                    {false ? (
+                      <span />
                     ) : (
                       <>
                         <div className="flex items-center justify-between mb-4">
@@ -617,6 +655,99 @@ const ClassManagementDashboard = () => {
                     placeholder="50"
                   />
                 </div>
+
+                {/* Course Picker */}
+                <div>
+                  <label className="block text-sm font-bold text-foreground mb-2 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-primary" />
+                    Khóa học bắt buộc
+                    {selectedCourseIds.length > 0 && (
+                      <span className="ml-auto px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded-full">
+                        {selectedCourseIds.length} đã chọn
+                      </span>
+                    )}
+                  </label>
+
+                  {/* Tags đã chọn */}
+                  {selectedCourseIds.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {selectedCourseIds.map(id => {
+                        const c = availableCourses.find(x => x.courseId === id);
+                        return c ? (
+                          <span
+                            key={id}
+                            className="flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full border border-primary/30"
+                          >
+                            {c.title}
+                            <button
+                              type="button"
+                              onClick={() => toggleCourseSelection(id)}
+                              className="hover:text-destructive transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
+
+                  {/* Search + List */}
+                  <div className="border border-border rounded-lg overflow-hidden">
+                    <div className="relative border-b border-border">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="Tìm khóa học..."
+                        value={courseSearch}
+                        onChange={e => setCourseSearch(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 text-sm bg-background text-foreground focus:outline-none"
+                      />
+                    </div>
+                    <div className="max-h-44 overflow-y-auto divide-y divide-border">
+                      {loadingCourses ? (
+                        <div className="py-4 text-center text-sm text-muted-foreground">Đang tải...</div>
+                      ) : availableCourses
+                          .filter(c => c.title?.toLowerCase().includes(courseSearch.toLowerCase()))
+                          .length === 0 ? (
+                        <div className="py-4 text-center text-sm text-muted-foreground">Không tìm thấy khóa học</div>
+                      ) : (
+                        availableCourses
+                          .filter(c => c.title?.toLowerCase().includes(courseSearch.toLowerCase()))
+                          .map(course => {
+                            const isSelected = selectedCourseIds.includes(course.courseId);
+                            return (
+                              <button
+                                key={course.courseId}
+                                type="button"
+                                onClick={() => toggleCourseSelection(course.courseId)}
+                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors text-sm ${
+                                  isSelected
+                                    ? 'bg-primary/8 text-primary'
+                                    : 'text-foreground hover:bg-muted'
+                                }`}
+                              >
+                                <div
+                                  className={`w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center transition-colors ${
+                                    isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/40'
+                                  }`}
+                                >
+                                  {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
+                                </div>
+                                <span className="flex-1 font-medium truncate">{course.title}</span>
+                                {course.level && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground flex-shrink-0">
+                                    {course.level}
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Chọn các khóa học, sinh viên sẽ được tự động đăng ký khi tham gia lớp.</p>
+                </div>
               </div>
             </div>
             <div className="p-6 border-t border-border flex justify-end gap-3">
@@ -665,8 +796,18 @@ const ClassManagementDashboard = () => {
         contest={contestToReschedule}
         onSuccess={() => selectedClass?.classId && fetchClassContests(selectedClass.classId)}
       />
+
+      {/* AI Insights Full-Page Overlay */}
+      {showAiInsights && aiInsightsClass && (
+        <ClassAiInsights
+          classId={aiInsightsClass.classId || ''}
+          className={aiInsightsClass.className || ''}
+          onClose={() => { setShowAiInsights(false); setAiInsightsClass(null); }}
+        />
+      )}
     </div>
   );
 };
+
 
 export default ClassManagementDashboard;

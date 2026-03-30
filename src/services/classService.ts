@@ -31,6 +31,17 @@ const classService = {
       apiService.get<UserResponse[]>(
         `${ADMIN_BASE_ENDPOINT}/${classId}/students`
       ),
+
+    addCoursesToClass: (classId: string, courseIds: string[]): Promise<any[]> =>
+      apiService.post<any[]>(
+        `${ADMIN_BASE_ENDPOINT}/${classId}/courses`,
+        { courseIds }
+      ),
+
+    getCoursesInClass: (classId: string): Promise<any[]> =>
+      apiService.get<any[]>(
+        `${ADMIN_BASE_ENDPOINT}/${classId}/courses`
+      ),
   },
 
   student: {
@@ -53,6 +64,11 @@ const classService = {
     getById: (classId: string): Promise<ClazzResponse> =>
       apiService.get<ClazzResponse>(
         `${STUDENT_BASE_ENDPOINT}/${classId}`
+      ),
+
+    getCoursesInClass: (classId: string): Promise<any[]> =>
+      apiService.get<any[]>(
+        `${STUDENT_BASE_ENDPOINT}/${classId}/courses`
       ),
   },
 
