@@ -2,6 +2,7 @@ package com.truongsonkmhd.unetistudy.model.lesson.course_lesson;
 
 import com.truongsonkmhd.unetistudy.model.User;
 import com.truongsonkmhd.unetistudy.model.course.Course;
+import com.truongsonkmhd.unetistudy.model.course.CourseEnrollment;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -44,6 +45,16 @@ public class Clazz {
     @OneToMany(mappedBy = "clazz", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     List<ClassContest> classContests = new ArrayList<>();
+
+    // Các khóa học bắt buộc của lớp — dùng làm tiêu chí đánh giá AI Analytics
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "tbl_class_course",
+            joinColumns = @JoinColumn(name = "class_id"),
+            inverseJoinColumns = @JoinColumn(name = "course_id")
+    )
+    @Builder.Default
+    Set<Course> requiredCourses = new HashSet<>();
 
     @Column(name = "start_date", nullable = false)
     Instant startDate;
@@ -91,6 +102,14 @@ public class Clazz {
 
     public void removeStudent(User student) {
         students.remove(student);
+    }
+
+    public void addRequiredCourse(Course course) {
+        requiredCourses.add(course);
+    }
+
+    public void removeRequiredCourse(Course course) {
+        requiredCourses.remove(course);
     }
 
     public List<ClassContest> getActiveContests() {

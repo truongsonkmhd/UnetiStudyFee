@@ -34,7 +34,7 @@ public class ClassContestResponse {
     Boolean isActive;
     Double weight;
 
-    // Cấu hình hiệu quả (đã áp dụng override)
+    // Cấu hình hiệu quả
     EffectiveConfig effectiveConfig;
 
     Instant createdAt;

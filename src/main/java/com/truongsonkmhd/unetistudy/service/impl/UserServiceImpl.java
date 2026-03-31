@@ -43,9 +43,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Service quản lý User với tích hợp Caching
- */
 @Service
 @Slf4j(topic = "USER-SERVICE")
 @RequiredArgsConstructor
@@ -254,7 +251,6 @@ public class UserServiceImpl implements UserService {
             @CacheEvict(cacheNames = CacheConstants.USER_BY_ID, key = "'entity:' + #userId"),
             @CacheEvict(cacheNames = CacheConstants.USER_BY_USERNAME, allEntries = true)
     })
-
     public UserResponse update(UUID userId, UserUpdateRequest req) {
         log.info("Updating user: {} - Evicting cache", userId);
 
@@ -346,7 +342,8 @@ public class UserServiceImpl implements UserService {
             user.getRoles().add(teacherRole);
         }
 
-        // 3️⃣ Remove StudentProfile reference to avoid ObjectDeletedException during save
+        // 3️⃣ Remove StudentProfile reference to avoid ObjectDeletedException during
+        // save
         if (user.getStudentProfile() != null) {
             studentProfileRepository.delete(user.getStudentProfile());
             user.setStudentProfile(null);
@@ -365,6 +362,7 @@ public class UserServiceImpl implements UserService {
         // 5️⃣ Save user entity (cascades to TeacherProfile)
         userRepository.save(user);
     }
+
     @Override
     public UserPageResponse searchUsers(String keyword, int pageNo, int pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
@@ -434,14 +432,14 @@ public class UserServiceImpl implements UserService {
                         .contactAddress(user.getContactAddress())
                         .role(role);
 
-        // 🎓 STUDENT
+        //  STUDENT
         if (user.getStudentProfile() != null) {
             builder
                     .studentId(user.getStudentProfile().getStudentId())
                     .classId(user.getStudentProfile().getClassId());
         }
 
-        // 👨‍🏫 TEACHER
+        //  TEACHER
         if (user.getTeacherProfile() != null) {
             builder
                     .teacherId(user.getTeacherProfile().getTeacherId())

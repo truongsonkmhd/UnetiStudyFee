@@ -188,9 +188,14 @@ public class CourseTreeServiceImpl implements CourseTreeService {
 
         // Upload/Update course image if exists
         if (req.getImageFile() != null && !req.getImageFile().isEmpty()) {
+            String oldImageUrl = course.getImageUrl();
             String pbUrl = storageService.uploadFile("course_images", req.getImageFile());
             if (pbUrl != null) {
                 course.setImageUrl(pbUrl);
+                // 3. Delete OLD image from storage if upload new one successfully
+                if (oldImageUrl != null && !oldImageUrl.isBlank()) {
+                    storageService.deleteFile(oldImageUrl);
+                }
             }
         }
 
@@ -221,7 +226,10 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         Course course = courseRepository.findById(theId)
                 .orElseThrow(() -> new DataNotFoundException("course not found: " + theId));
 
-        // Cleanup student data for all modules in this course to avoid FK violations
+        if (course.getImageUrl() != null && !course.getImageUrl().isBlank()) {
+            storageService.deleteFile(course.getImageUrl());
+        }
+
         for (CourseModule module : course.getModules()) {
             cleanupStudentDataForModule(module);
         }
@@ -248,8 +256,7 @@ public class CourseTreeServiceImpl implements CourseTreeService {
     public PageResponse<CourseCardResponse> getAllCourses(Integer page, Integer size, String q, String status,
             String category) {
         log.debug("getAllCourses - page={}, size={}, q={}, status={}, category={}", page, size, q, status, category);
-        return courseCacheService.getCourseCatalog(page, size, q, status, category,
-                () -> this.queryCourseCatalog(page, size, q, status, category));
+        return queryCourseCatalog(page, size, q, status, category);
     }
 
     /**

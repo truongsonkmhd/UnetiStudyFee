@@ -55,5 +55,7 @@ public class ContestLessonResponseDTO {
     List<ContestCodingExerciseDTO> codingExercises;
 
     List<QuizDTO> quizzes;
-
+    
+    Integer codingExerciseCount;
+    Integer quizQuestionCount;
 }

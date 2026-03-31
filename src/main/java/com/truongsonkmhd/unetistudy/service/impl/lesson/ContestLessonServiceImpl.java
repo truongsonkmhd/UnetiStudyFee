@@ -93,6 +93,8 @@ public class ContestLessonServiceImpl implements ContestLessonService {
                 .quizzes(contestLesson.getQuizzes().stream()
                         .map(quizDTOMapper::toDto)
                         .collect(Collectors.toList()))
+                .codingExerciseCount(contestLesson.getCodingExercises().size())
+                .quizQuestionCount(contestLesson.getQuizzes().size())
                 .build();
     }
 
@@ -108,10 +110,12 @@ public class ContestLessonServiceImpl implements ContestLessonService {
         int safeSize = Math.min(Math.max(size, 1), 50);
 
         Pageable pageable = PageRequest.of(safePage, safeSize);
-        Page<ContestLessonResponseDTO> result = contestLessonRepository.searchContestAdvance(q, statusContest,
+        Page<ContestLesson> result = contestLessonRepository.searchContestAdvance(q, statusContest,
                 pageable);
 
-        return buildPageResponse(result);
+        Page<ContestLessonResponseDTO> responsePage = result.map(this::mapToResponseDTO);
+
+        return buildPageResponse(responsePage);
     }
 
     @Override
@@ -185,10 +189,65 @@ public class ContestLessonServiceImpl implements ContestLessonService {
 
     @Override
     @Transactional
+    public ContestLessonResponseDTO updateContestLesson(UUID id, ContestLessonRequestDTO request) {
+        ContestLesson contestLesson = contestLessonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Contest lesson not found with id: " + id));
+
+        contestLesson.setTitle(request.getTitle());
+        contestLesson.setDescription(request.getDescription());
+        contestLesson.setDefaultDurationMinutes(request.getDefaultDurationMinutes());
+        contestLesson.setTotalPoints(request.getTotalPoints());
+        contestLesson.setDefaultMaxAttempts(request.getDefaultMaxAttempts());
+        contestLesson.setPassingScore(request.getPassingScore());
+        contestLesson.setShowLeaderboardDefault(request.getShowLeaderboardDefault());
+        contestLesson.setInstructions(request.getInstructions());
+
+        // Update relations
+        contestLesson.getCodingExercises().clear();
+        addCodingExercisesToContest(request.getExerciseTemplateIds(), contestLesson);
+
+        contestLesson.getQuizzes().clear();
+        addQuizToContest(request.getQuizTemplateIds(), contestLesson);
+
+        contestLessonRepository.save(contestLesson);
+        return mapToResponseDTO(contestLesson);
+    }
+
+    @Override
+    @Transactional
+    public void deleteContestLesson(UUID id) {
+        ContestLesson contestLesson = contestLessonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Contest lesson not found with id: " + id));
+        if (contestLesson.isUsedInClasses()) {
+            throw new RuntimeException("Cannot delete contest lesson currently used in classes");
+        }
+        contestLessonRepository.delete(contestLesson);
+    }
+
+    @Override
+    @Transactional
+    public void archiveContestLesson(UUID id) {
+        ContestLesson contestLesson = contestLessonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Contest lesson not found with id: " + id));
+        contestLesson.setStatus(StatusContest.ARCHIVED);
+        contestLessonRepository.save(contestLesson);
+    }
+
+    @Override
+    @Transactional
     public void publishContestLesson(UUID id) {
         ContestLesson contestLesson = contestLessonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Contest lesson not found with id: " + id));
         contestLesson.setStatus(StatusContest.READY);
+        contestLessonRepository.save(contestLesson);
+    }
+
+    @Override
+    @Transactional
+    public void updateStatus(UUID id, StatusContest status) {
+        ContestLesson contestLesson = contestLessonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Contest lesson not found with id: " + id));
+        contestLesson.setStatus(status);
         contestLessonRepository.save(contestLesson);
     }
 

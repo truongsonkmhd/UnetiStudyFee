@@ -48,4 +48,47 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgress, 
     Optional<LessonProgress> findLastAccessedLesson(
             @Param("userId") UUID userId,
             @Param("courseId") UUID courseId);
+
+    // ===== Analytics by class scope =====
+
+    /**
+     * Đếm số bài học hoàn thành của mỗi student trong danh sách courses.
+     * Returns: [studentId (UUID), completedCount (Long)]
+     */
+    @Query("""
+                select lp.user.id, count(lp)
+                from LessonProgress lp
+                where lp.user.id in :studentIds
+                  and lp.course.courseId in :courseIds
+                  and lp.status = ProgressStatus.DONE
+                group by lp.user.id
+            """)
+    List<Object[]> countCompletedByStudentsAndCourses(
+            @Param("studentIds") List<UUID> studentIds,
+            @Param("courseIds") List<UUID> courseIds);
+
+    /**
+     * Tìm ngày cuối truy cập của mỗi student trong danh sách courses.
+     * Returns: [studentId (UUID), lastAccessAt (Instant)]
+     */
+    @Query("""
+                select lp.user.id, max(lp.lastAccessAt)
+                from LessonProgress lp
+                where lp.user.id in :studentIds
+                  and lp.course.courseId in :courseIds
+                group by lp.user.id
+            """)
+    List<Object[]> findLastAccessByStudents(
+            @Param("studentIds") List<UUID> studentIds,
+            @Param("courseIds") List<UUID> courseIds);
+
+    /**
+     * Đếm tổng số lessons trong danh sách courses (mẫu số cho completion_rate).
+     */
+    @Query("""
+                select count(cl)
+                from CourseLesson cl
+                where cl.module.course.courseId in :courseIds
+            """)
+    Long countTotalLessonsByCourses(@Param("courseIds") List<UUID> courseIds);
 }
