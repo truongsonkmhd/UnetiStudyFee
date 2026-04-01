@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import CreateButton from '@/components/common/CreateButton';
 import {
-    Plus,
+    PlusCircle,
     Search,
     Filter,
     Code,
@@ -205,13 +206,10 @@ const CodingExerciseLibrary: React.FC = () => {
                             Xây dựng và tối ưu kho đề bài tập lập trình mẫu của bạn
                         </p>
                     </div>
-                    <button
+                    <CreateButton
                         onClick={() => navigate('/templates/create')}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
-                    >
-                        <Plus size={20} />
-                        Tạo bài tập mới
-                    </button>
+                        label="Tạo bài tập mới"
+                    />
                 </motion.div>
 
                 {/* Stats Grid */}
@@ -322,12 +320,10 @@ const CodingExerciseLibrary: React.FC = () => {
                             title="Không tìm thấy bài tập nào"
                             description="Thử thay đổi bộ lọc hoặc tạo một bài tập mới để bắt đầu xây dựng thư viện của bạn."
                             action={
-                                <button
+                                <CreateButton
                                     onClick={() => navigate('/templates/create')}
-                                    className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
-                                >
-                                    Tạo bài tập đầu tiên
-                                </button>
+                                    label="Tạo bài tập đầu tiên"
+                                />
                             }
                         />
                     ) : (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Users, Trophy, Clock, Search, Edit2, Trash2, Eye, AlertCircle, CheckCircle, XCircle, PlayCircle, Link, Copy, RefreshCw, ExternalLink, Brain, QrCode, BookOpen, X } from 'lucide-react';
+import CreateButton from '@/components/common/CreateButton';
+import { Calendar, PlusCircle, Users, Trophy, Clock, Search, Edit2, Trash2, Eye, AlertCircle, CheckCircle, XCircle, PlayCircle, Link, Copy, RefreshCw, ExternalLink, Brain, QrCode, BookOpen, X } from 'lucide-react';
 import { QRCode, Popover, Button } from 'antd';
 import { ClazzResponse } from '@/model/class/ClazzResponse';
 import classService from '@/services/classService';
@@ -316,7 +317,7 @@ return (
             Quản lý danh sách lớp học và bài thi của bạn
           </p>
         </div>
-        <button
+        <CreateButton
           onClick={() => {
             setIsEdit(false);
             setEditingClassId(null);
@@ -329,11 +330,8 @@ return (
             });
             setShowCreateModal(true);
           }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
-        >
-          <Plus size={20} />
-          Thêm lớp học
-        </button>
+          label="Thêm lớp học"
+        />
       </motion.div>
 
 
@@ -552,13 +550,12 @@ return (
                     <>
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="font-bold text-foreground">Bài thi của lớp</h4>
-                        <button
+                        <CreateButton
                           onClick={() => setIsAddContestModalOpen(true)}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground text-sm rounded-lg hover:opacity-90 transition-colors"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Thêm bài thi
-                        </button>
+                          label="Thêm bài thi"
+                          className="px-3 py-1.5 rounded-xl text-xs"
+                          icon={<PlusCircle className="h-4 w-4" />}
+                        />
                       </div>
 
                       {selectedClassContests.length === 0 ? (

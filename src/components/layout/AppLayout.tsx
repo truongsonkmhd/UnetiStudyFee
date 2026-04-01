@@ -21,28 +21,25 @@ import {
   LogOut,
   User as UserIcon,
   MessageCircle,
+  BookOpen,
+  GraduationCap,
 } from "lucide-react";
 import { chatboxCuImg } from "@/assets";
 import { actionAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { PATHS } from "@/constants/paths";
+import { getRolesFromClaims } from "../common/getRolesAndPermissionFromClaims";
 
 import defaultAvatar from "@/assets/img/avatar-default.png";
 
+
 export function AppLayout() {
   const navigate = useNavigate();
-  const [q, setQ] = useState("");
 
   const { jwtClaims, logout } = actionAuth();
 
   console.log("AppLayout render with JWT claims:=-=-=-=-=", jwtClaims);
 
-  const onSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = q.trim();
-    if (!query) return;
-    navigate(`/search?q=${encodeURIComponent(query)}`);
-  };
 
   const getAvatarSrc = (avatarUrl?: unknown): string => {
     if (typeof avatarUrl !== "string") return defaultAvatar;
@@ -79,21 +76,8 @@ export function AppLayout() {
               <SidebarTrigger />
             </div>
 
-            {/* center search */}
-            <form
-              onSubmit={onSearchSubmit}
-              className="flex-1 flex justify-center"
-            >
-              <div className="flex items-center gap-3 rounded-2xl border border-muted-foreground/20 px-5 py-3 shadow-sm w-full max-w-xl transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500/50 bg-muted/30">
-                <Search className="w-6 h-6 opacity-60" />
-                <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Tìm kiếm khóa học, bài viết, video, ..."
-                  className="bg-transparent outline-none text-base font-medium flex-1 placeholder:text-muted-foreground/60"
-                />
-              </div>
-            </form>
+            {/* center placeholder to keep balance */}
+            <div className="flex-1" />
 
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -108,68 +92,55 @@ export function AppLayout() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-muted transition">
+                  <button className="flex items-center gap-2 rounded-full p-0.5 ring-2 ring-slate-800 hover:ring-blue-500/50 transition-all duration-300">
                     <img
                       src={getAvatarSrc(jwtClaims?.avatar)}
                       alt={jwtClaims?.userName}
-                      className="h-9 w-9 rounded-full object-cover ring-1 ring-black/10"
+                      className="h-10 w-10 rounded-full object-cover ring-2 ring-border"
                       draggable={false}
                     />
-                    <div className="hidden sm:flex flex-col items-start leading-tight">
-                      <span className="text-sm font-semibold text-foreground">
-                        {jwtClaims?.userName}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {jwtClaims?.classId}
-                      </span>
-                    </div>
                   </button>
                 </DropdownMenuTrigger>
 
-                <DropdownMenuContent align="end" className="w-64">
-                  <DropdownMenuLabel className="py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-black/10">
-                        <img
-                          src={getAvatarSrc(jwtClaims?.avatar)}
-                          alt={jwtClaims?.userName}
-                          className="h-full w-full object-cover"
-                          draggable={false}
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-semibold">
-                          {jwtClaims?.userName}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {jwtClaims?.classId}
-                        </span>
-                      </div>
+                <DropdownMenuContent align="end" className="w-64 bg-popover border-border text-popover-foreground p-2">
+                  <div className="flex items-center gap-3 px-3 py-4 mb-2 bg-muted/50 rounded-xl">
+                    <div className="h-10 w-10 rounded-full overflow-hidden ring-2 ring-blue-500">
+                      <img
+                        src={getAvatarSrc(jwtClaims?.avatar)}
+                        alt={jwtClaims?.userName}
+                        className="h-full w-full object-cover"
+                        draggable={false}
+                      />
                     </div>
-                  </DropdownMenuLabel>
+                    <div>
+                      <p className="text-base font-black text-foreground">{jwtClaims?.userName || "Người dùng"}</p>
+                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">{getRolesFromClaims(jwtClaims)?.[0] || jwtClaims?.classId || "Hệ thống"}</p>
+                    </div>
+                  </div>
 
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-border" />
 
                   <DropdownMenuItem
                     onClick={() => navigate(PATHS.PROFILE_PAGE)}
+                    className="rounded-lg py-2.5 focus:bg-muted"
                   >
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    Hồ sơ
+                    <UserIcon className="mr-3 h-4 w-4 text-blue-500" /> Hồ sơ cá nhân
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem onClick={() => navigate("/classattended")}>
-                    <MessageCircle className="mr-2 h-4 w-4" />
-                    Lớp học
+                  <DropdownMenuItem 
+                    onClick={() => navigate("/classattended")}
+                    className="rounded-lg py-2.5 focus:bg-muted"
+                  >
+                    <MessageCircle className="mr-3 h-4 w-4 text-purple-500" /> Lớp học tham gia
                   </DropdownMenuItem>
 
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-border" />
 
                   <DropdownMenuItem
                     onClick={handleLogout}
-                    className="text-red-600 focus:text-red-600"
+                    className="rounded-lg py-2.5 text-red-500 focus:text-red-500 focus:bg-red-500/10"
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Đăng xuất
+                    <LogOut className="mr-3 h-4 w-4" /> Đăng xuất
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

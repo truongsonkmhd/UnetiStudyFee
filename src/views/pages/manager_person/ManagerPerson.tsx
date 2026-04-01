@@ -10,6 +10,7 @@ import UserTable from "@/components/ui/users/UserTable";
 import UserToolbar from "@/components/ui/users/UserToolbar";
 import UserDetailModal from "@/components/ui/users/UserDetailModal";
 import UserFormModal from "@/components/ui/users/UserFormModal";
+import CreateButton from "@/components/common/CreateButton";
 
 import {
   TeamOutlined,
@@ -158,6 +159,11 @@ export default function ManagerPerson() {
                 Quản lý toàn bộ tài khoản và quyền truy cập người dùng
               </p>
             </div>
+
+            <CreateButton 
+              onClick={handleAdd}
+              label="Thêm người dùng"
+            />
           </div>
         </div>
 
@@ -179,7 +185,6 @@ export default function ManagerPerson() {
           <UserToolbar
             onSearch={setKeyword}
             onReload={reload}
-            onAdd={handleAdd}
             loading={loading}
           />
 

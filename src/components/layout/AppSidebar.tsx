@@ -257,9 +257,9 @@ export function AppSidebar() {
           />
           {!isCollapsed && (
             <div className="flex flex-col ml-4">
-              <span className="font-black text-xl text-foreground tracking-tight">
-                {APP_NAME}
-              </span>
+                               <span className="font-black text-xl text-blue-600 dark:text-blue-400 tracking-tight">
+                                {APP_NAME}
+                              </span>
             </div>
           )}
         </div>

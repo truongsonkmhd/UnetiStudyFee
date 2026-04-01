@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { CourseCardResponse } from '@/model/course-admin/CourseCardResponse';
+import CreateButton from '@/components/common/CreateButton';
 import CourseService from '@/services/courseService';
-import { Search, Filter, Plus, Book, BookOpen, Trash2, Edit3, Eye, Calendar, Users, GraduationCap, Layers, Loader2 } from 'lucide-react';
+import { Search, Filter, Plus, PlusCircle, Book, BookOpen, Trash2, Edit3, Eye, Calendar, Users, GraduationCap, Layers, Loader2, RefreshCcw, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 
@@ -188,13 +189,10 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
             Xây dựng và tối ưu giảng đường số của bạn
           </p>
         </div>
-        <button
+        <CreateButton
           onClick={onCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
-        >
-          <Plus className="h-5 w-5" />
-          <span className="font-semibold">Tạo khóa học mới</span>
-        </button>
+          label="Tạo khóa học mới"
+        />
       </motion.div>
 
       <motion.div
@@ -265,7 +263,8 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
               <Filter className="h-6 w-6 rotate-45" />
             </div>
             <p className="max-w-md font-medium text-foreground">{error}</p>
-            <button onClick={loadCourses} className="rounded-lg bg-destructive px-4 py-2 text-sm font-bold text-destructive-foreground shadow-sm transition-transform active:scale-95">
+            <button onClick={loadCourses} className="flex items-center gap-2 rounded-xl bg-destructive px-6 py-3 text-sm font-black text-destructive-foreground shadow-lg shadow-destructive/20 transition-all hover:bg-destructive/90 hover:scale-105 active:scale-95 uppercase tracking-widest">
+              <RefreshCcw className="h-4 w-4" />
               Thử tải lại trang
             </button>
           </motion.div>
@@ -284,7 +283,8 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
               <h3 className="text-xl font-bold text-foreground italic">"Gió mang khóa học đi đâu rồi?"</h3>
               <p className="text-muted-foreground">Không tìm thấy kết quả nào khớp với bộ lọc hiện tại.</p>
             </div>
-            <button onClick={() => setFilters({ status: '', search: '', category: '' })} className="text-sm font-semibold text-primary hover:text-primary/80 underline-offset-4 hover:underline">
+            <button onClick={() => setFilters({ status: '', search: '', category: '' })} className="flex items-center gap-2 text-sm font-black text-primary hover:text-primary/80 transition-colors uppercase tracking-widest">
+              <XCircle className="h-4 w-4" />
               Xóa bộ lọc tìm kiếm
             </button>
           </motion.div>
@@ -353,7 +353,7 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
                     {course.title}
                   </h3>
 
-                  <p className="mb-6 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mb-6 line-clamp-2 text-sm leading-relaxed text-muted-foreground break-words min-h-[2.5rem]">
                     {course.shortDescription || 'Chưa cập nhật nội dung giới thiệu cho khóa học này...'}
                   </p>
 

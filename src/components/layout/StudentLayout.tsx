@@ -31,6 +31,7 @@ import { PATHS } from "@/constants/paths";
 import defaultAvatar from "@/assets/img/avatar-default.png";
 import { APP_NAME } from "@/utils/config";
 import { Button } from "@/components/ui/button";
+import { GlobalSearch } from "./GlobalSearch";
 
 interface NavItem {
     label: string;
@@ -66,7 +67,6 @@ const studentNavItems: NavItem[] = [
 export function StudentLayout() {
     const navigate = useNavigate();
     const location = useLocation();
-    const [q, setQ] = useState("");
     const { jwtClaims, logout } = actionAuth();
 
     const isActive = (item: NavItem) => {
@@ -95,10 +95,10 @@ export function StudentLayout() {
                     <div className="flex items-center gap-10">
                         <div className="flex items-center gap-3 shrink-0">
                             <NavLink to={PATHS.HOME} className="flex items-center gap-2 group">
-                                <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                                 <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                                     <img src={logoIcon} alt="Logo" className="w-8 h-8 object-contain" />
                                 </div>
-                                <span className="font-black text-2xl text-blue-600 dark:text-white uppercase tracking-tighter">
+                                <span className="font-black text-2xl text-blue-600 dark:text-blue-400 uppercase tracking-tighter">
                                     {APP_NAME}
                                 </span>
                             </NavLink>
@@ -139,15 +139,8 @@ export function StudentLayout() {
                     </div>
 
                     <div className="flex items-center gap-4 shrink-0">
-                        <div className="hidden xl:flex items-center relative group">
-                            <Search className="absolute left-4 w-4 h-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm khóa học..."
-                                value={q}
-                                onChange={(e) => setQ(e.target.value)}
-                                className="w-64 bg-muted/50 border border-border/50 rounded-2xl py-2.5 pl-11 pr-4 text-sm font-bold text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-background transition-all"
-                            />
+                        <div className="hidden xl:block">
+                            <GlobalSearch />
                         </div>
 
                         <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-full border border-border/50">

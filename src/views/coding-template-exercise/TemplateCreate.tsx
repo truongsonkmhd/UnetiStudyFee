@@ -4,7 +4,7 @@ import Editor from "@monaco-editor/react";
 import {
   ArrowLeft,
   Save,
-  Plus,
+  PlusCircle,
   Trash2,
   Code2,
   Settings2,
@@ -402,16 +402,16 @@ const TemplateCreate: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => addTestCase(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl text-sm font-bold transition-all border border-emerald-500/20"
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl text-sm font-bold transition-all border border-emerald-500/20 group"
                   >
-                    <Plus size={14} /> Thêm Test Case Mẫu
+                    <PlusCircle size={14} className="group-hover:rotate-90 transition-transform" /> Thêm Test Case Mẫu
                   </button>
                   <button
                     type="button"
                     onClick={() => addTestCase(false)}
-                    className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 text-muted-foreground rounded-xl text-sm font-bold transition-all border border-border"
+                    className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 text-muted-foreground rounded-xl text-sm font-bold transition-all border border-border group"
                   >
-                    <Plus size={14} /> Thêm Test Case Ẩn
+                    <PlusCircle size={14} className="group-hover:rotate-90 transition-transform" /> Thêm Test Case Ẩn
                   </button>
                 </div>
               </div>

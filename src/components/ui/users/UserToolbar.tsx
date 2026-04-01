@@ -1,11 +1,11 @@
 import { Input, Tooltip } from "antd";
-import { SearchOutlined, ReloadOutlined, PlusOutlined } from "@ant-design/icons";
+import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
 import { useTheme } from "next-themes";
+import CreateButton from "@/components/common/CreateButton";
 
 type Props = {
   onSearch: (value: string) => void;
   onReload: () => void;
-  onAdd: () => void;
   loading: boolean;
 };
 
@@ -22,7 +22,7 @@ const btnBase: React.CSSProperties = {
   transition: "all 0.2s",
 };
 
-const UserToolbar = ({ onSearch, onReload, onAdd, loading }: Props) => {
+const UserToolbar = ({ onSearch, onReload, loading }: Props) => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
@@ -82,34 +82,6 @@ const UserToolbar = ({ onSearch, onReload, onAdd, loading }: Props) => {
             Làm mới
           </button>
         </Tooltip>
-
-        <button
-          onClick={onAdd}
-          style={{
-            ...btnBase,
-            background: isDark
-              ? "rgba(255,255,255,0.12)"
-              : "linear-gradient(135deg, #4f46e5, #6366f1)",
-            border: isDark ? "1px solid rgba(255,255,255,0.25)" : "none",
-            color: "#fff",
-            fontWeight: 600,
-            backdropFilter: isDark ? "blur(8px)" : "none",
-            boxShadow: isDark ? "none" : "0 4px 12px rgba(79,70,229,0.2)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = isDark
-              ? "rgba(255,255,255,0.2)"
-              : "linear-gradient(135deg, #4338ca, #4f46e5)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = isDark
-              ? "rgba(255,255,255,0.12)"
-              : "linear-gradient(135deg, #4f46e5, #6366f1)";
-          }}
-        >
-          <PlusOutlined />
-          Thêm mới
-        </button>
       </div>
     </div>
   );

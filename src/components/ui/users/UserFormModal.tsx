@@ -46,7 +46,7 @@ export default function UserFormModal({
   const labelStyle: React.CSSProperties = {
     color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.85)",
     fontWeight: 600,
-    fontSize: "13px",
+    fontSize: "14px",
   };
   const inputStyle: React.CSSProperties = {
     borderRadius: 10,
@@ -103,7 +103,7 @@ export default function UserFormModal({
           color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.45)",
           textAlign: "center",
           marginBottom: 32,
-          fontSize: 15,
+          fontSize: 16,
         }}
       >
         Vui lòng chọn đối tượng tài khoản bạn muốn khởi tạo
@@ -139,7 +139,7 @@ export default function UserFormModal({
             <h3
               style={{
                 color: isDark ? "#fff" : "rgba(0,0,0,0.85)",
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: 700,
                 margin: "0 0 8px",
               }}
@@ -149,7 +149,7 @@ export default function UserFormModal({
             <Text
               style={{
                 color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)",
-                fontSize: 13,
+                fontSize: 14,
               }}
             >
               Dành cho sinh viên đăng ký học và thi
@@ -187,7 +187,7 @@ export default function UserFormModal({
             <h3
               style={{
                 color: isDark ? "#fff" : "rgba(0,0,0,0.85)",
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: 700,
                 margin: "0 0 8px",
               }}
@@ -197,7 +197,7 @@ export default function UserFormModal({
             <Text
               style={{
                 color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)",
-                fontSize: 13,
+                fontSize: 14,
               }}
             >
               Dành cho giảng viên và cán bộ quản lý
@@ -248,11 +248,11 @@ export default function UserFormModal({
             {isEdit ? <EditOutlined style={{ color: "#fff" }} /> : <PlusOutlined style={{ color: "#fff" }} />}
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ color: isDark ? "#fff" : "rgba(0,0,0,0.85)", fontSize: 17, fontWeight: 700 }}>
+            <div style={{ color: isDark ? "#fff" : "rgba(0,0,0,0.85)", fontSize: 20, fontWeight: 700 }}>
               {isEdit ? "Chỉnh sửa thông tin" : "Thêm mới người dùng"}
             </div>
             {selectedType && (
-              <div style={{ color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)", fontSize: 12 }}>
+              <div style={{ color: isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)", fontSize: 13 }}>
                 Đối tượng: {selectedType === UserType.TEACHER ? "Giáo viên" : "Học sinh"}
               </div>
             )}
@@ -306,7 +306,7 @@ export default function UserFormModal({
         >
           {/* Section 1: Thông tin cơ bản */}
           <div style={{ marginBottom: 24 }}>
-            <Text style={{ color: "#818cf8", fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.2, display: "block", marginBottom: 16 }}>
+            <Text style={{ color: "#818cf8", fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.2, display: "block", marginBottom: 16 }}>
               Thông tin định danh
             </Text>
             <Row gutter={16}>
@@ -394,7 +394,7 @@ export default function UserFormModal({
 
           {/* Section 2: Thông tin chi tiết */}
           <div style={{ marginBottom: 24 }}>
-            <Text style={{ color: selectedType === UserType.TEACHER ? "#a855f7" : "#4f46e5", fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.2, display: "block", marginBottom: 16 }}>
+            <Text style={{ color: selectedType === UserType.TEACHER ? "#a855f7" : "#4f46e5", fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.2, display: "block", marginBottom: 16 }}>
               {selectedType === UserType.TEACHER ? "Chi tiết giảng viên" : "Thông tin học tập"}
             </Text>
 

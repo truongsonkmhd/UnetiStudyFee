@@ -6,16 +6,17 @@ import { CourseModuleRequest } from '@/model/course-admin/CourseModuleRequest';
 import { LessonType } from '@/types/enum/LessonType';
 import { CourseLessonRequest } from '@/model/course-admin/CourseLessonRequest';
 import {
-  Save, X, Plus, Trash2, Video, Image as ImageIcon, CheckCircle2,
+  Save, X, PlusCircle, Trash2, Video, Image as ImageIcon, CheckCircle2,
   Info, Layout, BookOpen, Settings, AlertCircle, ChevronDown,
   ChevronUp, GripVertical, Rocket, PlayCircle, HelpCircle, Trophy, Calendar, Search
 } from 'lucide-react';
+import CreateButton from '@/components/common/CreateButton';
 import TemplateSelector from './TemplateSelector';
 import lessonService from '@/services/lessonService';
 import { toast } from 'sonner';
+import { MAJORS } from '@/constants/major';
 import CourseGuideView from './CourseGuideView';
 import CourseSettingsView from './CourseSettingsView';
-
 interface CourseFormProps {
   course?: CourseTreeResponse;
   onSubmit: (data: CourseShowRequest) => Promise<void>;
@@ -64,12 +65,28 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
 
   useEffect(() => {
     if (course) {
+      // Find the major ID if the category comes as a name or use it directly
+      const dbCategory = course.category?.trim();
+      const dbCategoryLower = dbCategory?.toLowerCase();
+      const matchedMajor = MAJORS.find(m =>
+        m.name.trim().toLowerCase() === dbCategoryLower ||
+        m.id.toLowerCase() === dbCategoryLower
+      );
+
+      console.log('--- DEBUG INITIALIZATION ---');
+      console.log('Raw Category from DB:', course.category);
+      console.log('Trimmed & Lowercased:', dbCategoryLower);
+      console.log('Matched Major found:', matchedMajor);
+
+      const categoryId = matchedMajor?.id || course.category || '';
+      console.log('Final Category ID to be set in form:', categoryId);
+
       setFormData({
         title: course.title,
         description: course.description,
         shortDescription: course.shortDescription || course.description?.substring(0, 150) || '',
-        level: course.level || 'BEGINNER',
-        category: course.category || '',
+        level: (course.level?.toUpperCase() as any) || 'BEGINNER',
+        category: categoryId,
         subCategory: course.subCategory || '',
         capacity: course.capacity || 100,
         enrolledCount: course.enrolledCount || 0,
@@ -93,7 +110,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
               lessonId: lesson.lessonId,
               title: lesson.title,
               orderIndex: lesson.orderIndex,
-              lessonType: lesson.lessonType,
+              lessonType: lesson.lessonType || LessonType.VIDEO,
               isPreview: lesson.isPreview,
               isPublished: lesson.isPublished,
               videoUrl: lesson.videoUrl,
@@ -145,12 +162,25 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
     setLoading(true);
     setError(null);
 
+    if (!formData.category) {
+      setError('Vui lòng chọn chuyên ngành cho khóa học');
+      setLoading(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     // Đảm bảo tính nhất quán của dữ liệu trước khi gửi
     const submissionData = { ...formData };
     if (submissionData.isPublished && !submissionData.publishedAt) {
       submissionData.publishedAt = new Date().toISOString();
     }
     // Nếu không công bố, có thể giữ hoặc xóa ngày cũ tùy vào DB, ở đây ta đảm bảo gửi đi giá trị hiện tại của form
+    // Ensure the category name is sent if the backend expects the name (compatibility with HomePage)
+    const major = MAJORS.find(m => m.id === formData.category);
+    if (major) {
+      submissionData.category = major.name;
+    }
+
     if (!submissionData.isPublished) {
       submissionData.publishedAt = undefined;
     }
@@ -399,7 +429,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
             </div>
 
             <div className="space-y-2">
-              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground">Chuyên mục <span className="text-destructive">*</span></label>
+              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground">Chuyên ngành <span className="text-destructive">*</span></label>
               <select
                 name="category"
                 value={formData.category}
@@ -407,12 +437,10 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                 className="w-full rounded-2xl border border-border bg-muted/50 px-5 py-4 text-sm font-bold text-foreground transition-all focus:border-primary focus:bg-background outline-none appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%2364748B%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:1.25rem] bg-[right_1.25rem_center] bg-no-repeat"
                 required
               >
-                <option value="">Chọn một chuyên mục</option>
-                <option value="PROGRAMMING">Kỹ thuật phần mềm</option>
-                <option value="DESIGN">Thiết kế sáng tạo</option>
-                <option value="BUSINESS">Phát triển kinh tế</option>
-                <option value="MARKETING">Digital Marketing</option>
-                <option value="DATA_SCIENCE">Phân tích dữ liệu</option>
+                <option value="">Chọn một chuyên ngành</option>
+                {MAJORS.map(major => (
+                  <option key={major.id} value={major.id}>{major.name}</option>
+                ))}
               </select>
             </div>
 
@@ -508,14 +536,11 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
               <h3 className="text-3xl font-black text-background italic tracking-tight">Thiết kế chương trình giảng dạy</h3>
               <p className="text-sm font-medium text-background/60">Thiết lập cấu trúc chương và bài giảng chi tiết.</p>
             </div>
-            <button
-              type="button"
+            <CreateButton
               onClick={addModule}
-              className="flex items-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-base font-black text-primary-foreground transition-all hover:bg-primary/90 hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
-            >
-              <Plus className="h-5 w-5" />
-              Tạo chương mới
-            </button>
+              label="Tạo chương mới"
+              className="px-6 py-3.5"
+            />
           </div>
 
           <div className="space-y-6">
@@ -547,9 +572,9 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                       <button
                         type="button"
                         onClick={() => addLesson(mIdx)}
-                        className="flex items-center gap-2 rounded-xl bg-card border border-border px-3 py-2 text-sm font-black text-primary shadow-sm transition-all hover:bg-primary hover:text-primary-foreground hover:scale-105"
+                        className="flex items-center gap-2 rounded-xl bg-card border border-border px-3 py-2 text-sm font-black text-primary shadow-sm transition-all hover:bg-primary hover:text-primary-foreground hover:scale-105 group"
                       >
-                        <Plus className="h-4 w-4" />
+                        <PlusCircle className="h-4 w-4 group-hover:rotate-90 transition-transform" />
                         LESSON
                       </button>
                       <button
@@ -639,7 +664,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                                     onClick={() => setSelectorConfig({ type: 'CODE', mIdx, lIdx, selectedIds: lesson.exerciseTemplateIds || [] })}
                                     className="flex items-center gap-2 rounded-xl bg-card border border-primary/20 px-4 py-2 text-[13px] font-black text-primary transition-all hover:bg-primary hover:text-primary-foreground shadow-sm active:scale-95"
                                   >
-                                    <Plus className="h-3.5 w-3.5" /> CHỌN BÀI TẬP
+                                    <PlusCircle className="h-3.5 w-3.5 group-hover:rotate-90 transition-transform" /> CHỌN BÀI TẬP
                                   </button>
                                 </div>
                                 {lesson.exerciseTemplates && lesson.exerciseTemplates.length > 0 ? (
@@ -693,7 +718,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                                     onClick={() => setSelectorConfig({ type: 'QUIZ', mIdx, lIdx, selectedIds: lesson.quizTemplateIds || [] })}
                                     className="flex items-center gap-2 rounded-xl bg-card border border-amber-500/20 px-4 py-2 text-[13px] font-black text-amber-500 transition-all hover:bg-amber-500 hover:text-white shadow-sm active:scale-95"
                                   >
-                                    <Plus className="h-3.5 w-3.5" /> CHỌN TRẮC NGHIỆM
+                                    <PlusCircle className="h-3.5 w-3.5 group-hover:rotate-90 transition-transform" /> CHỌN TRẮC NGHIỆM
                                   </button>
                                 </div>
                                 {lesson.quizTemplates && lesson.quizTemplates.length > 0 ? (

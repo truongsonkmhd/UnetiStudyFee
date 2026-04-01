@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import permissionService from "@/services/permissionService";
+import CreateButton from "@/components/common/CreateButton";
 import { Permission, PermissionRequest } from "@/types/Permission";
 import {
   Table,
@@ -363,13 +364,10 @@ const PermissionManagement = () => {
               </p>
             </div>
 
-            <button
+            <CreateButton
               onClick={openCreateModal}
-              className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
-            >
-              <PlusOutlined />
-              Thêm quyền mới
-            </button>
+              label="Thêm quyền mới"
+            />
           </div>
         </div>
 

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import CreateButton from '@/components/common/CreateButton';
 import {
   Search,
   Filter,
-  Plus,
+  PlusCircle,
   BookOpen,
   Code,
   Trophy,
@@ -476,9 +477,9 @@ const ContestManager = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={handleCreateNewExercise}
-            className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground hover:bg-muted rounded-lg transition-colors font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground hover:bg-muted rounded-xl transition-all font-bold group"
           >
-            <Plus size={18} />
+            <PlusCircle className="h-4 w-4 transition-transform group-hover:rotate-90" />
             Tạo bài mới
           </button>
           <button
@@ -493,9 +494,9 @@ const ContestManager = () => {
       </motion.div>
 
       <div className="bg-white dark:bg-slate-900/50 backdrop-blur-md p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <LibraryTabs />
+        {LibraryTabs()}
         <div className="flex-1 max-w-2xl">
-          <FilterBar type="coding" />
+          {FilterBar({ type: 'coding' })}
         </div>
       </div>
 
@@ -620,9 +621,9 @@ const ContestManager = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={handleCreateNewQuiz}
-            className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground hover:bg-muted rounded-lg transition-colors font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground hover:bg-muted rounded-xl transition-all font-bold group"
           >
-            <Plus size={18} />
+            <PlusCircle className="h-4 w-4 transition-transform group-hover:rotate-90" />
             Kiến tạo Quiz
           </button>
           <button
@@ -637,9 +638,9 @@ const ContestManager = () => {
       </motion.div>
 
       <div className="bg-white dark:bg-slate-900/50 backdrop-blur-md p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <LibraryTabs />
+        {LibraryTabs()}
         <div className="flex-1 max-w-2xl">
-          <FilterBar type="quiz" />
+          {FilterBar({ type: 'quiz' })}
         </div>
       </div>
 
@@ -760,7 +761,7 @@ const ContestManager = () => {
             Quản lý các kỳ thi của bạn
           </p>
         </div>
-        <button
+        <CreateButton
           onClick={() => {
             setNewClass({
               contestLessonId: '',
@@ -776,11 +777,8 @@ const ContestManager = () => {
             setSelectedQuizzes(new Set());
             setView('library_coding');
           }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors font-medium"
-        >
-          <Plus size={20} />
-          Thiết lập bài thi mới
-        </button>
+          label="Thiết lập bài thi mới"
+        />
       </motion.div>
 
       {isLoading && (
@@ -1298,11 +1296,11 @@ const ContestManager = () => {
       )}
       {!isLoading && (
         <div className="max-w-[2000px] mx-auto px-6 py-8 space-y-10">
-          {view === 'classes' && <ClassesView />}
-          {view === 'library_coding' && <CodingLibraryView />}
-          {view === 'library_quiz' && <QuizLibraryView />}
-          {view === 'create-class' && <CreateClassView />}
-          {view === 'manage-contest' && <ManageContestView />}
+          {view === 'classes' && ClassesView()}
+          {view === 'library_coding' && CodingLibraryView()}
+          {view === 'library_quiz' && QuizLibraryView()}
+          {view === 'create-class' && CreateClassView()}
+          {view === 'manage-contest' && ManageContestView()}
         </div>
       )}
 

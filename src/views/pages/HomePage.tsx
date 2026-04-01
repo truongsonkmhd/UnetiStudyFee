@@ -5,6 +5,7 @@ import { CourseCardResponse } from "@/model/course-admin/CourseCardResponse";
 import courseCatalogService from "@/services/courseCatalogService";
 import CourseCard from "./component/CourseCard";
 import { EmptyState } from "@/components/common/EmptyState";
+import { MAJORS } from "@/constants/major";
 import {
   Pagination,
   PaginationContent,
@@ -14,24 +15,12 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-export type Major =
-  | "all"
-  | "cntt"
-  | "ketoan"
-  | "dulich"
-  | "qtkd"
-  | "ngonnguanh"
-  | "chung";
+export type Major = "all" | string;
 
-const MAJOR_LABEL: Record<Major, string> = {
-  all: "Tất cả",
-  cntt: "Công nghệ thông tin",
-  ketoan: "Kế toán",
-  dulich: "Du lịch",
-  qtkd: "Quản trị kinh doanh",
-  ngonnguanh: "Ngôn ngữ Anh",
-  chung: "Chung",
-};
+const MAJOR_LIST = [
+  { id: "all", name: "Tất cả" },
+  ...MAJORS
+];
 
 const SectionHeader: React.FC<{
   title: string;
@@ -61,18 +50,18 @@ const MajorTags: React.FC<{
 }> = ({ value, onChange }) => {
   return (
     <div className="flex flex-wrap gap-3 py-6">
-      {Object.keys(MAJOR_LABEL).map((k) => (
+      {MAJOR_LIST.map((m) => (
         <button
-          key={k}
-          onClick={() => onChange(k as Major)}
+          key={m.id}
+          onClick={() => onChange(m.id)}
           className={[
             "px-8 py-3 text-base font-bold rounded-2xl border transition-all duration-300 transform active:scale-95",
-            value === k
+            value === m.id
               ? "bg-blue-600 border-blue-600 text-white"
               : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50/10"
           ].join(" ")}
         >
-          {MAJOR_LABEL[k as Major]}
+          {m.name}
         </button>
       ))}
     </div>
@@ -91,11 +80,13 @@ export function HomePage() {
   const loadCourses = async (page: number) => {
     setLoading(true);
     try {
-      const q = major === 'all' ? '' : MAJOR_LABEL[major];
+      const selectedMajor = MAJOR_LIST.find(m => m.id === major);
+      const category = major === 'all' ? '' : selectedMajor?.name || '';
       const response = await courseCatalogService.getPublishedCourses(
         page,
         pageSize,
-        q === 'Tất cả' ? '' : q
+        '', // Clear q when filtering by category tab
+        category
       );
 
       if (response.items) {
@@ -174,7 +165,7 @@ export function HomePage() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
-            <SectionHeader title={major === 'all' ? "Khóa học mới nhất" : MAJOR_LABEL[major]} count={totalElements} />
+            <SectionHeader title={major === 'all' ? "Khóa học mới nhất" : (MAJOR_LIST.find(m => m.id === major)?.name || "")} count={totalElements} />
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {courses.map((c, i) => (
                 <CourseCard key={c.courseId} course={c} />

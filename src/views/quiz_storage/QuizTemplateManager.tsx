@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import CreateButton from '@/components/common/CreateButton';
 import {
-  Plus,
+  PlusCircle,
   Search,
   Filter,
   BookOpen,
@@ -263,16 +264,13 @@ const QuizTemplateManager: React.FC = () => {
               Quản lý bộ câu hỏi trắc nghiệm của bạn
             </p>
           </div>
-          <button
+          <CreateButton
             onClick={() => {
               setEditingTemplateId(null);
               setShowCreateModal(true);
             }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors shadow-sm font-medium"
-          >
-            <Plus size={20} />
-            Tạo mẫu mới
-          </button>
+            label="Tạo mẫu mới"
+          />
         </motion.div>
 
         <motion.div
@@ -379,12 +377,10 @@ const QuizTemplateManager: React.FC = () => {
                 <h3 className="text-xl font-bold text-foreground">Không tìm thấy mẫu quiz nào</h3>
                 <p className="text-muted-foreground max-w-sm mx-auto">Thử thay đổi bộ lọc hoặc tạo một mẫu mới để bắt đầu.</p>
               </div>
-              <button
+              <CreateButton
                 onClick={() => setShowCreateModal(true)}
-                className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-colors"
-              >
-                Tạo mẫu quiz đầu tiên
-              </button>
+                label="Tạo mẫu quiz đầu tiên"
+              />
             </motion.div>
           ) : (
             <motion.div
