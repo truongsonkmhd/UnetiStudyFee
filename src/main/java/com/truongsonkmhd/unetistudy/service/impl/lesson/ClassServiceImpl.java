@@ -139,20 +139,35 @@ public class ClassServiceImpl implements ClassService {
         @Override
         @Transactional
         public void joinClass(String inviteCode, UUID studentId) {
+                // 1. Tìm lớp bằng invite code
                 Clazz clazz = classRepository.findByInviteCode(inviteCode)
                                 .orElseThrow(() -> new ResourceNotFoundException("Mã mời không chính xác"));
 
-                if (clazz.getStudents().size() >= clazz.getMaxStudents()) {
-                        throw new BusinessRuleException("Lớp học đã đầy!");
-                }
-
+                // 2. Tìm sinh viên
                 User student = userRepository.findById(studentId)
                                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin sinh viên"));
 
+                // 3. Kiểm tra sĩ số bằng truy vấn trực tiếp (Tránh Lazy Loading / NPE)
+                if (clazz.getMaxStudents() != null) {
+                        long currentCount = classRepository.countStudentsInClass(clazz.getClassId());
+                        if (currentCount >= clazz.getMaxStudents()) {
+                                throw new BusinessRuleException("Lớp học đã đầy!");
+                        }
+                }
+
+                // 4. Kiểm tra xem sinh viên đã tham gia chưa (Tránh Lazy Loading / NPE)
+                if (classRepository.existsByClassIdAndStudents_Id(clazz.getClassId(), studentId)) {
+                        throw new BusinessRuleException("Bạn đã tham gia lớp học này rồi!");
+                }
+
+                // 5. Thêm sinh viên (Hibernate sẽ khởi tạo tập hợp tự động ở đây nếu cần)
+                if (clazz.getStudents() == null) {
+                        clazz.setStudents(new java.util.HashSet<>());
+                }
                 clazz.addStudent(student);
                 classRepository.save(clazz);
 
-                // ---- Tự động enroll vào tất cả khóa học bắt buộc của lớp ----
+                // 6. Tự động enroll vào các khóa học
                 autoEnrollCoursesForStudent(student, clazz);
         }
 
@@ -161,6 +176,9 @@ public class ClassServiceImpl implements ClassService {
          * Skip nếu student đã enrolled (tránh duplicate).
          */
         private void autoEnrollCoursesForStudent(User student, Clazz clazz) {
+                if (clazz.getRequiredCourses() == null) {
+                        return;
+                }
                 for (Course course : clazz.getRequiredCourses()) {
                         boolean alreadyEnrolled = enrollmentRepository
                                         .findByCourse_CourseIdAndStudent_Id(course.getCourseId(), student.getId())
@@ -175,7 +193,8 @@ public class ClassServiceImpl implements ClassService {
                                                 .build();
                                 enrollmentRepository.save(enrollment);
                                 // Cập nhật số lượng enrolled
-                                course.setEnrolledCount(course.getEnrolledCount() + 1);
+                                int currentCount = (course.getEnrolledCount() != null) ? course.getEnrolledCount() : 0;
+                                course.setEnrolledCount(currentCount + 1);
                                 courseRepository.save(course);
                                 log.info("[ClassService] Auto-enrolled student={} vào course={}",
                                                 student.getId(), course.getCourseId());

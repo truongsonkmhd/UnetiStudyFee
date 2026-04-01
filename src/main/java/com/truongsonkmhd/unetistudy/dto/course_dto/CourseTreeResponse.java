@@ -18,6 +18,16 @@ public class CourseTreeResponse {
     String title;
     String slug;
     String description;
+    String shortDescription;
+    String level;
+    String category;
+    String subCategory;
+    Integer duration;
+    Integer capacity;
+    String requirements;
+    String objectives;
+    String syllabus;
+    java.time.LocalDateTime publishedAt;
     Boolean isPublished;
     CourseStatus status;
     String imageUrl;

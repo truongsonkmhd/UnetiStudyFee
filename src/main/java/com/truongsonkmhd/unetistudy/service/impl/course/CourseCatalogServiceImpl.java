@@ -39,28 +39,29 @@ public class CourseCatalogServiceImpl implements CourseCatalogService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<CourseCardResponse> getPublishedCourses(int page, int size, String q) {
-        log.debug("getPublishedCourses - page={}, size={}, q={}", page, size, q);
+    public PageResponse<CourseCardResponse> getPublishedCourses(int page, int size, String q, String category) {
+        log.debug("getPublishedCourses - page={}, size={}, q={}, category={}", page, size, q, category);
         // Sử dụng programmatic cache để thống nhất với CourseTreeService
         // Status mặc định là "PUBLISHED" cho catalog công khai
-        return courseCacheService.getCourseCatalog(page, size, q, "PUBLISHED", null,
-                () -> queryPublishedCourses(page, size, q));
+        return courseCacheService.getCourseCatalog(page, size, q, "PUBLISHED", category,
+                () -> queryPublishedCourses(page, size, q, category));
     }
 
     /**
      * Logic truy vấn thực tế (chỉ gọi khi cache miss)
      */
     @Transactional(readOnly = true)
-    public PageResponse<CourseCardResponse> queryPublishedCourses(int page, int size, String q) {
-        log.debug("Cache MISS - Loading published courses from DB: page={}, size={}, q={}", page, size, q);
+    public PageResponse<CourseCardResponse> queryPublishedCourses(int page, int size, String q, String category) {
+        log.debug("Cache MISS - Loading published courses from DB: page={}, size={}, q={}, category={}", page, size, q, category);
 
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, 1), 50);
 
         Pageable pageable = PageRequest.of(safePage, safeSize);
-        Page<CourseCardResponse> result = (q == null || q.isBlank())
-                ? courseRepository.findPublishedCourseCards(pageable)
-                : courseRepository.searchPublishedCourseCards(q.trim(), pageable);
+        Page<CourseCardResponse> result = courseRepository.findPublishedCourseCardsWithFilters(
+                (q != null && !q.isBlank()) ? q.trim() : null,
+                (category != null && !category.isBlank()) ? category.trim() : null,
+                pageable);
 
         return PageResponse.<CourseCardResponse>builder()
                 .items(result.getContent())

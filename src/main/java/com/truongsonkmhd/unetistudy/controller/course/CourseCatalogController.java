@@ -24,8 +24,9 @@ public class CourseCatalogController {
     public ResponseEntity<IResponseMessage> getPublished(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
-            @RequestParam(required = false) String q) {
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String category) {
         return ResponseEntity.ok()
-                .body(ResponseMessage.LoadedSuccess(courseCatalogService.getPublishedCourses(page, size, q)));
+                .body(ResponseMessage.LoadedSuccess(courseCatalogService.getPublishedCourses(page, size, q, category)));
     }
 }

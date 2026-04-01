@@ -41,6 +41,8 @@ public class SecurityConfiguration {
                                                 authz -> authz
                                                                 .requestMatchers(JwtServiceImpl.WHITE_LIST_URL)
                                                                 .permitAll()
+                                                                .requestMatchers(mvc.pattern("/api/v1/global-search/**"))
+                                                                .hasAuthority(AuthoritiesConstants.STUDENT)
                                                                 .requestMatchers(mvc.pattern("/api/permissions/**"))
                                                                 .hasAnyAuthority(AuthoritiesConstants.ADMIN,
                                                                                 AuthoritiesConstants.SYS_ADMIN)

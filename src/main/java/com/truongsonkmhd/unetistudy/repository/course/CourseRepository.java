@@ -2,6 +2,7 @@ package com.truongsonkmhd.unetistudy.repository.course;
 
 import com.truongsonkmhd.unetistudy.common.CourseStatus;
 import com.truongsonkmhd.unetistudy.dto.course_dto.CourseCardResponse;
+import com.truongsonkmhd.unetistudy.dto.course_dto.CourseQuickSearchResponse;
 import com.truongsonkmhd.unetistudy.model.course.Course;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,27 +33,11 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
           )
           from Course c
           where c.isPublished = true
-          order by
-              case when c.publishedAt is null then 1 else 0 end asc,
-              c.publishedAt desc,
-              c.courseId desc
-      """, countQuery = """
-          select count(c)
-          from Course c
-          where c.isPublished = true
-      """)
-  Page<CourseCardResponse> findPublishedCourseCards(Pageable pageable);
-
-  @Query(value = """
-          select new com.truongsonkmhd.unetistudy.dto.course_dto.CourseCardResponse(
-              c.courseId, c.title, c.slug, c.shortDescription, c.imageUrl, c.isPublished, CAST(size(c.modules) AS Integer), c.publishedAt, c.enrolledCount, c.instructor.fullName
-          )
-          from Course c
-          where c.isPublished = true
-            and (
+            and (cast(:q as string) is null or (
                  lower(c.title) like lower(concat('%', cast(:q as string), '%'))
               or lower(c.slug)  like lower(concat('%', cast(:q as string), '%'))
-            )
+            ))
+            and (cast(:category as string) is null or c.category = :category)
           order by
               case when c.publishedAt is null then 1 else 0 end asc,
               c.publishedAt desc,
@@ -61,12 +46,16 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
           select count(c)
           from Course c
           where c.isPublished = true
-            and (
-                 lower(c.title) like lower(concat('%', :q, '%'))
-              or lower(c.slug)  like lower(concat('%', :q, '%'))
-            )
+            and (cast(:q as string) is null or (
+                 lower(c.title) like lower(concat('%', cast(:q as string), '%'))
+              or lower(c.slug)  like lower(concat('%', cast(:q as string), '%'))
+            ))
+            and (cast(:category as string) is null or c.category = :category)
       """)
-  Page<CourseCardResponse> searchPublishedCourseCards(@Param("q") String q, Pageable pageable);
+  Page<CourseCardResponse> findPublishedCourseCardsWithFilters(
+      @Param("q") String q,
+      @Param("category") String category,
+      Pageable pageable);
 
   // ========== CURSOR PAGINATION ==========
 
@@ -152,4 +141,20 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
       @Param("publishedAt") LocalDateTime publishedAt,
       @Param("lastId") UUID lastId,
       Pageable pageable);
-}
+  @Query("""
+          select new com.truongsonkmhd.unetistudy.dto.course_dto.CourseQuickSearchResponse(
+              c.courseId, c.title, c.slug, c.imageUrl, c.shortDescription
+          )
+          from Course c
+          where (lower(c.title) like lower(concat('%', cast(:q as string), '%'))
+                 or lower(c.slug) like lower(concat('%', cast(:q as string), '%')))
+            and (:isPublished is null or c.isPublished = :isPublished)
+            and (cast(:category as string) is null or c.category = :category)
+          order by c.createdAt desc
+      """)
+  List<CourseQuickSearchResponse> instantSearch(
+      @Param("q") String q,
+      @Param("isPublished") Boolean isPublished,
+      @Param("category") String category,
+      Pageable pageable);
+}
