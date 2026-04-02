@@ -16,6 +16,7 @@ const CreateButton: React.FC<CreateButtonProps> = ({
 }) => {
   return (
     <button
+      type="button"
       onClick={onClick}
       className={`flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 font-bold group ${className}`}
     >

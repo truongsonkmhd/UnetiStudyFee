@@ -13,11 +13,9 @@ import ProfilePage from "@/views/profile/ProfilePage";
 import UnauthorizedPage from "@/components/UnauthorizedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { RoleEnum } from "@/components/enum/RoleEnum";
-import { PermissionEnum } from "@/components/enum/PermissionEnum";
 import ClassManagementDashboard from "@/views/class_managerment/ClassManagementDashboard";
 import QuizTemplateManager from "@/views/quiz_storage/QuizTemplateManager";
 import WebSocketSubmission from "@/views/submission/WebSocketSubmission";
-import PermissionManagement from "@/views/pages/permission/PermissionManagement";
 import CodingExerciseLibrary from "@/views/coding-template-exercise/CodingExerciseLibrary";
 import TemplateCreate from "@/views/coding-template-exercise/TemplateCreate";
 import CodingExerciseView from "@/views/coding-template-exercise/CodingExerciseView";
@@ -68,7 +66,6 @@ const App = () => (
               <ProtectedRoute
                 requiredRoles={[
                   RoleEnum.ROLE_ADMIN,
-                  RoleEnum.ROLE_SYS_ADMIN,
                   RoleEnum.ROLE_TEACHER,
                 ]}
               >
@@ -83,7 +80,6 @@ const App = () => (
               <ProtectedRoute
                 requiredRoles={[
                   RoleEnum.ROLE_ADMIN,
-                  RoleEnum.ROLE_SYS_ADMIN,
                   RoleEnum.ROLE_TEACHER,
                 ]}
               >
@@ -98,7 +94,6 @@ const App = () => (
               <ProtectedRoute
                 requiredRoles={[
                   RoleEnum.ROLE_ADMIN,
-                  RoleEnum.ROLE_SYS_ADMIN,
                   RoleEnum.ROLE_TEACHER,
                   RoleEnum.ROLE_STUDENT,
                 ]}
@@ -114,7 +109,6 @@ const App = () => (
               <ProtectedRoute
                 requiredRoles={[
                   RoleEnum.ROLE_ADMIN,
-                  RoleEnum.ROLE_SYS_ADMIN,
                   RoleEnum.ROLE_TEACHER,
                 ]}
               >
@@ -129,7 +123,6 @@ const App = () => (
               <ProtectedRoute
                 requiredRoles={[
                   RoleEnum.ROLE_ADMIN,
-                  RoleEnum.ROLE_SYS_ADMIN,
                   RoleEnum.ROLE_TEACHER,
                 ]}
               >
@@ -144,7 +137,6 @@ const App = () => (
               <ProtectedRoute
                 requiredRoles={[
                   RoleEnum.ROLE_ADMIN,
-                  RoleEnum.ROLE_SYS_ADMIN,
                   RoleEnum.ROLE_TEACHER,
                   RoleEnum.ROLE_STUDENT,
                 ]}
@@ -209,7 +201,6 @@ const App = () => (
                 <ProtectedRoute
                   requiredRoles={[
                     RoleEnum.ROLE_ADMIN,
-                    RoleEnum.ROLE_SYS_ADMIN,
                     RoleEnum.ROLE_TEACHER,
                   ]}
                 >
@@ -224,7 +215,6 @@ const App = () => (
                 <ProtectedRoute
                   requiredRoles={[
                     RoleEnum.ROLE_ADMIN,
-                    RoleEnum.ROLE_SYS_ADMIN,
                     RoleEnum.ROLE_TEACHER,
                   ]}
                 >
@@ -238,7 +228,6 @@ const App = () => (
                 <ProtectedRoute
                   requiredRoles={[
                     RoleEnum.ROLE_ADMIN,
-                    RoleEnum.ROLE_SYS_ADMIN,
                     RoleEnum.ROLE_TEACHER,
                   ]}
                 >
@@ -253,7 +242,6 @@ const App = () => (
                 <ProtectedRoute
                   requiredRoles={[
                     RoleEnum.ROLE_ADMIN,
-                    RoleEnum.ROLE_SYS_ADMIN,
                     RoleEnum.ROLE_TEACHER,
                   ]}
                 >
@@ -269,7 +257,6 @@ const App = () => (
                 <ProtectedRoute
                   requiredRoles={[
                     RoleEnum.ROLE_ADMIN,
-                    RoleEnum.ROLE_SYS_ADMIN,
                   ]}
                 >
                   <ManagerPerson />
@@ -282,7 +269,6 @@ const App = () => (
                 <ProtectedRoute
                   requiredRoles={[
                     RoleEnum.ROLE_ADMIN,
-                    RoleEnum.ROLE_SYS_ADMIN,
                     RoleEnum.ROLE_TEACHER,
                   ]}
                 >
@@ -297,21 +283,10 @@ const App = () => (
               element={
                 <ProtectedRoute
                   requiredRoles={[
-                    RoleEnum.ROLE_SYS_ADMIN
+                    RoleEnum.ROLE_ADMIN
                   ]}
                 >
                   <CacheManagementPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path={PATHS.MANAGER_INTEREST}
-              element={
-                <ProtectedRoute
-                  requiredRoles={[RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_ADMIN]}
-                >
-
-                  <PermissionManagement />
                 </ProtectedRoute>
               }
             />

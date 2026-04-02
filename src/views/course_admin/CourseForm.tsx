@@ -26,8 +26,7 @@ const SECTIONS = [
   { id: 'basic', label: 'Thông tin cơ bản', icon: Info },
   { id: 'content', label: 'Cấu trúc bài học', icon: Layout },
   { id: 'extra', label: 'Chi tiết mở rộng', icon: BookOpen },
-  { id: 'publish', label: 'Hoàn thiện & Xuất bản', icon: Rocket },
-  { id: 'settings', label: 'Cài đặt', icon: Settings },
+  { id: 'settings', label: 'Cài đặt & Xuất bản', icon: Settings },
 ] as const;
 
 const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) => {
@@ -41,9 +40,6 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
     capacity: 100,
     enrolledCount: 0,
     status: CourseStatus.DRAFT,
-    requirements: '',
-    objectives: '',
-    syllabus: '',
     isPublished: false,
     publishedAt: undefined,
     modules: []
@@ -89,9 +85,6 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
         capacity: course.capacity || 100,
         enrolledCount: course.enrolledCount || 0,
         status: course.status,
-        requirements: course.requirements || '',
-        objectives: course.objectives || '',
-        syllabus: course.syllabus || '',
         isPublished: course.isPublished,
         publishedAt: course.publishedAt || (course.isPublished ? new Date().toISOString() : undefined),
         videoUrl: (course as any).videoUrl || '',
@@ -133,10 +126,30 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }));
+
+    setFormData(prev => {
+      const newValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+      const updates: Partial<CourseShowRequest> = { [name]: newValue };
+
+      // Đồng bộ trạng thái quản lý và tùy chọn công khai (isPublished)
+      if (name === 'status') {
+        if (newValue === CourseStatus.DRAFT || newValue === CourseStatus.ARCHIVED) {
+          updates.isPublished = false;
+        } else if (newValue === CourseStatus.APPROVED || newValue === CourseStatus.PUBLISHED) {
+          updates.isPublished = true;
+        }
+      } else if (name === 'isPublished') {
+        if (newValue === true) {
+          // Nếu checkbox bật công khai -> Tự động chuyển status sang Đã duyệt
+          updates.status = CourseStatus.APPROVED;
+        } else if (newValue === false && (prev.status === CourseStatus.APPROVED || prev.status === CourseStatus.PUBLISHED)) {
+          // Nếu tắt công khai mà đang ở trạng thái duyệt -> Quay về bản nháp
+          updates.status = CourseStatus.DRAFT;
+        }
+      }
+
+      return { ...prev, ...updates };
+    });
   };
 
   const handleNext = (e: React.MouseEvent) => {
@@ -195,7 +208,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
     try {
       await onSubmit(submissionData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Đã có lỗi xảy ra');
+      setError((err as any)?.message || 'Đã có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
@@ -214,6 +227,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
         }
       ]
     }));
+    toast.success('Thêm chương mới thành công');
   };
 
   const updateModule = (index: number, updates: Partial<CourseModuleRequest>) => {
@@ -674,6 +688,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                                           </div>
                                         </div>
                                         <button
+                                          type="button"
                                           onClick={() => {
                                             const newTemplates = lesson.exerciseTemplates?.filter(t => t.id !== template.id) || [];
                                             const newIds = newTemplates.map(t => t.id);
@@ -728,6 +743,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                                           </div>
                                         </div>
                                         <button
+                                          type="button"
                                           onClick={() => {
                                             const newTemplates = lesson.quizTemplates?.filter(t => t.id !== template.id) || [];
                                             const newIds = newTemplates.map(t => t.id);
@@ -811,8 +827,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
       {activeSection === 'extra' && (
         <div className="space-y-8 rounded-[2.5rem] border border-border bg-card p-10 shadow-sm animate-in fade-in slide-in-from-bottom-6 duration-500">
           <div className="space-y-1">
-            <h2 className="text-3xl font-black text-foreground tracking-tight">Kỳ vọng & Mô tả chi tiết</h2>
-            <p className="text-base text-muted-foreground italic">Mô tả chi tiết những gì học viên sẽ học và các yêu cầu tiên quyết.</p>
+            <h2 className="text-3xl font-black text-foreground tracking-tight">Sức chứa tối đa & Mô tả chi tiết</h2>
           </div>
 
           <div className="grid gap-8 md:grid-cols-2">
@@ -827,99 +842,19 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                 placeholder="Ví dụ: 100"
               />
             </div>
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground italic">Yêu cầu tham gia (Requirements)</label>
-              <textarea
-                name="requirements"
-                value={formData.requirements}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full rounded-2xl border border-border bg-muted/50 px-6 py-4 text-sm font-medium text-foreground transition-all focus:border-primary focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10"
-                placeholder="Ví dụ: Có kiến thức cơ bản về HTML/CSS..."
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground italic">Mục tiêu học tập (Objectives)</label>
-            <textarea
-              name="objectives"
-              value={formData.objectives}
-              onChange={handleInputChange}
-              rows={3}
-              className="w-full rounded-2xl border border-border bg-muted/50 px-6 py-4 text-sm font-medium text-foreground transition-all focus:border-primary focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10"
-              placeholder="Ví dụ: Xây dựng được ứng dụng Web hoàn tất..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground italic">Đề cương chi tiết (Markdown)</label>
-            <textarea
-              name="syllabus"
-              value={formData.syllabus}
-              onChange={handleInputChange}
-              rows={6}
-              className="w-full rounded-2xl border border-border bg-muted/50 px-6 py-4 text-sm font-medium font-mono text-foreground transition-all focus:border-primary focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10"
-              placeholder="# Module 1: Introduction\n- Topic A\n- Topic B..."
-            />
           </div>
         </div>
       )}
 
       {activeSection === 'settings' && (
-        <div className="animate-in fade-in slide-in-from-bottom-6 duration-500">
-          <CourseSettingsView courseId={(course as any)?.courseId} />
-        </div>
-      )}
-
-      {/* Publish Section */}
-      {activeSection === 'publish' && (
-        <div className="space-y-10 rounded-[3rem] border border-border bg-card p-12 text-foreground shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-500">
-          <div className="flex flex-col items-center text-center gap-6">
-            <div className="rounded-full bg-primary/10 p-6 text-primary ring-4 ring-primary/5">
-              <Rocket className="h-16 w-16 animate-bounce" />
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-4xl font-black tracking-tighter text-foreground">Sẵn sàng để "Ra quân"?</h3>
-              <p className="max-w-xl mx-auto text-sm font-medium text-muted-foreground leading-relaxed italic">
-                Chúc mừng bạn đã hoàn thành việc thiết lập nội dung. Đây là trạm cuối cùng trước khi khóa học của bạn được đưa lên hệ thống. Đảm bảo mọi thứ đã chuẩn xác.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid gap-12 md:grid-cols-2 mt-8">
-            <div className="space-y-3">
-              <label className="text-[14px] font-black uppercase tracking-[0.2em] text-primary">Trạng thái quản lý</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className="w-full rounded-3xl border border-border bg-muted/50 px-8 py-5 text-lg font-black text-foreground transition-all focus:bg-muted outline-none"
-              >
-                <option value={CourseStatus.DRAFT} className="bg-card text-foreground">Bản nháp (Nội bộ)</option>
-                <option value={CourseStatus.APPROVED} className="bg-card text-foreground">Đã kiểm duyệt (Đã duyệt)</option>
-                <option value={CourseStatus.ARCHIVED} className="bg-card text-foreground">Lưu trữ (Ẩn)</option>
-              </select>
-            </div>
-
-            <div className="flex flex-col justify-center">
-              <label className="flex cursor-pointer items-start gap-6 rounded-[2.5rem] bg-muted/50 p-8 transition-all hover:bg-emerald-500/10 border border-border hover:border-emerald-500/30 group">
-                <div className="mt-1">
-                  <input
-                    type="checkbox"
-                    name="isPublished"
-                    checked={formData.isPublished}
-                    onChange={handleInputChange}
-                    className="h-6 w-6 rounded-lg border-border bg-card text-emerald-500 focus:ring-emerald-500 transition-all"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-xl font-bold group-hover:text-emerald-400 transition-colors text-foreground">Công khai ngay!</span>
-                  <span className="text-sm text-muted-foreground italic">Kích hoạt để người học có thể tìm thấy khóa học này.</span>
-                </div>
-              </label>
-            </div>
-          </div>
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-500">
+          <CourseSettingsView
+            courseId={(course as any)?.courseId}
+            status={formData.status}
+            isPublished={formData.isPublished}
+            onStatusChange={(status) => handleInputChange({ target: { name: 'status', value: status } } as any)}
+            onPublishedChange={(isPublished) => handleInputChange({ target: { name: 'isPublished', checked: isPublished, type: 'checkbox' } } as any)}
+          />
         </div>
       )}
 

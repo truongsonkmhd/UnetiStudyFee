@@ -108,7 +108,7 @@ const ClassManagementDashboard = () => {
       handleCloseModal();
     } catch (e) {
       console.error(e);
-      toast.error(isEdit ? 'Cập nhật lớp học thất bại!' : 'Tạo lớp học thất bại!');
+      toast.error((e as any)?.message || (isEdit ? 'Cập nhật lớp học thất bại!' : 'Tạo lớp học thất bại!'));
     } finally {
       setLoading(false);
     }
@@ -164,7 +164,7 @@ const ClassManagementDashboard = () => {
       }
     } catch (err) {
       console.error("Error deleting class:", err);
-      toast.error("Không thể xóa lớp học!");
+      toast.error((err as any)?.message || "Không thể xóa lớp học!");
     } finally {
       setLoading(false);
     }
@@ -216,9 +216,9 @@ const ClassManagementDashboard = () => {
     try {
       const data = await classContestService.getClassContests(classId);
       setSelectedClassContests(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching class contests:", err);
-      toast.error("Không thể tải danh sách bài thi của lớp");
+      toast.error(err?.message || "Không thể tải danh sách bài thi của lớp");
     }
   };
 
@@ -238,9 +238,9 @@ const ClassManagementDashboard = () => {
       await classContestService.cancelContest(classContestId);
       toast.success("Đã hủy bài thi");
       if (selectedClass?.classId) fetchClassContests(selectedClass.classId);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error cancelling contest:", err);
-      toast.error("Không thể hủy bài thi");
+      toast.error(err?.message || "Không thể hủy bài thi");
     }
   };
 
@@ -260,9 +260,9 @@ const ClassManagementDashboard = () => {
         }
         toast.success("Đã tạo mã mời mới");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error regenerating invite code:", err);
-      toast.error("Không thể tạo lại mã mời");
+      toast.error(err?.message || "Không thể tạo lại mã mời");
     }
   };
 

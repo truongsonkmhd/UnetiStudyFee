@@ -31,9 +31,8 @@ import {
 import { APP_NAME } from "@/utils/config";
 import { PATHS } from "@/constants/paths";
 import { actionAuth } from "../context/AuthContext";
-import { getRolesFromClaims, hasAnyPermission, hasAnyRole } from "../common/getRolesAndPermissionFromClaims";
+import { getRolesFromClaims, hasAnyRole } from "../common/getRolesAndPermissionFromClaims";
 import { RoleEnum } from "../enum/RoleEnum";
-import { PermissionEnum } from "../enum/PermissionEnum";
 
 const navigationGroups: {
   label: string;
@@ -58,13 +57,13 @@ const navigationGroups: {
           title: "Kho bài lập trình",
           url: PATHS.CODING_EXERCISE_LIBRARY,
           icon: codingIcon,
-          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
+          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_TEACHER],
         },
         {
           title: "Kho bài trắc nghiệm",
           url: PATHS.QUIZ_LIBRARY,
           icon: quizIcon,
-          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
+          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_TEACHER],
         },
       ],
     },
@@ -75,37 +74,31 @@ const navigationGroups: {
           title: "Quản lý bài thi",
           url: PATHS.CREATE_TEST,
           icon: createTestIcon,
-          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
+          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_TEACHER],
         },
         {
           title: "Quản lý lớp học",
           url: PATHS.MANAGER_CLASS,
           icon: classContestIcon,
-          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
+          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_TEACHER],
         },
         {
           title: "Quản lý khóa học",
           url: PATHS.MANAGER_COURSES,
           icon: classIcon,
-          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
+          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_TEACHER],
         },
         {
           title: "Quản lý người dùng",
           url: PATHS.MANAGER_PERSONS,
           icon: managerIcon,
-          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
-        },
-        {
-          title: "Quản lý phân quyền",
-          url: PATHS.MANAGER_INTEREST,
-          icon: quyenIcon,
-          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
+          requiredRoles: [RoleEnum.ROLE_ADMIN],
         },
         {
           title: "Quản lý Cache",
           url: PATHS.MANAGER_CACHE,
           icon: smartIcon,
-          requiredRoles: [RoleEnum.ROLE_SYS_ADMIN],
+          requiredRoles: [RoleEnum.ROLE_ADMIN],
         },
       ],
     },
@@ -142,11 +135,6 @@ type RoleTheme = {
 };
 
 const ROLE_THEME: Record<string, RoleTheme> = {
-  [RoleEnum.ROLE_SYS_ADMIN]: {
-    sidebarBg: "bg-red-50/50 dark:bg-red-950/20",
-    activeItem: "bg-red-600 text-white font-medium shadow dark:bg-red-500",
-    groupLabel: "text-red-700 dark:text-red-400",
-  },
   [RoleEnum.ROLE_ADMIN]: {
     sidebarBg: "bg-blue-50/50 dark:bg-blue-950/20",
     activeItem: "bg-blue-600 text-white font-medium shadow dark:bg-blue-500",
@@ -168,7 +156,6 @@ function pickThemeByRoles(userRoles: string[] | undefined): RoleTheme {
   const roles = userRoles ?? [];
   // ưu tiên quyền cao trước
   const priority = [
-    RoleEnum.ROLE_SYS_ADMIN,
     RoleEnum.ROLE_ADMIN,
     RoleEnum.ROLE_TEACHER,
     RoleEnum.ROLE_STUDENT,
@@ -206,7 +193,6 @@ export function AppSidebar() {
     ].join(" ");
 
   const ROLE_SIDEBAR_THEME: Record<string, string> = {
-    [RoleEnum.ROLE_SYS_ADMIN]: "bg-red-600 text-white",
     [RoleEnum.ROLE_ADMIN]: "bg-blue-600 text-white",
     [RoleEnum.ROLE_TEACHER]: "bg-emerald-600 text-white",
     [RoleEnum.ROLE_STUDENT]: "bg-purple-600 text-white",

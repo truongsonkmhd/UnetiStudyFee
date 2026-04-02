@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
   Settings, Bell, Shield, Users, Eye, EyeOff, Lock, Globe,
-  ToggleLeft, ChevronRight, Save, AlertTriangle, Mail, MessageSquare
+  ToggleLeft, ChevronRight, Save, AlertTriangle, Mail, MessageSquare, Rocket
 } from 'lucide-react';
+import { CourseStatus } from '@/types/enum/CourseStatus';
 
 interface SettingToggleProps {
   label: string;
@@ -42,9 +43,13 @@ const SettingToggle: React.FC<SettingToggleProps> = ({
 
 interface CourseSettingsViewProps {
   courseId?: string;
+  status: CourseStatus;
+  isPublished: boolean;
+  onStatusChange: (status: CourseStatus) => void;
+  onPublishedChange: (isPublished: boolean) => void;
 }
 
-const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({ courseId }) => {
+const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({ courseId, status, isPublished, onStatusChange, onPublishedChange }) => {
   const [settings, setSettings] = useState({
     allowEnroll: true,
     showStudentCount: true,
@@ -86,14 +91,6 @@ const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({ courseId }) => 
               onChange={toggle('privateMode')}
               icon={Lock}
               iconColor="text-destructive"
-            />
-            <SettingToggle
-              label="Cho phép đăng ký mới"
-              description="Mở đăng ký cho các học viên mới tham gia vào khóa học này."
-              value={settings.allowEnroll}
-              onChange={toggle('allowEnroll')}
-              icon={Users}
-              iconColor="text-primary"
             />
             <SettingToggle
               label="Yêu cầu phê duyệt"
@@ -173,6 +170,43 @@ const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({ courseId }) => 
           </div>
         </section>
 
+        {/* ─────────── HOÀN THIỆN & XUẤT BẢN ─────────── */}
+        <section className="rounded-[2.5rem] border border-border bg-card overflow-hidden shadow-sm">
+          <div className="px-8 pt-8 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-500">
+                <Rocket className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-foreground">Hoàn thiện & Xuất bản</h3>
+                <p className="text-xs text-muted-foreground">Thiết lập trạng thái khóa học trước khi phát hành.</p>
+              </div>
+            </div>
+          </div>
+          <div className="px-8 pb-6 space-y-2">
+            <div className="flex flex-col gap-2 py-4 border-b border-border">
+               <label className="text-sm font-black text-foreground">Trạng thái quản lý hệ thống</label>
+               <select
+                 value={status}
+                 onChange={(e) => onStatusChange(e.target.value as CourseStatus)}
+                 className="w-full rounded-2xl border border-border bg-muted/50 px-4 py-3 text-sm font-bold text-foreground transition-all focus:bg-muted outline-none"
+               >
+                  <option value={CourseStatus.DRAFT}>Bản nháp (Nội bộ)</option>
+                  <option value={CourseStatus.APPROVED}>Đã kiểm duyệt (Đã duyệt)</option>
+                  <option value={CourseStatus.ARCHIVED}>Lưu trữ (Ẩn)</option>
+               </select>
+            </div>
+            
+            <SettingToggle
+              label="Công khai khóa học ngay!"
+              description="Kích hoạt để người học có thể tìm thấy khóa học này trên hệ thống."
+              value={isPublished}
+              onChange={onPublishedChange}
+              icon={Globe}
+              iconColor="text-emerald-500"
+            />
+          </div>
+        </section>
 
       </div>
 

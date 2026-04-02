@@ -4,20 +4,17 @@ import { PATHS } from "@/constants/paths";
 import { actionAuth } from "./context/AuthContext";
 import PageLoader from "@/views/common/PageLoader";
 import { RoleEnum } from "./enum/RoleEnum";
-import { PermissionEnum } from "./enum/PermissionEnum";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRoles?: RoleEnum[];
-  requiredPermissions?: PermissionEnum[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRoles,
-  requiredPermissions,
 }) => {
-  const { isAuthenticated, isLoading, hasRole, hasPermission } = actionAuth();
+  const { isAuthenticated, isLoading, hasRole } = actionAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -29,10 +26,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (requiredRoles && !hasRole(requiredRoles)) {
-    return <Navigate to={PATHS.UNAUTHORIZED} replace />;
-  }
-
-  if (requiredPermissions && !hasPermission(requiredPermissions)) {
     return <Navigate to={PATHS.UNAUTHORIZED} replace />;
   }
 

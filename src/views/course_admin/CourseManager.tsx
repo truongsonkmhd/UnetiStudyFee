@@ -76,7 +76,7 @@ const CourseManager: React.FC = () => {
             }
             handleBack();
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Đã có lỗi xảy ra');
+            toast.error((error as any)?.message || 'Đã có lỗi xảy ra');
             throw error;
         }
     };

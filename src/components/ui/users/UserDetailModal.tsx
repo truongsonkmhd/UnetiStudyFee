@@ -66,7 +66,6 @@ export default function UserDetailModal({ open, user, onClose }: Props) {
  /* ---------- ROLE MAP ---------- */
 const roleMap: Record<string, { code: string; label: string; color: string }> = {
   "Quản trị viên": { code: "ADMIN", label: "Admin", color: "gold" },
-  "SysAdmin": { code: "SYSADMIN", label: "SysAdmin", color: "red" },
   "Giảng viên": { code: "TEACHER", label: "Giáo viên", color: "purple" },
   "Sinh viên": { code: "STUDENT", label: "Sinh viên", color: "blue" },
 };
@@ -75,7 +74,7 @@ const roleMap: Record<string, { code: string; label: string; color: string }> = 
 const userRoles = user.roles?.map(r => roleMap[r.name]?.code ?? r.name.toUpperCase()) ?? [];
 
 /* ---------- CHECK QUYỀN ---------- */
-const isAdmin = userRoles.includes("ADMIN") || userRoles.includes("SYSADMIN");
+const isAdmin = userRoles.includes("ADMIN");
 const isTeacher = userRoles.includes("TEACHER");
 const isStudent = userRoles.includes("STUDENT") && !isTeacher;
 
