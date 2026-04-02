@@ -1,6 +1,5 @@
 package com.truongsonkmhd.unetistudy.dto.role_dto;
 
-import com.truongsonkmhd.unetistudy.dto.permission_dto.PermissionResponse;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -14,5 +13,4 @@ import java.util.Set;
 public class RoleResponse {
     String name;
     String description;
-    Set<PermissionResponse> permissions;
 }

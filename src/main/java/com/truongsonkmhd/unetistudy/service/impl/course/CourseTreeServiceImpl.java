@@ -10,6 +10,7 @@ import com.truongsonkmhd.unetistudy.dto.coding_exercise_dto.CodingExerciseDTO;
 import com.truongsonkmhd.unetistudy.dto.course_dto.*;
 import com.truongsonkmhd.unetistudy.dto.lesson_dto.CourseLessonRequest;
 import com.truongsonkmhd.unetistudy.dto.quiz_dto.QuizDTO;
+import com.truongsonkmhd.unetistudy.exception.custom_exception.ResourceConflictException;
 import com.truongsonkmhd.unetistudy.exception.payload.DataNotFoundException;
 import com.truongsonkmhd.unetistudy.mapper.course.CourseModuleRequestMapper;
 import com.truongsonkmhd.unetistudy.mapper.course.CourseModuleResponseMapper;
@@ -170,9 +171,6 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         course.setSubCategory(req.getSubCategory());
         course.setDuration(req.getDuration());
         course.setCapacity(req.getCapacity());
-        course.setRequirements(req.getRequirements());
-        course.setObjectives(req.getObjectives());
-        course.setSyllabus(req.getSyllabus());
         course.setStatus(req.getStatus());
         course.setIsPublished(req.getIsPublished());
         course.setPublishedAt(req.getPublishedAt());
@@ -371,9 +369,6 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 .subCategory(course.getSubCategory())
                 .duration(course.getDuration())
                 .capacity(course.getCapacity())
-                .requirements(course.getRequirements())
-                .objectives(course.getObjectives())
-                .syllabus(course.getSyllabus())
                 .publishedAt(course.getPublishedAt())
                 .isPublished(course.getIsPublished())
                 .status(course.getStatus())
@@ -498,6 +493,17 @@ public class CourseTreeServiceImpl implements CourseTreeService {
     private void syncModules(Course course, List<CourseModuleRequest> moduleRequests, User instructor) {
         if (moduleRequests == null)
             moduleRequests = List.of();
+
+        // Check for duplicate chapter titles
+        Set<String> titles = new HashSet<>();
+        for (CourseModuleRequest mr : moduleRequests) {
+            String title = mr.getTitle() != null ? mr.getTitle().trim() : "";
+            if (!title.isEmpty()) {
+                if (!titles.add(title.toLowerCase())) {
+                    throw new ResourceConflictException("Lỗi trùng tên chương , Vui lòng sửa lại");
+                }
+            }
+        }
 
         Map<UUID, CourseModule> existing = new HashMap<>();
         for (CourseModule m : course.getModules()) {

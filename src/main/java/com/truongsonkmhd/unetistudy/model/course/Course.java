@@ -91,15 +91,6 @@ public class Course {
     @Column(name = "youtube_video_id", length = 20)
     String youtubeVideoId;
 
-    @Column(name = "requirements", columnDefinition = "text")
-    String requirements;
-
-    @Column(name = "objectives", columnDefinition = "text")
-    String objectives;
-
-    @Column(name = "syllabus", columnDefinition = "text")
-    String syllabus;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 30, nullable = false)
     @Builder.Default

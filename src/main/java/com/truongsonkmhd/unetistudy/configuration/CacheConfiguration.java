@@ -61,7 +61,6 @@ public class CacheConfiguration {
                 CacheConstants.CODING_EXERCISE_BY_ID,
                 CacheConstants.CODING_EXERCISE_LIST,
                 CacheConstants.ROLES,
-                CacheConstants.PERMISSIONS,
                 CacheConstants.USER_ROLES,
                 CacheConstants.CLASSES,
                 CacheConstants.CONTESTS,
@@ -92,11 +91,6 @@ public class CacheConfiguration {
                 // Initial capacity để tránh resize
                 .initialCapacity(100);
     }
-
-    /**
-     * Caffeine builder cho Long-lived caches (1 giờ)
-     * Sử dụng cho dữ liệu ít thay đổi như roles, permissions
-     */
     Caffeine<Object, Object> longLivedCaffeineBuilder() {
         return Caffeine.newBuilder()
                 .expireAfterWrite(CacheConstants.TTL_LONG, TimeUnit.SECONDS)

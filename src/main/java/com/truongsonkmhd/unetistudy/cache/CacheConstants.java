@@ -51,9 +51,8 @@ public final class CacheConstants {
     public static final String CODING_EXERCISE_BY_ID = "coding_exercise_by_id";
     public static final String CODING_EXERCISE_LIST = "coding_exercise_list";
 
-    // Role & Permission caches
+    // Role caches
     public static final String ROLES = "roles";
-    public static final String PERMISSIONS = "permissions";
     public static final String USER_ROLES = "user_roles";
 
     // Statistics caches

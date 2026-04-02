@@ -19,6 +19,7 @@ public interface ClassRepository extends JpaRepository<Clazz, UUID> {
     List<Clazz> findByStudents_Id(UUID studentId);
     List<Clazz> findByInstructor_IdOrderByCreatedAtDesc(UUID instructorId);
     boolean existsByClassIdAndStudents_Id(UUID classId, UUID studentId);
+    boolean existsByClassName(String className);
 
     @Query("SELECT COUNT(s) FROM Clazz c JOIN c.students s WHERE c.classId = :classId")
     long countStudentsInClass(@Param("classId") UUID classId);

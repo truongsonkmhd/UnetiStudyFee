@@ -32,19 +32,20 @@ public interface UserAnswerRepository extends JpaRepository<UserAnswer, UUID> {
         @Modifying
         @Query(value = "DELETE FROM tbl_user_selected_answers WHERE answer_id IN " +
                         "(SELECT a.id FROM tbl_answer a JOIN tbl_question q ON a.question_id = q.id " +
-                        "JOIN tbl_quiz quiz ON q.quiz_id = quiz.id WHERE quiz.lesson_id = :lessonId)", nativeQuery = true)
+                        "JOIN tbl_course_lesson_to_quiz ltq ON q.quiz_id = ltq.quiz_id " +
+                        "WHERE ltq.lesson_id = :lessonId)", nativeQuery = true)
         void deleteSelectedAnswerReferencesByLessonId(@Param("lessonId") UUID lessonId);
 
         @Modifying
         @Query(value = "DELETE FROM tbl_user_selected_answers WHERE answer_id IN " +
                         "(SELECT a.id FROM tbl_answer a JOIN tbl_question q ON a.question_id = q.id " +
-                        "JOIN tbl_quiz quiz ON q.quiz_id = quiz.id JOIN tbl_course_lesson cl ON quiz.lesson_id = cl.lesson_id "
-                        +
+                        "JOIN tbl_course_lesson_to_quiz ltq ON q.quiz_id = ltq.quiz_id " +
+                        "JOIN tbl_course_lesson cl ON ltq.lesson_id = cl.lesson_id " +
                         "WHERE cl.module_id = :moduleId)", nativeQuery = true)
         void deleteSelectedAnswerReferencesByModuleId(@Param("moduleId") UUID moduleId);
 
         @Modifying
-        @Query("DELETE FROM UserAnswer ua WHERE ua.question.id IN (SELECT q.id FROM Question q WHERE q.quiz.id = :quizId)")
+        @Query(value = "DELETE FROM tbl_user_answer WHERE question_id IN (SELECT id FROM tbl_question WHERE quiz_id = :quizId)", nativeQuery = true)
         void deleteByQuizId(@Param("quizId") UUID quizId);
 
         @Modifying
@@ -52,10 +53,19 @@ public interface UserAnswerRepository extends JpaRepository<UserAnswer, UUID> {
         void deleteByQuestionId(@Param("questionId") UUID questionId);
 
         @Modifying
-        @Query("DELETE FROM UserAnswer ua WHERE ua.question.quiz.id IN (SELECT q.id FROM CourseLesson cl JOIN cl.quizzes q WHERE cl.lessonId = :lessonId)")
+        @Query(value = "DELETE FROM tbl_user_answer WHERE user_answer_id IN ( " +
+                        "SELECT ua.user_answer_id FROM tbl_user_answer ua " +
+                        "JOIN tbl_question q ON ua.question_id = q.id " +
+                        "JOIN tbl_course_lesson_to_quiz ltq ON q.quiz_id = ltq.quiz_id " +
+                        "WHERE ltq.lesson_id = :lessonId)", nativeQuery = true)
         void deleteByLessonId(@Param("lessonId") UUID lessonId);
 
         @Modifying
-        @Query("DELETE FROM UserAnswer ua WHERE ua.question.quiz.id IN (SELECT q.id FROM CourseLesson cl JOIN cl.quizzes q WHERE cl.module.moduleId = :moduleId)")
+        @Query(value = "DELETE FROM tbl_user_answer WHERE user_answer_id IN ( " +
+                        "SELECT ua.user_answer_id FROM tbl_user_answer ua " +
+                        "JOIN tbl_question q ON ua.question_id = q.id " +
+                        "JOIN tbl_course_lesson_to_quiz ltq ON q.quiz_id = ltq.quiz_id " +
+                        "JOIN tbl_course_lesson cl ON ltq.lesson_id = cl.lesson_id " +
+                        "WHERE cl.module_id = :moduleId)", nativeQuery = true)
         void deleteByModuleId(@Param("moduleId") UUID moduleId);
 }

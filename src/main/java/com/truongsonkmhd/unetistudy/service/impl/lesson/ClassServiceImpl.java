@@ -17,6 +17,7 @@ import com.truongsonkmhd.unetistudy.model.course.CourseEnrollment;
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.ClassContest;
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.Clazz;
 import com.truongsonkmhd.unetistudy.exception.custom_exception.BusinessRuleException;
+import com.truongsonkmhd.unetistudy.exception.custom_exception.ResourceConflictException;
 import com.truongsonkmhd.unetistudy.exception.custom_exception.ResourceNotFoundException;
 import com.truongsonkmhd.unetistudy.model.lesson.course_lesson.ContestLesson;
 import com.truongsonkmhd.unetistudy.common.EnrollmentStatus;
@@ -65,6 +66,10 @@ public class ClassServiceImpl implements ClassService {
                         throw new BusinessRuleException("Class code đã tồn tại!");
                 }
 
+                if (classRepository.existsByClassName(createClazzRequest.getClassName())) {
+                        throw new ResourceConflictException("Lỗi trùng tên lớp");
+                }
+
                 User user = userRepository.findById(createClazzRequest.getInstructorId())
                                 .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
 
@@ -89,6 +94,10 @@ public class ClassServiceImpl implements ClassService {
                                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học"));
 
                 if (updateClazzRequest.getClassName() != null) {
+                        if (!updateClazzRequest.getClassName().equals(clazz.getClassName()) &&
+                                        classRepository.existsByClassName(updateClazzRequest.getClassName())) {
+                                throw new ResourceConflictException("Lỗi trùng tên lớp");
+                        }
                         clazz.setClassName(updateClazzRequest.getClassName());
                 }
                 if (updateClazzRequest.getInstructorId() != null) {

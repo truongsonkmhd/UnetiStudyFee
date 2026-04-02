@@ -25,4 +25,5 @@ public class EnrollmentResponse {
     private Instant approvedAt;
     private String requestMessage;
     private String rejectionReason;
+    private String slug;
 }

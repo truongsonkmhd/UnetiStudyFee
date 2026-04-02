@@ -154,7 +154,7 @@ public class ClassAnalyticsService {
         UUID currentUserId = UserContext.getUserID();
         if (currentUserId == null
                 || !clazz.getInstructor().getId().equals(currentUserId)
-                && !hasCurrentUserAnyOfAuthorities(AuthoritiesConstants.ADMIN, AuthoritiesConstants.SYS_ADMIN)) {
+                && !hasCurrentUserAnyOfAuthorities(AuthoritiesConstants.ADMIN)) {
             throw new BusinessRuleException("Bạn không có quyền xem analytics của lớp này");
         }
 

@@ -139,7 +139,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
       @Param("q") String q,
       @Param("status") CourseStatus status,
       @Param("category") String category,
-      @Param("instructorId") java.util.UUID instructorId,
+      @Param("instructorId") UUID instructorId,
       Pageable pageable);
 
   @Query("""

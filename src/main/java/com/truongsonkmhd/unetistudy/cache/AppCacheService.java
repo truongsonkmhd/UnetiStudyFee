@@ -78,9 +78,8 @@ public class AppCacheService {
                 CacheConstants.TTL_MEDIUM);
         createCaffeineCache(CacheConstants.CODING_EXERCISE_LIST, CacheConstants.SIZE_LARGE, CacheConstants.TTL_MEDIUM);
 
-        // Role & Permission caches (longer TTL - rarely change)
+        // Role caches (longer TTL - rarely change)
         createCaffeineCache(CacheConstants.ROLES, CacheConstants.SIZE_SMALL, CacheConstants.TTL_VERY_LONG);
-        createCaffeineCache(CacheConstants.PERMISSIONS, CacheConstants.SIZE_SMALL, CacheConstants.TTL_VERY_LONG);
         createCaffeineCache(CacheConstants.USER_ROLES, CacheConstants.SIZE_MEDIUM, CacheConstants.TTL_LONG);
 
         // Statistics caches

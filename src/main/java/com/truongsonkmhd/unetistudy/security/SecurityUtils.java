@@ -12,9 +12,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-/**
- * Utility class for Spring Security.
- */
 public final class SecurityUtils {
 
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
@@ -66,8 +63,7 @@ public final class SecurityUtils {
      */
     public static boolean isAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null
-                && getAuthorities(authentication).noneMatch(AuthoritiesConstants.SYS_ADMIN::equals);
+        return authentication != null;
     }
 
     /**

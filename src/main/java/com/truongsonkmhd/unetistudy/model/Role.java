@@ -32,14 +32,6 @@ public class Role {
     @Column(name = "is_activated")
     Boolean isActivated;
 
-    @ManyToMany
-    @JoinTable(
-            name = "tbl_role_permission",
-            joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
-    Set<Permission> permissions;
-
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "roles")
     Set<User> users = new HashSet<>();
 

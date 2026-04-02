@@ -163,10 +163,6 @@ public class JwtServiceImpl implements JwtService {
         if (!CollectionUtils.isEmpty(myUserDetail.user().getRoles())) {
             myUserDetail.user().getRoles().forEach(role -> {
                 stringJoiner.add(role.getCode());
-                if (!CollectionUtils.isEmpty(role.getPermissions())) {
-                    role.getPermissions()
-                            .forEach(permission -> stringJoiner.add(permission.getName()));
-                }
             });
         }
         return stringJoiner.toString();

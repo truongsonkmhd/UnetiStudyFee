@@ -98,7 +98,7 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
                 .orElseThrow(() -> new RuntimeException("Enrollment not found"));
 
         // Verify user is instructor
-        if (!enrollment.getCourse().isOwner(userId) && !hasCurrentUserAnyOfAuthorities(AuthoritiesConstants.ADMIN, AuthoritiesConstants.SYS_ADMIN)) {
+        if (!enrollment.getCourse().isOwner(userId) && !hasCurrentUserAnyOfAuthorities(AuthoritiesConstants.ADMIN)) {
             throw new RuntimeException("Bạn không có quyền duyệt yêu cầu đăng ký khóa học này");
         }
 
@@ -137,7 +137,7 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
                 .orElseThrow(() -> new RuntimeException("Enrollment not found"));
 
         // Verify user is instructor
-        if (!enrollment.getCourse().isOwner(userId) && !hasCurrentUserAnyOfAuthorities(AuthoritiesConstants.ADMIN, AuthoritiesConstants.SYS_ADMIN)) {
+        if (!enrollment.getCourse().isOwner(userId) && !hasCurrentUserAnyOfAuthorities(AuthoritiesConstants.ADMIN)) {
             throw new RuntimeException("Bạn không có quyền từ chối yêu cầu đăng ký khóa học này");
         }
 
@@ -171,8 +171,8 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        if (!course.isOwner(userId) && !hasCurrentUserAnyOfAuthorities(AuthoritiesConstants.ADMIN, AuthoritiesConstants.SYS_ADMIN)) {
-            //admin , system admin có thể duyệt được không nhất thiết phải người tạo ra khóa học
+        if (!course.isOwner(userId) && !hasCurrentUserAnyOfAuthorities(AuthoritiesConstants.ADMIN)) {
+            //admin có thể duyệt được không nhất thiết phải người tạo ra khóa học
             throw new RuntimeException("Bạn không có quyền xem danh sách yêu cầu đăng ký khóa học này");
         }
 
@@ -246,6 +246,7 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
                 .approvedAt(entity.getApprovedAt())
                 .requestMessage(entity.getRequestMessage())
                 .rejectionReason(entity.getRejectionReason())
+                .slug(entity.getCourse().getSlug())
                 .build();
     }
 }

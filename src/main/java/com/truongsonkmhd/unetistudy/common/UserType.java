@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum UserType {
-    SYSADMIN("ROLE_SYSADMIN"),
     ADMIN("ROLE_ADMIN"),
     TEACHER("ROLE_TEACHER"),
     STUDENT("ROLE_STUDENT");
