@@ -1,3 +1,4 @@
+import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 
 import {
@@ -34,103 +35,103 @@ import { getRolesFromClaims, hasAnyPermission, hasAnyRole } from "../common/getR
 import { RoleEnum } from "../enum/RoleEnum";
 import { PermissionEnum } from "../enum/PermissionEnum";
 
-const navigationItems: {
-  title: string;
-  url: string;
-  icon: string;
-  requiredRoles?: RoleEnum[];
+const navigationGroups: {
+  label: string;
+  items: {
+    title: string;
+    url: string;
+    icon: string;
+    requiredRoles?: RoleEnum[];
+  }[];
 }[] = [
-    { title: "Trang chủ", url: PATHS.HOME, icon: homepageIcon },
     {
-      title: "Kho bài lập trình",
-      url: PATHS.CODING_EXERCISE_LIBRARY,
-      icon: codingIcon,
-      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
-    },
-    {
-      title: "Kho bài trắc nghiệm",
-      url: PATHS.QUIZ_LIBRARY,
-      icon: quizIcon,
-      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
-    },
-    {
-      title: "Tạo bài thi",
-      url: PATHS.CREATE_TEST,
-      icon: createTestIcon,
-      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
-    },
-    {
-      title: "Quản lý lớp học",
-      url: PATHS.MANAGER_CLASS,
-      icon: classContestIcon,
-      requiredRoles: [
-        RoleEnum.ROLE_ADMIN,
-        RoleEnum.ROLE_SYS_ADMIN,
-        RoleEnum.ROLE_TEACHER,
-      ],
-    },
-
-    {
-      title: "Quản lý khóa học",
-      url: PATHS.MANAGER_COURSES,
-      icon: classIcon,
-      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
-    },
-    {
-      title: "Quản lý đăng ký học",
-      url: PATHS.MY_ENROLLMENTS,
-      icon: classIcon,
-      requiredRoles: [
-        RoleEnum.ROLE_STUDENT,
+      label: "Tổng quan",
+      items: [
+        { title: "Trang chủ", url: PATHS.HOME, icon: homepageIcon },
+        { title: "Hướng dẫn", url: "/tutorial", icon: smartIcon },
       ],
     },
     {
-      title: "Khóa học của tôi",
-      url: PATHS.MY_ENROLLMENTS,
-      icon: classIcon,
-      requiredRoles: [RoleEnum.ROLE_STUDENT],
+      label: "Kho bài tập",
+      items: [
+        {
+          title: "Kho bài lập trình",
+          url: PATHS.CODING_EXERCISE_LIBRARY,
+          icon: codingIcon,
+          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
+        },
+        {
+          title: "Kho bài trắc nghiệm",
+          url: PATHS.QUIZ_LIBRARY,
+          icon: quizIcon,
+          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
+        },
+      ],
     },
     {
-      title: "Lớp học của tôi",
-      url: PATHS.MY_CLASSES,
-      icon: classIcon,
-      requiredRoles: [RoleEnum.ROLE_STUDENT],
+      label: "Quản lý",
+      items: [
+        {
+          title: "Quản lý bài thi",
+          url: PATHS.CREATE_TEST,
+          icon: createTestIcon,
+          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
+        },
+        {
+          title: "Quản lý lớp học",
+          url: PATHS.MANAGER_CLASS,
+          icon: classContestIcon,
+          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
+        },
+        {
+          title: "Quản lý khóa học",
+          url: PATHS.MANAGER_COURSES,
+          icon: classIcon,
+          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN, RoleEnum.ROLE_TEACHER],
+        },
+        {
+          title: "Quản lý người dùng",
+          url: PATHS.MANAGER_PERSONS,
+          icon: managerIcon,
+          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
+        },
+        {
+          title: "Quản lý phân quyền",
+          url: PATHS.MANAGER_INTEREST,
+          icon: quyenIcon,
+          requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
+        },
+        {
+          title: "Quản lý Cache",
+          url: PATHS.MANAGER_CACHE,
+          icon: smartIcon,
+          requiredRoles: [RoleEnum.ROLE_SYS_ADMIN],
+        },
+      ],
     },
     {
-      title: "Quản lý người dùng",
-      url: PATHS.MANAGER_PERSONS,
-      icon: managerIcon,
-      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
+      label: "Cá nhân",
+      items: [
+        {
+          title: "Khóa học của tôi",
+          url: PATHS.MY_ENROLLMENTS,
+          icon: classIcon,
+          requiredRoles: [RoleEnum.ROLE_STUDENT],
+        },
+        {
+          title: "Lớp học của tôi",
+          url: PATHS.MY_CLASSES,
+          icon: classIcon,
+          requiredRoles: [RoleEnum.ROLE_STUDENT],
+        },
+        {
+          title: "Quản lý đăng ký học",
+          url: PATHS.MY_ENROLLMENTS,
+          icon: classIcon,
+          requiredRoles: [RoleEnum.ROLE_STUDENT],
+        },
+      ],
     },
-    {
-      title: "Quản lý phân quyền",
-      url: PATHS.MANAGER_INTEREST,
-      icon: quyenIcon,
-      requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_SYS_ADMIN],
-    },
-    {
-      title: "Quản lý Cache",
-      url: PATHS.MANAGER_CACHE,
-      icon: smartIcon,
-      requiredRoles: [RoleEnum.ROLE_SYS_ADMIN],
-    },
-  ];
-
-const history: {
-  title: string;
-  url: string;
-  icon: string;
-  requiredRoles?: RoleEnum[];
-}[] = [];
-
-const toolsItems: {
-  title: string;
-  url: string;
-  icon: string;
-  requiredRoles?: RoleEnum[];
-}[] = [
-    { title: "Hướng dẫn", url: "/tutorial", icon: smartIcon },
-    { title: "Cài Đặt", url: "/settings", icon: settingIcon },
   ];
 
 /** ====== ROLE THEME ====== */
@@ -204,37 +205,12 @@ export function AppSidebar() {
       isActive(path) ? theme.activeItem : "hover:bg-muted transition-all duration-200",
     ].join(" ");
 
-  const visibleNavItems = navigationItems.filter((i) =>
-    hasAnyRole(jwtClaims, i.requiredRoles));
-
-  const visibleTools = toolsItems.filter((i) =>
-    hasAnyRole(jwtClaims, i.requiredRoles)
-  );
-
   const ROLE_SIDEBAR_THEME: Record<string, string> = {
     [RoleEnum.ROLE_SYS_ADMIN]: "bg-red-600 text-white",
     [RoleEnum.ROLE_ADMIN]: "bg-blue-600 text-white",
     [RoleEnum.ROLE_TEACHER]: "bg-emerald-600 text-white",
     [RoleEnum.ROLE_STUDENT]: "bg-purple-600 text-white",
   };
-
-  function getSidebarTheme(roles: string[] | undefined) {
-    if (!roles) return "bg-slate-900 text-white";
-
-    if (roles.includes(RoleEnum.ROLE_SYS_ADMIN))
-      return ROLE_SIDEBAR_THEME[RoleEnum.ROLE_SYS_ADMIN];
-
-    if (roles.includes(RoleEnum.ROLE_ADMIN))
-      return ROLE_SIDEBAR_THEME[RoleEnum.ROLE_ADMIN];
-
-    if (roles.includes(RoleEnum.ROLE_TEACHER))
-      return ROLE_SIDEBAR_THEME[RoleEnum.ROLE_TEACHER];
-
-    if (roles.includes(RoleEnum.ROLE_STUDENT))
-      return ROLE_SIDEBAR_THEME[RoleEnum.ROLE_STUDENT];
-
-    return "bg-slate-900 text-white";
-  }
 
   return (
     <Sidebar className={isCollapsed ? "w-16" : "w-64"} collapsible="icon">
@@ -257,69 +233,53 @@ export function AppSidebar() {
           />
           {!isCollapsed && (
             <div className="flex flex-col ml-4">
-                               <span className="font-black text-xl text-blue-600 dark:text-blue-400 tracking-tight">
-                                {APP_NAME}
-                              </span>
+              <span className="font-black text-xl text-blue-600 dark:text-blue-400 tracking-tight">
+                {APP_NAME}
+              </span>
             </div>
           )}
         </div>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className={`${theme.groupLabel} text-sm font-bold uppercase tracking-widest mb-2`}>
-            Tổng quan
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleNavItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className={getNavClassName(item.url)}
-                    >
-                      <img src={item.icon} alt="" className="w-7 h-7" />
-                      {!isCollapsed && (
-                        <span className="text-base font-medium">
-                          {item.title}
-                        </span>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {navigationGroups.map((group, groupIdx) => {
+          const visibleItems = group.items.filter(item => hasAnyRole(jwtClaims, item.requiredRoles));
+          if (visibleItems.length === 0) return null;
 
-        <div className="mx-2 my-2 border-t rounded-full border-gray-300" />
-
-        <SidebarGroup>
-          <SidebarGroupLabel className={`${theme.groupLabel} text-sm font-bold uppercase tracking-widest mb-2`}>
-            Công cụ
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleTools.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className={getNavClassName(item.url)}
-                    >
-                      <img src={item.icon} alt="" className="w-7 h-7" />
-                      {!isCollapsed && (
-                        <span className="text-base font-medium">
-                          {item.title}
-                        </span>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+          return (
+            <React.Fragment key={group.label}>
+              <SidebarGroup>
+                <SidebarGroupLabel className={`${theme.groupLabel} text-sm font-bold uppercase tracking-widest mb-2 mt-2`}>
+                  {group.label}
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to={item.url}
+                            className={getNavClassName(item.url)}
+                          >
+                            <img src={item.icon} alt="" className="w-7 h-7" />
+                            {!isCollapsed && (
+                              <span className="text-base font-medium">
+                                {item.title}
+                              </span>
+                            )}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+              {groupIdx < navigationGroups.length - 1 && (
+                <div className="mx-4 my-1 border-t border-border opacity-50" />
+              )}
+            </React.Fragment>
+          );
+        })}
       </SidebarContent>
     </Sidebar>
   );
 }
+

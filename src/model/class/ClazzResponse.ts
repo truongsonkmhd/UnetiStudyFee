@@ -12,6 +12,7 @@ export interface ClazzResponse {
   createdAt?: string;
   updatedAt?: string;
   maxStudents?: number;
+  studentCount?: number;
   isActive?: boolean;
   contests?: ClassContestResponse[];
 }

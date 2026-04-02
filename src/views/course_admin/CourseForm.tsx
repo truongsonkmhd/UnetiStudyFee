@@ -15,7 +15,6 @@ import TemplateSelector from './TemplateSelector';
 import lessonService from '@/services/lessonService';
 import { toast } from 'sonner';
 import { MAJORS } from '@/constants/major';
-import CourseGuideView from './CourseGuideView';
 import CourseSettingsView from './CourseSettingsView';
 interface CourseFormProps {
   course?: CourseTreeResponse;
@@ -24,7 +23,6 @@ interface CourseFormProps {
 }
 
 const SECTIONS = [
-  { id: 'guide', label: 'Hướng dẫn', icon: HelpCircle },
   { id: 'basic', label: 'Thông tin cơ bản', icon: Info },
   { id: 'content', label: 'Cấu trúc bài học', icon: Layout },
   { id: 'extra', label: 'Chi tiết mở rộng', icon: BookOpen },
@@ -381,11 +379,6 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
         </div>
       )}
 
-      {activeSection === 'guide' && (
-        <div className="animate-in fade-in slide-in-from-bottom-6 duration-500">
-          <CourseGuideView />
-        </div>
-      )}
 
       {activeSection === 'basic' && (
         <div className="space-y-6 rounded-3xl border border-border bg-card p-8 shadow-sm animate-in fade-in slide-in-from-bottom-6 duration-500">
@@ -409,7 +402,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
             </div>
 
             <div className="md:col-span-2 space-y-2">
-              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground">Mô tả tóm tắt <span className="text-destructive">*</span></label>
+              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground">Mô tả tóm tắt</label>
               <textarea
                 name="shortDescription"
                 value={formData.shortDescription}

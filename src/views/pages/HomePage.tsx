@@ -5,7 +5,6 @@ import { CourseCardResponse } from "@/model/course-admin/CourseCardResponse";
 import courseCatalogService from "@/services/courseCatalogService";
 import CourseCard from "./component/CourseCard";
 import { EmptyState } from "@/components/common/EmptyState";
-import { MAJORS } from "@/constants/major";
 import {
   Pagination,
   PaginationContent,
@@ -14,6 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { MAJORS } from "@/constants/major";
 
 export type Major = "all" | string;
 
@@ -21,6 +21,7 @@ const MAJOR_LIST = [
   { id: "all", name: "Tất cả" },
   ...MAJORS
 ];
+
 
 const SectionHeader: React.FC<{
   title: string;
@@ -88,6 +89,7 @@ export function HomePage() {
         '', // Clear q when filtering by category tab
         category
       );
+
 
       if (response.items) {
         setCourses(response.items);

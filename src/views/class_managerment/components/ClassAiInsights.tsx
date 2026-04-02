@@ -43,8 +43,11 @@ const RISK_COLORS: Record<string, string> = {
 function riskBadge(level: string) {
   const map: Record<string, string> = {
     HIGH: 'bg-red-500/15 text-red-400 border border-red-500/30',
+    CAO: 'bg-red-500/15 text-red-400 border border-red-500/30',
     MEDIUM: 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30',
+    'TRUNG BÌNH': 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30',
     LOW: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
+    THẤP: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
     'At Risk': 'bg-red-500/15 text-red-400 border border-red-500/30',
     'Need Support': 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30',
     'On Track': 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
@@ -56,7 +59,8 @@ function riskBadge(level: string) {
 // PARSERS
 // ──────────────────────────────────────────────
 function parseCluster(raw: any): ClusterItem[] {
-  const items: any[] = raw?.results ?? [];
+  // Backend bọc kết quả trong field 'data'
+  const items: any[] = (raw?.data?.results || raw?.results) ?? [];
   return items.map((r: any) => ({
     userId: r.user_id || r.userId || '',
     username: r.username || '',
@@ -69,7 +73,8 @@ function parseCluster(raw: any): ClusterItem[] {
 }
 
 function parseRisk(raw: any): RiskItem[] {
-  const items: any[] = raw?.results ?? [];
+  // Backend bọc kết quả trong field 'data'
+  const items: any[] = (raw?.data?.results || raw?.results) ?? [];
   return items.map((r: any) => {
     const prob = r.risk_probability ?? r.riskProbability ?? r.risk_prob ?? 0;
     const level = r.risk_level || r.riskLevel ||
@@ -113,7 +118,7 @@ const ClusterTable: React.FC<{ items: ClusterItem[]; colorMap: Record<number, st
     <table className="w-full text-sm">
       <thead className="sticky top-0" style={{ background: '#1a2235' }}>
         <tr>
-          {['#', 'Học sinh', 'Nhóm', 'Score'].map(h => (
+          {['#', 'Học sinh', 'Nhóm', 'Điểm số'].map(h => (
             <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{h}</th>
           ))}
         </tr>
@@ -157,7 +162,7 @@ const RiskTable: React.FC<{ items: RiskItem[] }> = ({ items }) => {
       <table className="w-full text-sm">
         <thead className="sticky top-0" style={{ background: '#1a2235' }}>
           <tr>
-            {['Rank', 'Học sinh', 'Xác suất bỏ học', 'Mức độ'].map(h => (
+            {['Hạng', 'Học sinh', 'Xác suất bỏ học', 'Mức độ'].map(h => (
               <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{h}</th>
             ))}
           </tr>
@@ -193,7 +198,7 @@ const RiskTable: React.FC<{ items: RiskItem[] }> = ({ items }) => {
               </td>
               <td className="px-4 py-2.5">
                 <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${riskBadge(item.riskLevel)}`}>
-                  {item.riskLevel}
+                  {item.riskLevel === 'HIGH' ? 'CAO' : item.riskLevel === 'MEDIUM' ? 'TRUNG BÌNH' : 'THẤP'}
                 </span>
               </td>
             </tr>
@@ -227,7 +232,8 @@ interface Props { classId: string; className: string; onClose: () => void; }
 const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
   const [tab, setTab] = useState<TabKey>('behavioral');
   const [running, setRunning] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'ok' | 'error' | 'insufficient'>('idle');
+  const [errorMsg, setErrorMsg] = useState<string>('');
   const [data, setData] = useState<AnalyticsState>({
     behavioral: [], performance: [], riskCluster: [], riskPredict: [],
   });
@@ -236,6 +242,7 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
     try {
       setRunning(true);
       setStatus('idle');
+      setErrorMsg('');
       const [beh, perf, riskC, riskP] = await aiService.runAll(classId);
       setData({
         behavioral: parseCluster(beh),
@@ -246,8 +253,16 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
       setStatus('ok');
       toast.success(`Phân tích ${className} hoàn tất!`);
     } catch (e: any) {
-      setStatus('error');
-      toast.error('Phân tích thất bại: ' + (e?.message || 'Lỗi không xác định'));
+      const msg: string = e?.response?.data?.message || e?.message || 'Lỗi không xác định';
+      // Phát hiện Cold Start error từ backend
+      const isColdStart = msg.includes('ngày') || msg.includes('Cần ít nhất') || msg.includes('chưa đủ dữ liệu');
+      if (isColdStart) {
+        setStatus('insufficient');
+        setErrorMsg(msg);
+      } else {
+        setStatus('error');
+        toast.error('Phân tích thất bại: ' + msg);
+      }
     } finally {
       setRunning(false);
     }
@@ -270,10 +285,10 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
   })();
 
   const TABS: { key: TabKey; label: string; icon: string }[] = [
-    { key: 'behavioral', label: 'Behavioral', icon: '🧠' },
-    { key: 'performance', label: 'Performance', icon: '📊' },
-    { key: 'risk', label: 'Risk Cluster', icon: '⚠️' },
-    { key: 'predict', label: 'Risk Predict', icon: '🔮' },
+    { key: 'behavioral', label: 'Hành vi', icon: '🧠' },
+    { key: 'performance', label: 'Năng lực', icon: '📊' },
+    { key: 'risk', label: 'Nhóm rủi ro', icon: '⚠️' },
+    { key: 'predict', label: 'Dự báo rủi ro', icon: '🔮' },
   ];
 
   // color map by label
@@ -295,7 +310,7 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
           <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
             style={{ background: 'linear-gradient(135deg,#6c63ff,#00d4aa)' }}>🧠</div>
           <div>
-            <div className="text-white font-bold text-base leading-tight">AI Analytics Dashboard</div>
+            <div className="text-white font-bold text-base leading-tight">Bảng điều khiển Phân tích AI</div>
             <div className="text-slate-400 text-xs flex items-center gap-1.5">
               <ChevronRight className="w-3 h-3" />
               {className}
@@ -307,9 +322,11 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
           {/* status */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs border"
             style={{ background: '#131929', borderColor: '#1e2d45' }}>
-            {status === 'ok' ? <><Wifi className="w-3 h-3 text-emerald-400" /><span className="text-emerald-400">Đã phân tích</span></>
+            {status === 'ok'
+              ? <><Wifi className="w-3 h-3 text-emerald-400" /><span className="text-emerald-400">Đã phân tích</span></>
               : status === 'error' ? <><WifiOff className="w-3 h-3 text-red-400" /><span className="text-red-400">Lỗi</span></>
-                : <><div className="w-2 h-2 rounded-full bg-slate-500" /><span className="text-slate-400">Chưa phân tích</span></>}
+              : status === 'insufficient' ? <><div className="w-2 h-2 rounded-full bg-blue-400" /><span className="text-blue-400">Chưa đủ dữ liệu</span></>
+              : <><div className="w-2 h-2 rounded-full bg-slate-500" /><span className="text-slate-400">Chưa phân tích</span></>}
           </div>
 
           {/* run */}
@@ -403,7 +420,7 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
             <div className="rounded-2xl border overflow-hidden" style={{ background: '#131929', borderColor: '#1e2d45' }}>
               <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: '#1e2d45' }}>
                 <span className="text-sm font-semibold text-slate-200">📋 Chi tiết — Top 50 học sinh</span>
-                <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(108,99,255,.15)', color: '#6c63ff' }}>BEHAVIORAL</span>
+                <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(108,99,255,.15)', color: '#6c63ff' }}>HÀNH VI</span>
               </div>
               {data.behavioral.length > 0
                 ? <ClusterTable items={data.behavioral} colorMap={makeColorMap(data.behavioral)} />
@@ -450,7 +467,7 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
             <div className="rounded-2xl border overflow-hidden" style={{ background: '#131929', borderColor: '#1e2d45' }}>
               <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: '#1e2d45' }}>
                 <span className="text-sm font-semibold text-slate-200">📋 Top 50 học sinh — Năng lực</span>
-                <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(0,212,170,.15)', color: '#00d4aa' }}>PERFORMANCE</span>
+                <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(0,212,170,.15)', color: '#00d4aa' }}>NĂNG LỰC</span>
               </div>
               {data.performance.length > 0
                 ? <ClusterTable items={data.performance} colorMap={makeColorMap(data.performance)} />
@@ -500,8 +517,8 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
             </div>
             <div className="rounded-2xl border overflow-hidden" style={{ background: '#131929', borderColor: '#1e2d45' }}>
               <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: '#1e2d45' }}>
-                <span className="text-sm font-semibold text-slate-200">📋 Top 50 — Risk Clustering</span>
-                <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(255,107,107,.15)', color: '#ff6b6b' }}>RISK</span>
+                <span className="text-sm font-semibold text-slate-200">📋 Top 50 — Phân loại rủi ro</span>
+                <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(255,107,107,.15)', color: '#ff6b6b' }}>RỦI RO</span>
               </div>
               {data.riskCluster.length > 0
                 ? <ClusterTable items={data.riskCluster} colorMap={makeColorMap(data.riskCluster)} />
@@ -516,9 +533,9 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
             {/* Gauge */}
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: '🟢 Low Risk', key: 'LOW', color: '#10b981', sub: 'học sinh an toàn' },
-                { label: '🟡 Medium Risk', key: 'MEDIUM', color: '#f59e0b', sub: 'cần theo dõi' },
-                { label: '🔴 High Risk', key: 'HIGH', color: '#ef4444', sub: 'nguy cơ bỏ học' },
+                { label: '🟢 Rủi ro Thấp', key: 'LOW', color: '#10b981', sub: 'học sinh an toàn' },
+                { label: '🟡 Rủi ro Trung bình', key: 'MEDIUM', color: '#f59e0b', sub: 'cần theo dõi' },
+                { label: '🔴 Rủi ro Cao', key: 'HIGH', color: '#ef4444', sub: 'nguy cơ bỏ học' },
               ].map(g => {
                 const count = data.riskPredict.filter(i => i.riskLevel === g.key).length;
                 return (
@@ -593,6 +610,33 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
             <Brain className="w-16 h-16 mb-4 opacity-20" />
             <p className="text-base font-semibold mb-1">Chưa có dữ liệu phân tích</p>
             <p className="text-sm">Nhấn <b className="text-violet-400">▶ Chạy phân tích</b> để bắt đầu</p>
+          </div>
+        )}
+
+        {/* Cold Start — lớp mới chưa đủ dữ liệu */}
+        {status === 'insufficient' && (
+          <div className="rounded-2xl border p-8 flex flex-col items-center text-center gap-4"
+            style={{ background: 'rgba(59,130,246,0.06)', borderColor: 'rgba(59,130,246,0.25)' }}>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
+              style={{ background: 'rgba(59,130,246,0.12)' }}>⏳</div>
+            <div>
+              <p className="text-blue-300 font-bold text-base mb-2">Lớp học chưa đủ dữ liệu để phân tích AI</p>
+              <p className="text-slate-400 text-sm max-w-lg leading-relaxed">{errorMsg}</p>
+            </div>
+            <div className="grid grid-cols-3 gap-3 w-full max-w-lg mt-2">
+              {[
+                { icon: '📅', label: 'Cần ít nhất', value: '3 ngày hoạt động' },
+                { icon: '📚', label: 'Cần có', value: 'Học sinh học bài' },
+                { icon: '📊', label: 'Để AI', value: 'So sánh có ý nghĩa' },
+              ].map(tip => (
+                <div key={tip.label} className="rounded-xl p-3 text-center"
+                  style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}>
+                  <div className="text-xl mb-1">{tip.icon}</div>
+                  <div className="text-[10px] text-slate-500 uppercase tracking-wider">{tip.label}</div>
+                  <div className="text-xs font-semibold text-blue-300 mt-0.5">{tip.value}</div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

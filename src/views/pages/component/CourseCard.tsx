@@ -1,19 +1,18 @@
 import React from "react";
-import { Users, Clock, PlayCircle, BookOpen, Star, ChevronRight, Sparkles, TrendingUp } from "lucide-react";
+import { Users, Clock, PlayCircle, BookOpen, ChevronRight, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import { CourseCardResponse } from "@/model/course-admin/CourseCardResponse";
 import { useNavigate } from "react-router-dom";
 import courseEnrollmentService from "@/services/courseEnrollmentService";
+import defaultAvatar from "@/assets/img/avatar-default.png";
 
 const CourseCard: React.FC<{ course: CourseCardResponse }> = ({ course }) => {
   const navigate = useNavigate();
 
   const handleClick = async () => {
     try {
-      const status = await courseEnrollmentService.getEnrollmentStatus(
-        course.courseId
-      );
-
+      console.log("courseId=======================", course.courseId);
+      const status = await courseEnrollmentService.getEnrollmentStatus(course.courseId);
       if (status?.status === "APPROVED") {
         navigate(`/course/${course.slug}/learn`);
       } else {
@@ -24,38 +23,15 @@ const CourseCard: React.FC<{ course: CourseCardResponse }> = ({ course }) => {
     }
   };
 
-  // Bee / Honey / Nature inspired vibrancy
   const getBeeTheme = (str: string) => {
     const themes = [
-      {
-        grad: "from-amber-400 via-orange-500 to-yellow-600",
-        glow: "shadow-amber-500/20",
-        text: "text-amber-400",
-        bg: "bg-amber-400"
-      },
-      {
-        grad: "from-blue-500 via-indigo-600 to-violet-700",
-        glow: "shadow-blue-500/20",
-        text: "text-blue-400",
-        bg: "bg-blue-600"
-      },
-      {
-        grad: "from-emerald-400 via-teal-500 to-cyan-600",
-        glow: "shadow-emerald-500/20",
-        text: "text-emerald-400",
-        bg: "bg-emerald-500"
-      },
-      {
-        grad: "from-fuchsia-500 via-purple-600 to-indigo-700",
-        glow: "shadow-fuchsia-500/20",
-        text: "text-fuchsia-400",
-        bg: "bg-fuchsia-600"
-      }
+      { grad: "from-amber-400 via-orange-500 to-yellow-600", bg: "bg-amber-400", light: "bg-amber-50" },
+      { grad: "from-blue-500 via-indigo-600 to-violet-700", bg: "bg-blue-600", light: "bg-blue-50" },
+      { grad: "from-emerald-400 via-teal-500 to-cyan-600", bg: "bg-emerald-500", light: "bg-emerald-50" },
+      { grad: "from-fuchsia-500 via-purple-600 to-indigo-700", bg: "bg-fuchsia-600", light: "bg-fuchsia-50" }
     ];
     let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
     return themes[Math.abs(hash) % themes.length];
   };
 
@@ -64,75 +40,66 @@ const CourseCard: React.FC<{ course: CourseCardResponse }> = ({ course }) => {
   return (
     <motion.div
       onClick={handleClick}
-      whileHover={{ y: -15 }}
-      transition={{ type: "spring", stiffness: 250, damping: 20 }}
-      className="group relative"
+      whileHover={{ y: -10 }}
+      className="group relative cursor-pointer"
     >
-      {/* Dynamic Animated Peripheral Glow */}
-
-
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-card/80 border border-border/50 hover:border-blue-500/30 transition-all duration-500">
+      <div className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-blue-500/20 transition-all duration-500 h-full flex flex-col">
 
         {/* THUMBNAIL AREA */}
-        <div className="relative aspect-[16/10] w-full overflow-hidden">
+        <div className="relative aspect-[16/9] w-full overflow-hidden">
           {course.imageUrl ? (
             <img
               src={course.imageUrl}
               alt={course.title}
-              className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110 group-hover:rotate-1"
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
           ) : (
             <div className={`h-full w-full bg-gradient-to-br ${theme.grad} flex items-center justify-center`}>
-              <BookOpen className="w-20 h-20 text-white/10" />
+              <BookOpen className="w-16 h-16 text-white/20" />
             </div>
           )}
 
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='35' viewBox='0 0 20 35' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 17.5L10 0L20 17.5L10 35L0 17.5Z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")` }} />
+          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-90" />
-
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-            <div className="relative">
-              <button className="relative w-16 h-16 bg-white rounded-full flex items-center justify-center text-slate-950 hover:scale-110 active:scale-95 transition-transform">
-                <PlayCircle className="w-8 h-8 fill-current" />
-              </button>
+          {/* Play Icon on Hover */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
+            <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center text-blue-600 shadow-2xl scale-75 group-hover:scale-100 transition-transform">
+              <PlayCircle className="w-8 h-8 fill-blue-600/10" />
             </div>
           </div>
-
-          {course.totalModules > 0 && (
-            <div className={`absolute bottom-5 right-5 flex items-center gap-2 px-4 py-2 ${theme.bg} rounded-2xl shadow-2xl`}>
-              <Clock className="w-4 h-4 text-white" />
-              <span className="text-[11px] font-black text-white uppercase tracking-widest">{course.totalModules} Chương</span>
-            </div>
-          )}
         </div>
 
-        <div className="px-7 py-6 flex flex-col gap-5">
-          <div className="space-y-2">
-            <h4 className="text-[19px] font-black leading-tight text-foreground group-hover:text-blue-500 transition-colors line-clamp-2 min-h-[3rem]">
+        {/* CONTENT AREA */}
+        <div className="p-5 flex flex-col flex-1">
+          <div className="flex-1">
+            <h4 className="text-[17px] font-black leading-snug text-slate-900 dark:text-white line-clamp-2 min-h-[2.8rem] mb-3 group-hover:text-blue-600 transition-colors">
               {course.title}
             </h4>
+
           </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-3 items-center">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className={`w-8 h-8 rounded-full border-2 border-card bg-muted flex items-center justify-center shadow-lg overflow-hidden`}>
-                    <Users className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                ))}
-                <div className="w-8 h-8 rounded-full border-2 border-card bg-muted flex items-center justify-center z-10 text-[9px] font-black text-muted-foreground">
-                  +1k
-                </div>
+
+          <div className="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-800/50">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full overflow-hidden ring-2 ring-blue-500/10 shadow-sm border border-white">
+                <img src={defaultAvatar} className="w-full h-full object-cover" alt="Inst" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-[15px] font-black text-muted-foreground uppercase tracking-tighter">Cộng đồng</span>
-                <span className="text-[15px] font-bold text-foreground/80">Người tham gia</span>
-              </div>
+              <span className="text-[13px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[80px]">
+                {course.instructorName || "Sơn Đặng"}
+              </span>
             </div>
 
-            <div className={`w-10 h-10 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 group-hover:rotate-12`}>
-              <ChevronRight className="w-5 h-5" />
+            <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/30 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-slate-800/50">
+              <Users className="w-3.5 h-3.5 text-blue-500" />
+              <span className="text-[13px] font-black tracking-tight">
+                {course.enrolledCount || 0} / {course.capacity || "Null"}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500">
+              <Clock className="w-4 h-4 fill-slate-400/10" />
+              <span className="text-[13px] font-bold tracking-tight">
+                {course.totalModules * 2}h 30p
+              </span>
             </div>
           </div>
         </div>

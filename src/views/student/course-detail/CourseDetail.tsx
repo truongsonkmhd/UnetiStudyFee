@@ -119,8 +119,6 @@ const CourseDetail: React.FC = () => {
     const totalLessons = course.modules.reduce((acc, m) => acc + (m.lessons ? m.lessons.length : 0), 0);
     const formattedDuration = "28h 05m";
     const studentCount = course.enrolledCount || 0;
-    const rating = course.rating || 5.0;
-    const ratingCount = course.ratingCount || 0;
     const lastUpdated = course.updatedAt ? new Date(course.updatedAt).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' }) : new Date().toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' });
 
     return (
@@ -148,12 +146,6 @@ const CourseDetail: React.FC = () => {
                         />
 
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-background/80">
-                            <div className="flex items-center gap-1.5 text-primary">
-                                <span className="text-background font-bold text-base">{rating}</span>
-                                <div className="flex">
-                                    {[1, 2, 3, 4, 5].map(i => <Star key={i} size={14} fill={i <= Math.round(rating) ? "currentColor" : "none"} className={i <= Math.round(rating) ? "" : "text-background/40"} />)}
-                                </div>
-                            </div>
                             <div className="flex items-center gap-1.5">
                                 <Users size={16} /> {studentCount.toLocaleString()} học viên
                             </div>

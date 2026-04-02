@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
     DropdownMenu,
@@ -95,60 +96,53 @@ export function StudentLayout() {
                     <div className="flex items-center gap-10">
                         <div className="flex items-center gap-3 shrink-0">
                             <NavLink to={PATHS.HOME} className="flex items-center gap-2 group">
-                                 <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                                <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                                     <img src={logoIcon} alt="Logo" className="w-8 h-8 object-contain" />
                                 </div>
-                                <span className="font-black text-2xl text-blue-600 dark:text-blue-400 uppercase tracking-tighter">
+                                <span className="font-black text-xl text-blue-600 dark:text-blue-400 uppercase tracking-tight">
                                     {APP_NAME}
                                 </span>
                             </NavLink>
                         </div>
 
-                        {/* NAV AS TABS (Dịch sang trái) */}
-                        <nav className="hidden md:flex items-center gap-1 bg-muted/50 p-1.5 rounded-2xl border border-border/50">
+                        {/* Modern Minimal Navigation */}
+                        <nav className="hidden md:flex items-center gap-10 ml-8">
                             {studentNavItems.map((item) => {
                                 const active = isActive(item);
                                 return (
                                     <NavLink
                                         key={item.label}
                                         to={item.to}
-                                        className={[
-                                            "relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-base font-bold transition-all duration-300 transform",
-                                            active
-                                                ? "bg-blue-600 text-white scale-100"
-                                                : "text-muted-foreground hover:text-foreground hover:bg-muted font-black",
-                                        ].join(" ")}
+                                        className={`
+                                            relative flex items-center text-[13px] font-bold uppercase tracking-[0.15em] transition-all duration-300 py-1
+                                            ${active 
+                                                ? "text-primary" 
+                                                : "text-muted-foreground/70 hover:text-foreground"}
+                                        `}
                                     >
                                         {item.label}
+                                        {active && (
+                                            <motion.div 
+                                                layoutId="nav-underline"
+                                                className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-primary rounded-full"
+                                            />
+                                        )}
                                     </NavLink>
                                 );
                             })}
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <button className="flex items-center gap-1 px-4 py-2.5 text-base font-bold text-slate-400 hover:text-white transition-colors">
-                                        Thêm <ChevronDown className="w-4 h-4" />
-                                    </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
-                                    <DropdownMenuItem onClick={() => navigate(PATHS.SETTINGS)} className="focus:bg-muted">
-                                        <Settings className="mr-2 h-4 w-4" /> Cài đặt
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
                         </nav>
                     </div>
 
-                    <div className="flex items-center gap-4 shrink-0">
+                    <div className="flex items-center gap-8 shrink-0">
                         <div className="hidden xl:block">
                             <GlobalSearch />
                         </div>
 
-                        <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-full border border-border/50">
+                        <div className="flex items-center gap-4 border-l border-border/50 pl-6 mr-2">
                             <ThemeToggle />
-
-                            <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                                <Bell className="w-5 h-5" />
-                                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-background"></span>
+                            <button className="relative p-2 text-muted-foreground hover:text-foreground transition-all hover:bg-muted rounded-full">
+                                <Bell className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-background"></span>
                             </button>
                         </div>
 

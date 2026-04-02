@@ -8,18 +8,17 @@ interface CourseTabsProps {
 }
 
 const TABS = [
-  { id: 'guide', label: 'Hướng dẫn', icon: Lightbulb },
   { id: 'settings', label: 'Cài đặt', icon: Settings },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
 
 const CourseTabs: React.FC<CourseTabsProps> = ({ courseId }) => {
-  const [activeTab, setActiveTab] = useState<TabId>('guide');
+  const [activeTab, setActiveTab] = useState<TabId>('settings');
 
   return (
     <div className="space-y-6">
-      {/* Tab Bar */}
+      {/* Tab Bar - Optional if only one tab exists now */}
       <div className="flex gap-1 rounded-2xl border border-border bg-muted/40 p-1.5 w-fit">
         {TABS.map((tab) => {
           const Icon = tab.icon;
@@ -46,10 +45,10 @@ const CourseTabs: React.FC<CourseTabsProps> = ({ courseId }) => {
 
       {/* Tab Content */}
       <div>
-        {activeTab === 'guide' && <CourseGuideView />}
         {activeTab === 'settings' && <CourseSettingsView courseId={courseId} />}
       </div>
     </div>
+
   );
 };
 

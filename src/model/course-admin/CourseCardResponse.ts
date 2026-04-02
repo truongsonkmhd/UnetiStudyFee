@@ -8,5 +8,6 @@ export interface CourseCardResponse {
   totalModules: number;
   publishedAt?: string;
   enrolledCount?: number;
+  capacity?: number;
   instructorName?: string;
 }

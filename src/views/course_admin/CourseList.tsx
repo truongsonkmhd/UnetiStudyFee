@@ -231,7 +231,7 @@ const CourseList: React.FC<CourseListProps> = ({ onEdit, onView, onCreate }) => 
 
           <div className="hidden h-8 w-px bg-border md:block" />
           <span className="text-sm font-medium text-muted-foreground">
-            {courses.length} / {totalElements} khóa học
+            {totalElements} khóa học
           </span>
         </div>
       </motion.div>
