@@ -115,14 +115,14 @@ export function StudentLayout() {
                                         to={item.to}
                                         className={`
                                             relative flex items-center text-[13px] font-bold uppercase tracking-[0.15em] transition-all duration-300 py-1
-                                            ${active 
-                                                ? "text-primary" 
+                                            ${active
+                                                ? "text-primary"
                                                 : "text-muted-foreground/70 hover:text-foreground"}
                                         `}
                                     >
                                         {item.label}
                                         {active && (
-                                            <motion.div 
+                                            <motion.div
                                                 layoutId="nav-underline"
                                                 className="absolute -bottom-1.5 left-0 right-0 h-0.5 bg-primary rounded-full"
                                             />

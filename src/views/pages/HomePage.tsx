@@ -1,6 +1,6 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Users, Loader2, Zap, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { CourseCardResponse } from "@/model/course-admin/CourseCardResponse";
 import courseCatalogService from "@/services/courseCatalogService";
 import CourseCard from "./component/CourseCard";
@@ -13,15 +13,18 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { MAJORS } from "@/constants/major";
 
 export type Major = "all" | string;
 
-const MAJOR_LIST = [
-  { id: "all", name: "Tất cả" },
-  ...MAJORS
-];
-
+const MAJOR_LABEL: Record<Major, string> = {
+  all: "Tất cả",
+  cntt: "Công nghệ thông tin",
+  ketoan: "Kế toán",
+  dulich: "Du lịch",
+  qtkd: "Quản trị kinh doanh",
+  ngonnguanh: "Ngôn ngữ Anh",
+  chung: "Chung",
+};
 
 const SectionHeader: React.FC<{
   title: string;
@@ -50,21 +53,24 @@ const MajorTags: React.FC<{
   onChange: (m: Major) => void;
 }> = ({ value, onChange }) => {
   return (
-    <div className="flex flex-wrap gap-3 py-6">
-      {MAJOR_LIST.map((m) => (
-        <button
-          key={m.id}
-          onClick={() => onChange(m.id)}
-          className={[
-            "px-8 py-3 text-base font-bold rounded-2xl border transition-all duration-300 transform active:scale-95",
-            value === m.id
-              ? "bg-blue-600 border-blue-600 text-white"
-              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50/10"
-          ].join(" ")}
-        >
-          {m.name}
-        </button>
-      ))}
+    <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-6">
+      {Object.keys(MAJOR_LABEL).map((k) => {
+        const isActive = value === k;
+        return (
+          <button
+            key={k}
+            onClick={() => onChange(k as Major)}
+            className={`
+              whitespace-nowrap px-5 py-2.5 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] transition-all duration-300
+              ${isActive
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                : "bg-muted/40 text-muted-foreground/80 hover:bg-muted/70 hover:text-foreground"}
+            `}
+          >
+            {MAJOR_LABEL[k as Major]}
+          </button>
+        );
+      })}
     </div>
   );
 };
@@ -81,12 +87,11 @@ export function HomePage() {
   const loadCourses = async (page: number) => {
     setLoading(true);
     try {
-      const selectedMajor = MAJOR_LIST.find(m => m.id === major);
-      const category = major === 'all' ? '' : selectedMajor?.name || '';
+      const category = major === 'all' ? '' : MAJOR_LABEL[major] || '';
       const response = await courseCatalogService.getPublishedCourses(
         page,
         pageSize,
-        '', // Clear q when filtering by category tab
+        '', 
         category
       );
 
@@ -167,7 +172,7 @@ export function HomePage() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
-            <SectionHeader title={major === 'all' ? "Khóa học mới nhất" : (MAJOR_LIST.find(m => m.id === major)?.name || "")} count={totalElements} />
+            <SectionHeader title={major === 'all' ? "Khóa học mới nhất" : (MAJOR_LABEL[major] || "")} count={totalElements} />
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {courses.map((c, i) => (
                 <CourseCard key={c.courseId} course={c} />
