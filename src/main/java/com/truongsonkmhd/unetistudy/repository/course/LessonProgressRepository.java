@@ -91,4 +91,47 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgress, 
                 where cl.module.course.courseId in :courseIds
             """)
     Long countTotalLessonsByCourses(@Param("courseIds") List<UUID> courseIds);
+
+    /**
+     * Đếm số lessons theo từng courseId.
+     * Returns: [courseId (UUID), lessonCount (Long)]
+     */
+    @Query("""
+                select cl.module.course.courseId, count(cl)
+                from CourseLesson cl
+                where cl.module.course.courseId in :courseIds
+                group by cl.module.course.courseId
+            """)
+    List<Object[]> countLessonsPerCourse(@Param("courseIds") List<UUID> courseIds);
+
+    /**
+     * Đếm số bài hoàn thành của mỗi student theo từng course.
+     * Returns: [studentId (UUID), courseId (UUID), completedCount (Long)]
+     */
+    @Query("""
+                select lp.user.id, lp.course.courseId, count(lp)
+                from LessonProgress lp
+                where lp.user.id in :studentIds
+                  and lp.course.courseId in :courseIds
+                  and lp.status = ProgressStatus.DONE
+                group by lp.user.id, lp.course.courseId
+            """)
+    List<Object[]> countCompletedPerStudentPerCourse(
+            @Param("studentIds") List<UUID> studentIds,
+            @Param("courseIds") List<UUID> courseIds);
+
+    /**
+     * Ngày cuối truy cập của mỗi student theo từng course.
+     * Returns: [studentId (UUID), courseId (UUID), lastAccessAt (Instant)]
+     */
+    @Query("""
+                select lp.user.id, lp.course.courseId, max(lp.lastAccessAt)
+                from LessonProgress lp
+                where lp.user.id in :studentIds
+                  and lp.course.courseId in :courseIds
+                group by lp.user.id, lp.course.courseId
+            """)
+    List<Object[]> findLastAccessPerStudentPerCourse(
+            @Param("studentIds") List<UUID> studentIds,
+            @Param("courseIds") List<UUID> courseIds);
 }

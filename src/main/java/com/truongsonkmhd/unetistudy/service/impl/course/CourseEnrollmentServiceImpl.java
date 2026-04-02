@@ -10,6 +10,7 @@ import com.truongsonkmhd.unetistudy.model.course.CourseEnrollment;
 import com.truongsonkmhd.unetistudy.repository.UserRepository;
 import com.truongsonkmhd.unetistudy.repository.course.CourseEnrollmentRepository;
 import com.truongsonkmhd.unetistudy.repository.course.CourseRepository;
+import com.truongsonkmhd.unetistudy.security.AuthoritiesConstants;
 import com.truongsonkmhd.unetistudy.service.CourseEnrollmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,8 @@ import com.truongsonkmhd.unetistudy.cache.service.CourseCacheService;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.truongsonkmhd.unetistudy.security.SecurityUtils.hasCurrentUserAnyOfAuthorities;
 
 @Service
 @RequiredArgsConstructor
@@ -53,10 +56,10 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
         if (existingOpt.isPresent()) {
             CourseEnrollment existing = existingOpt.get();
             if (existing.getStatus() == EnrollmentStatus.PENDING) {
-                throw new RuntimeException("Enrollment request already exists for this course");
+                throw new RuntimeException("Yêu cầu đăng ký khóa học đã tồn tại");
             }
             if (existing.getStatus() == EnrollmentStatus.APPROVED) {
-                throw new RuntimeException("You are already enrolled in this course");
+                throw new RuntimeException("Bạn đã đăng ký khóa học này");
             }
             // If REJECTED, allow re-request
             enrollment = existing;
@@ -95,8 +98,8 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
                 .orElseThrow(() -> new RuntimeException("Enrollment not found"));
 
         // Verify user is instructor
-        if (!enrollment.getCourse().isOwner(userId)) {
-            throw new RuntimeException("You are not authorized to approve enrollment for this course");
+        if (!enrollment.getCourse().isOwner(userId) && !hasCurrentUserAnyOfAuthorities(AuthoritiesConstants.ADMIN, AuthoritiesConstants.SYS_ADMIN)) {
+            throw new RuntimeException("Bạn không có quyền duyệt yêu cầu đăng ký khóa học này");
         }
 
         if (enrollment.getStatus() == EnrollmentStatus.APPROVED) {
@@ -107,6 +110,11 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
         enrollment.setApprovedAt(Instant.now());
 
         Course course = enrollment.getCourse();
+        // Enforce capacity limit if defined
+        Integer capacity = course.getCapacity();
+        if (capacity != null && course.getEnrolledCount() >= capacity) {
+            throw new RuntimeException("Khóa học đã đạt đủ số lượng học viên tối đa. Không thể chấp nhận thêm học viên đăng ký.");
+        }
         course.setEnrolledCount(course.getEnrolledCount() + 1);
         courseRepository.save(course);
         courseCacheService.evictCourseCompletely(course.getCourseId(), course.getSlug());
@@ -129,8 +137,8 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
                 .orElseThrow(() -> new RuntimeException("Enrollment not found"));
 
         // Verify user is instructor
-        if (!enrollment.getCourse().isOwner(userId)) {
-            throw new RuntimeException("You are not authorized to reject enrollment for this course");
+        if (!enrollment.getCourse().isOwner(userId) && !hasCurrentUserAnyOfAuthorities(AuthoritiesConstants.ADMIN, AuthoritiesConstants.SYS_ADMIN)) {
+            throw new RuntimeException("Bạn không có quyền từ chối yêu cầu đăng ký khóa học này");
         }
 
         // If rejecting an already approved student (revoking access), decrement count
@@ -163,9 +171,9 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        if (!course.isOwner(userId)) {
-            // Alternatively, admin can view
-            throw new RuntimeException("You are not authorized to view enrollments for this course");
+        if (!course.isOwner(userId) && !hasCurrentUserAnyOfAuthorities(AuthoritiesConstants.ADMIN, AuthoritiesConstants.SYS_ADMIN)) {
+            //admin , system admin có thể duyệt được không nhất thiết phải người tạo ra khóa học
+            throw new RuntimeException("Bạn không có quyền xem danh sách yêu cầu đăng ký khóa học này");
         }
 
         Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);

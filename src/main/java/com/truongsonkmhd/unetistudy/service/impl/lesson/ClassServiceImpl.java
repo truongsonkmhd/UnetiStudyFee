@@ -1,5 +1,6 @@
 package com.truongsonkmhd.unetistudy.service.impl.lesson;
 
+import com.truongsonkmhd.unetistudy.context.UserContext;
 import com.truongsonkmhd.unetistudy.dto.class_dto.ClassCourseRequest;
 import com.truongsonkmhd.unetistudy.dto.class_dto.ClassCourseResponse;
 import com.truongsonkmhd.unetistudy.dto.class_dto.ClazzResponse;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -113,7 +115,11 @@ public class ClassServiceImpl implements ClassService {
 
         @Override
         public List<ClazzResponse> getALlClass() {
-                List<Clazz> classes = classRepository.findAll();
+                UUID currentUserId = UserContext.getUserID();
+
+                List<Clazz> classes = (currentUserId != null)
+                                ? classRepository.findByInstructor_IdOrderByCreatedAtDesc(currentUserId)
+                                : Collections.emptyList();
 
                 return classes.stream()
                                 .map(this::mapToResponse)
@@ -283,6 +289,8 @@ public class ClassServiceImpl implements ClassService {
                                 .imageUrl(course.getImageUrl())
                                 .level(course.getLevel())
                                 .category(course.getCategory())
+                                .capacity(course.getCapacity())
+                                .enrolledCount(course.getEnrolledCount())
                                 .build();
         }
 
@@ -299,6 +307,7 @@ public class ClassServiceImpl implements ClassService {
                                 .startDate(clazz.getStartDate())
                                 .endDate(clazz.getEndDate())
                                 .maxStudents(clazz.getMaxStudents())
+                                .studentCount(clazz.getStudents() != null ? clazz.getStudents().size() : 0)
                                 .isActive(clazz.getIsActive())
                                 .createdAt(clazz.getCreatedAt())
                                 .updatedAt(clazz.getUpdatedAt())

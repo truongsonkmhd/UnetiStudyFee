@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -45,4 +46,17 @@ public interface CourseEnrollmentRepository extends JpaRepository<CourseEnrollme
             "AND (:q IS NULL OR lower(e.student.fullName) LIKE lower(concat('%', cast(:q as string), '%')) OR lower(e.student.email) LIKE lower(concat('%', cast(:q as string), '%')))")
     Page<CourseEnrollment> findCourseEnrollmentsWithFilter(@Param("courseId") UUID courseId,
             @Param("status") EnrollmentStatus status, @Param("q") String q, Pageable pageable);
+
+    /**
+     * Lấy danh sách (studentId, courseId) cho các sinh viên đã APPROVED enroll.
+     * Dùng cho AI Analytics để biết sinh viên nào đã tham gia khóa học nào.
+     * Returns: [studentId (UUID), courseId (UUID)]
+     */
+    @Query("SELECT e.student.id, e.course.courseId FROM CourseEnrollment e " +
+            "WHERE e.student.id IN :studentIds " +
+            "AND e.course.courseId IN :courseIds " +
+            "AND e.status = 'APPROVED'")
+    List<Object[]> findEnrolledCoursesByStudents(
+            @Param("studentIds") List<UUID> studentIds,
+            @Param("courseIds") List<UUID> courseIds);
 }

@@ -63,4 +63,23 @@ public interface UserQuizAttemptRepository extends JpaRepository<UserQuizAttempt
     List<Object[]> avgQuizScoreByStudents(
             @Param("studentIds") List<UUID> studentIds,
             @Param("courseIds") List<UUID> courseIds);
+
+    /**
+     * Điểm quiz trung bình và số lần thử của mỗi student theo từng course.
+     * Returns: [userId (UUID), courseId (UUID), avgScore (Double), attemptCount (Long)]
+     */
+    @Query("""
+                select a.userId, cl.module.course.courseId,
+                       avg(a.score), count(a)
+                from UserQuizAttempt a
+                join CourseLesson cl on a.quiz.id in
+                     (select q.id from CourseLesson cl2 join cl2.quizzes q
+                      where cl2.lessonId = cl.lessonId)
+                where a.userId in :studentIds
+                  and cl.module.course.courseId in :courseIds
+                group by a.userId, cl.module.course.courseId
+            """)
+    List<Object[]> avgQuizScorePerStudentPerCourse(
+            @Param("studentIds") List<UUID> studentIds,
+            @Param("courseIds") List<UUID> courseIds);
 }

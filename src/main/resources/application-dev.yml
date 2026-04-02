@@ -36,6 +36,7 @@ spring:
       host: 192.168.1.66
       port: 6379
 
+
 # application-dev.yml
 springdoc:
   api-docs:

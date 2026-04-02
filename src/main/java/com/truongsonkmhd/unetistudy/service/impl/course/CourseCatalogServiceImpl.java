@@ -40,19 +40,12 @@ public class CourseCatalogServiceImpl implements CourseCatalogService {
     @Override
     @Transactional(readOnly = true)
     public PageResponse<CourseCardResponse> getPublishedCourses(int page, int size, String q, String category) {
-        log.debug("getPublishedCourses - page={}, size={}, q={}, category={}", page, size, q, category);
-        // Sử dụng programmatic cache để thống nhất với CourseTreeService
-        // Status mặc định là "PUBLISHED" cho catalog công khai
         return courseCacheService.getCourseCatalog(page, size, q, "PUBLISHED", category,
                 () -> queryPublishedCourses(page, size, q, category));
     }
 
-    /**
-     * Logic truy vấn thực tế (chỉ gọi khi cache miss)
-     */
     @Transactional(readOnly = true)
     public PageResponse<CourseCardResponse> queryPublishedCourses(int page, int size, String q, String category) {
-        log.debug("Cache MISS - Loading published courses from DB: page={}, size={}, q={}, category={}", page, size, q, category);
 
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, 1), 50);

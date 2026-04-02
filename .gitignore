@@ -48,3 +48,5 @@ target/generated-test-sources/
 .env
 application-local.yml
 application-dev.yml
+
+.idea/workspace.xml

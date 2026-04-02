@@ -21,5 +21,6 @@ public class CourseCardResponse {
     private Integer totalModules;
     private LocalDateTime publishedAt;
     private Integer enrolledCount;
+    private Integer capacity;
     private String instructorName;
 }

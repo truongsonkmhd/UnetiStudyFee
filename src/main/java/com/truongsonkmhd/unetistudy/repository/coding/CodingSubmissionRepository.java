@@ -100,4 +100,25 @@ public interface CodingSubmissionRepository extends JpaRepository<CodingSubmissi
   List<Object[]> codePassRateByStudents(
       @Param("studentIds") List<UUID> studentIds,
       @Param("courseIds") List<UUID> courseIds);
+
+  /**
+   * Tỉ lệ pass coding và số lần submit của mỗi student theo từng course.
+   * Returns: [userId (UUID), courseId (UUID), passRate (Double), submitCount (Long)]
+   */
+  @Query("""
+      select cs.user.id,
+             cl.module.course.courseId,
+             avg(case when cs.passedTestcases = cs.totalTestcases then 1.0 else 0.0 end),
+             count(cs)
+      from CodingSubmission cs
+      join CourseLesson cl on cs.exercise.exerciseId in
+           (select e.exerciseId from CourseLesson cl2 join cl2.codingExercises e
+            where cl2.lessonId = cl.lessonId)
+      where cs.user.id in :studentIds
+        and cl.module.course.courseId in :courseIds
+      group by cs.user.id, cl.module.course.courseId
+      """)
+  List<Object[]> codePassRatePerStudentPerCourse(
+      @Param("studentIds") List<UUID> studentIds,
+      @Param("courseIds") List<UUID> courseIds);
 }

@@ -18,4 +18,6 @@ public class ClassCourseResponse {
     private String imageUrl;
     private String level;
     private String category;
+    private Integer capacity;
+    private Integer enrolledCount;
 }

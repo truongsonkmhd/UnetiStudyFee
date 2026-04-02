@@ -279,7 +279,9 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 log.warn("Invalid course status: {}", status);
             }
         }
-        Page<CourseCardResponse> result = courseRepository.findCourseCardsWithFilters(q, courseStatus, category,
+        UUID instructorId = UserContext.getUserID();
+
+        Page<CourseCardResponse> result = courseRepository.findCourseCardsWithFilters(q, courseStatus, category, instructorId,
                 pageable);
         return PageResponse.<CourseCardResponse>builder()
                 .items(result.getContent())

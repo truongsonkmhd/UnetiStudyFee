@@ -29,6 +29,7 @@ public class ClazzResponse {
     Instant endDate;
 
     Integer maxStudents;
+    Integer studentCount;
     Boolean isActive;
 
     Instant createdAt;

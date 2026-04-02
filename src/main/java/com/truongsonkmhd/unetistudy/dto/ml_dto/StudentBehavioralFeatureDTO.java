@@ -27,4 +27,7 @@ public class StudentBehavioralFeatureDTO {
 
     @JsonProperty("last_access_gap_days")
     private Integer lastAccessGapDays;   // số ngày không học
+
+    @JsonProperty("quiz_fail_rate")
+    private Double quizFailRate;         // tỉ lệ lần quiz không pass (cần cho RISK cluster)
 }
