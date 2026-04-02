@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Play, Check, Plus, Minus, Clock, Battery, BarChart, Film, Users, ChevronLeft, Star, Calendar } from 'lucide-react';
+import { Play, Check, Plus, Minus, Clock, Battery, BarChart, Film, Users, ChevronLeft, Star, Calendar, X } from 'lucide-react';
 import courseService from '@/services/courseService';
 import courseEnrollmentService from '@/services/courseEnrollmentService';
 import { toast } from 'sonner';
@@ -243,31 +243,22 @@ const CourseDetail: React.FC = () => {
                         <div className="bg-card border border-border rounded-2xl overflow-hidden">
                             <div
                                 className="relative w-full aspect-video bg-black group cursor-pointer overflow-hidden border-b border-border"
-                                onClick={() => course.videoUrl && setIsPlayingPreview(true)}
+                                onClick={() => (course.youtubeVideoId || course.videoUrl) && setIsPlayingPreview(true)}
                             >
-                                {isPlayingPreview && (course.youtubeVideoId || course.videoUrl) ? (
-                                    <VideoPlayer
-                                        videoId={course.youtubeVideoId}
-                                        videoUrl={course.videoUrl}
-                                    />
-                                ) : (
-                                    <>
-                                        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors z-10" />
-                                        <img
-                                            src={course.imageUrl || "https://files.fullstack.edu.vn/f8-prod/courses/13/13.png"}
-                                            alt={course.title}
-                                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                                        />
-                                        <div className="absolute inset-0 flex items-center justify-center z-20">
-                                            <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
-                                                <Play size={28} fill="currentColor" className="ml-1" />
-                                            </div>
-                                        </div>
-                                        <div className="absolute bottom-4 left-0 right-0 text-center text-white font-bold text-base z-20 drop-shadow-md tracking-wide">
-                                            Xem giới thiệu khóa học
-                                        </div>
-                                    </>
-                                )}
+                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors z-10" />
+                                <img
+                                    src={course.imageUrl || "https://files.fullstack.edu.vn/f8-prod/courses/13/13.png"}
+                                    alt={course.title}
+                                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center z-20">
+                                    <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                                        <Play size={28} fill="currentColor" className="ml-1" />
+                                    </div>
+                                </div>
+                                <div className="absolute bottom-4 left-0 right-0 text-center text-white font-bold text-base z-20 drop-shadow-md tracking-wide">
+                                    Xem giới thiệu khóa học
+                                </div>
                             </div>
 
                             <div className="p-6">
@@ -314,6 +305,42 @@ const CourseDetail: React.FC = () => {
                 </div>
 
             </div>
+
+            {/* Video Modal Overlay */}
+            {isPlayingPreview && (course.youtubeVideoId || course.videoUrl) && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 p-4 sm:p-6">
+                    <div className="absolute inset-0" onClick={() => setIsPlayingPreview(false)}></div>
+                    
+                    <div className="relative w-full max-w-4xl bg-background rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200 z-10 flex flex-col max-h-[90vh]">
+                        
+                        {/* Header/Title Area */}
+                        <div className="px-5 pt-5 pb-3 md:px-6 md:pt-6 md:pb-4 flex justify-between items-start shrink-0">
+                            <div className="pr-4">
+                                <h4 className="text-sm font-medium text-muted-foreground mb-1">Giới thiệu khóa học</h4>
+                                <h2 className="text-lg md:text-xl font-bold text-foreground line-clamp-1">{course.title}</h2>
+                            </div>
+                            <button 
+                                onClick={() => setIsPlayingPreview(false)}
+                                className="p-2 -mr-2 -mt-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors shrink-0"
+                            >
+                                <X size={22} />
+                            </button>
+                        </div>
+
+                        {/* Video Area */}
+                        <div className="px-5 pb-5 md:px-6 md:pb-6 overflow-hidden flex-1 flex flex-col justify-center items-center">
+                            <div className="w-full aspect-video bg-black rounded-xl overflow-hidden ring-1 ring-border/20 shadow-inner">
+                                <VideoPlayer
+                                    videoId={course.youtubeVideoId}
+                                    videoUrl={course.videoUrl}
+                                    useNativeControls={true}
+                                />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -14,6 +14,7 @@ interface VideoPlayerProps {
     preventSeeking?: boolean;
     isCompleted?: boolean;
     initialTime?: number;
+    useNativeControls?: boolean;
 }
 
 const extractYouTubeId = (url?: string): string | undefined => {
@@ -56,6 +57,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     preventSeeking = true,
     isCompleted = false,
     initialTime = 0,
+    useNativeControls = false,
 }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -169,9 +171,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 videoId: actualVideoId,
                 playerVars: {
                     autoplay: autoPlay ? 1 : 0,
-                    controls: 0,
-                    disablekb: 1,
-                    fs: 0,
+                    controls: useNativeControls ? 1 : 0,
+                    disablekb: useNativeControls ? 0 : 1,
+                    fs: useNativeControls ? 1 : 0,
                     modestbranding: 1,
                     rel: 0,
                     showinfo: 0,
@@ -408,7 +410,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             {/* Player Engine */}
             <div className={`w-full h-full transition-opacity duration-1000 ${hasStarted ? 'opacity-100' : 'opacity-0'}`}>
                 {isYouTube ? (
-                    <div ref={containerRef} className="w-full h-full pointer-events-none" />
+                    <div ref={containerRef} className={`w-full h-full ${useNativeControls ? '' : 'pointer-events-none'}`} />
                 ) : actualVideoUrl ? (
                     <video
                         ref={videoRef}
@@ -429,29 +431,32 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 )}
             </div>
 
-            <div
-                className={`absolute inset-0 z-10 cursor-pointer transition-all duration-700 
-                  ${!isPlaying || !hasStarted ? 'bg-black/80' : 'bg-transparent'}`}
-                onClick={togglePlay}
-            >
-                {isBuffering && (
-                    <div className="absolute inset-0 flex items-center justify-center z-20">
-                        <Loader2 size={48} className="text-primary animate-spin" />
-                    </div>
-                )}
-
-                {/* Large Center Play Button - covers initial title and paused "More videos" shelf */}
-                {(!isPlaying || !hasStarted) && !isBuffering && (
-                    <div className="absolute inset-x-0 top-0 bottom-24 flex items-center justify-center flex-col gap-5 animate-in fade-in zoom-in duration-500 pointer-events-none">
-                        <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-white scale-100 hover:scale-110 transition-transform border-[6px] border-white/20">
-                            <Play size={44} fill="currentColor" className="ml-1.5" />
+            {/* Custom Overlays */}
+            {!useNativeControls && (
+                <div
+                    className={`absolute inset-0 z-10 cursor-pointer transition-all duration-700 
+                      ${!isPlaying || !hasStarted ? 'bg-black/80' : 'bg-transparent'}`}
+                    onClick={togglePlay}
+                >
+                    {isBuffering && (
+                        <div className="absolute inset-0 flex items-center justify-center z-20">
+                            <Loader2 size={48} className="text-primary animate-spin" />
                         </div>
-                        <span className="text-white font-extrabold text-xl tracking-widest opacity-90 uppercase drop-shadow-lg">
-                            {hasStarted ? 'Tiếp tục học' : 'Bắt đầu học ngay'}
-                        </span>
-                    </div>
-                )}
-            </div>
+                    )}
+
+                    {/* Large Center Play Button - covers initial title and paused "More videos" shelf */}
+                    {(!isPlaying || !hasStarted) && !isBuffering && (
+                        <div className="absolute inset-x-0 top-0 bottom-24 flex items-center justify-center flex-col gap-5 animate-in fade-in zoom-in duration-500 pointer-events-none">
+                            <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-white scale-100 hover:scale-110 transition-transform border-[6px] border-white/20">
+                                <Play size={44} fill="currentColor" className="ml-1.5" />
+                            </div>
+                            <span className="text-white font-extrabold text-xl tracking-widest opacity-90 uppercase drop-shadow-lg">
+                                {hasStarted ? 'Tiếp tục học' : 'Bắt đầu học ngay'}
+                            </span>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Seek Warning Overlay */}
             {showWarning && (
@@ -469,82 +474,84 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             )}
 
             {/* Premium Controls UI */}
-            <div className={`absolute inset-0 z-20 transition-opacity duration-300 flex flex-col justify-end pointer-events-none ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+            {!useNativeControls && (
+                <div className={`absolute inset-0 z-20 transition-opacity duration-300 flex flex-col justify-end pointer-events-none ${showControls ? 'opacity-100' : 'opacity-0'}`}>
 
-                {showSettings && (
-                    <div className="absolute right-8 bottom-28 w-48 bg-black/90 border border-white/10 rounded-2xl p-2 z-30 pointer-events-auto settings-menu animate-in slide-in-from-bottom-5 duration-200">
-                        <div className="px-3 py-2 text-xs font-bold text-white/40 uppercase tracking-widest border-b border-white/5 mb-1">
-                            Tốc độ phát
-                        </div>
-                        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
-                            <button
-                                key={rate}
-                                onClick={(e) => { e.stopPropagation(); handleSpeedChange(rate); }}
-                                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${playbackRate === rate ? 'bg-primary text-white' : 'text-white/70 hover:bg-white/5'}`}
-                            >
-                                <span>{rate === 1 ? 'Bình thường' : `${rate}x`}</span>
-                                {playbackRate === rate && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-                            </button>
-                        ))}
-                    </div>
-                )}
-
-                <div className={`bg-gradient-to-t from-black/95 via-black/80 to-transparent px-8 py-6 transition-all duration-300 ${showControls ? 'pointer-events-auto' : 'pointer-events-none delay-200'}`}>
-                    <div className="mb-6 relative group/slider flex items-center h-4">
-                        <input
-                            type="range"
-                            min="0"
-                            max={duration || 100}
-                            step="0.01"
-                            value={currentTime}
-                            onChange={handleSeek}
-                            className="video-progress-slider w-full h-1.5 rounded-full appearance-none cursor-pointer accent-primary group-hover/slider:h-2 transition-all outline-none"
-                            style={{
-                                background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${progressPercent}%, rgba(255, 255, 255, 0.1) ${progressPercent}%, rgba(255, 255, 255, 0.1) 100%)`
-                            }}
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between text-white">
-                        <div className="flex items-center gap-8">
-                            <button onClick={togglePlay} className="hover:text-primary transition-all active:scale-90 outline-none">
-                                {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" />}
-                            </button>
-
-                            <div className="flex items-center gap-3 group/volume">
-                                <button onClick={toggleMute} className="hover:text-primary transition-all outline-none">
-                                    {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+                    {showSettings && (
+                        <div className="absolute right-8 bottom-28 w-48 bg-black/90 border border-white/10 rounded-2xl p-2 z-30 pointer-events-auto settings-menu animate-in slide-in-from-bottom-5 duration-200">
+                            <div className="px-3 py-2 text-xs font-bold text-white/40 uppercase tracking-widest border-b border-white/5 mb-1">
+                                Tốc độ phát
+                            </div>
+                            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
+                                <button
+                                    key={rate}
+                                    onClick={(e) => { e.stopPropagation(); handleSpeedChange(rate); }}
+                                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${playbackRate === rate ? 'bg-primary text-white' : 'text-white/70 hover:bg-white/5'}`}
+                                >
+                                    <span>{rate === 1 ? 'Bình thường' : `${rate}x`}</span>
+                                    {playbackRate === rate && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                                 </button>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.05"
-                                    value={volume}
-                                    onChange={handleVolumeChange}
-                                    className="w-0 group-hover/volume:w-24 transition-all overflow-hidden h-1 appearance-none bg-white/10 rounded-full accent-white cursor-pointer outline-none"
-                                />
+                            ))}
+                        </div>
+                    )}
+
+                    <div className={`bg-gradient-to-t from-black/95 via-black/80 to-transparent px-8 py-6 transition-all duration-300 ${showControls ? 'pointer-events-auto' : 'pointer-events-none delay-200'}`}>
+                        <div className="mb-6 relative group/slider flex items-center h-4">
+                            <input
+                                type="range"
+                                min="0"
+                                max={duration || 100}
+                                step="0.01"
+                                value={currentTime}
+                                onChange={handleSeek}
+                                className="video-progress-slider w-full h-1.5 rounded-full appearance-none cursor-pointer accent-primary group-hover/slider:h-2 transition-all outline-none"
+                                style={{
+                                    background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${progressPercent}%, rgba(255, 255, 255, 0.1) ${progressPercent}%, rgba(255, 255, 255, 0.1) 100%)`
+                                }}
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-between text-white">
+                            <div className="flex items-center gap-8">
+                                <button onClick={togglePlay} className="hover:text-primary transition-all active:scale-90 outline-none">
+                                    {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" />}
+                                </button>
+
+                                <div className="flex items-center gap-3 group/volume">
+                                    <button onClick={toggleMute} className="hover:text-primary transition-all outline-none">
+                                        {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+                                    </button>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="1"
+                                        step="0.05"
+                                        value={volume}
+                                        onChange={handleVolumeChange}
+                                        className="w-0 group-hover/volume:w-24 transition-all overflow-hidden h-1 appearance-none bg-white/10 rounded-full accent-white cursor-pointer outline-none"
+                                    />
+                                </div>
+
+                                <span className="text-sm font-bold tabular-nums opacity-90 tracking-widest min-w-[120px]">
+                                    {formatTime(currentTime)} <span className="opacity-30 mx-2 text-xs font-normal">|</span> {formatTime(duration)}
+                                </span>
                             </div>
 
-                            <span className="text-sm font-bold tabular-nums opacity-90 tracking-widest min-w-[120px]">
-                                {formatTime(currentTime)} <span className="opacity-30 mx-2 text-xs font-normal">|</span> {formatTime(duration)}
-                            </span>
-                        </div>
-
-                        <div className="flex items-center gap-6">
-                            <button
-                                onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}
-                                className={`hover:text-primary transition-all active:rotate-45 outline-none ${showSettings ? 'text-primary' : 'opacity-60 hover:opacity-100'}`}
-                            >
-                                <Settings size={22} className={showSettings ? 'animate-spin-slow' : ''} />
-                            </button>
-                            <button onClick={toggleFullscreen} className="hover:text-primary transition-all opacity-60 hover:opacity-100 outline-none">
-                                <Maximize size={24} />
-                            </button>
+                            <div className="flex items-center gap-6">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}
+                                    className={`hover:text-primary transition-all active:rotate-45 outline-none ${showSettings ? 'text-primary' : 'opacity-60 hover:opacity-100'}`}
+                                >
+                                    <Settings size={22} className={showSettings ? 'animate-spin-slow' : ''} />
+                                </button>
+                                <button onClick={toggleFullscreen} className="hover:text-primary transition-all opacity-60 hover:opacity-100 outline-none">
+                                    <Maximize size={24} />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             <style dangerouslySetInnerHTML={{
                 __html: `
