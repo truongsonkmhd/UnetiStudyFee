@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import {
+  ChevronRight
+} from "lucide-react";
 import { CourseCardResponse } from "@/model/course-admin/CourseCardResponse";
 import courseCatalogService from "@/services/courseCatalogService";
 import CourseCard from "./component/CourseCard";
@@ -13,35 +15,32 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { MAJORS } from "@/constants/major";
 
 export type Major = "all" | string;
 
-const MAJOR_LABEL: Record<Major, string> = {
-  all: "Tất cả",
-  cntt: "Công nghệ thông tin",
-  ketoan: "Kế toán",
-  dulich: "Du lịch",
-  qtkd: "Quản trị kinh doanh",
-  ngonnguanh: "Ngôn ngữ Anh",
-  chung: "Chung",
-};
+const MAJOR_LIST = [
+  { id: "all", name: "Tất cả" },
+  ...MAJORS
+];
+
 
 const SectionHeader: React.FC<{
   title: string;
   count?: number;
   rightSlot?: React.ReactNode;
 }> = ({ title, count, rightSlot }) => (
-  <div className="mb-6 mt-12 flex items-end justify-between">
-    <div className="flex items-center gap-3">
-      <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{title}</h2>
+  <div className="mb-8 mt-12 flex items-end justify-between border-b border-slate-100 dark:border-slate-800 pb-6">
+    <div className="flex items-center gap-4">
+      <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white capitalize">{title}</h2>
       {count !== undefined && (
-        <span className="px-2.5 py-0.5 text-xs font-bold bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg border border-blue-100/50 dark:border-blue-800/50">
+        <span className="px-3 py-1 text-xs font-bold bg-blue-50/50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 rounded-full border border-blue-100 dark:border-blue-800/30 shadow-sm">
           {count} khóa học
         </span>
       )}
     </div>
     {rightSlot || (
-      <button className="flex items-center gap-1 text-sm font-bold text-slate-400 hover:text-blue-400 transition-colors group">
+      <button className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-blue-500 transition-all group">
         Xem tất cả <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
       </button>
     )}
@@ -53,24 +52,21 @@ const MajorTags: React.FC<{
   onChange: (m: Major) => void;
 }> = ({ value, onChange }) => {
   return (
-    <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-6">
-      {Object.keys(MAJOR_LABEL).map((k) => {
-        const isActive = value === k;
-        return (
-          <button
-            key={k}
-            onClick={() => onChange(k as Major)}
-            className={`
-              whitespace-nowrap px-5 py-2.5 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] transition-all duration-300
-              ${isActive
-                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                : "bg-muted/40 text-muted-foreground/80 hover:bg-muted/70 hover:text-foreground"}
-            `}
-          >
-            {MAJOR_LABEL[k as Major]}
-          </button>
-        );
-      })}
+    <div className="flex flex-wrap gap-3 py-6">
+      {MAJOR_LIST.map((m) => (
+        <button
+          key={m.id}
+          onClick={() => onChange(m.id)}
+          className={[
+            "px-8 py-3 text-base font-bold rounded-2xl border transition-all duration-300 transform active:scale-95",
+            value === m.id
+              ? "bg-blue-600 border-blue-600 text-white"
+              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50/10"
+          ].join(" ")}
+        >
+          {m.name}
+        </button>
+      ))}
     </div>
   );
 };
@@ -87,11 +83,12 @@ export function HomePage() {
   const loadCourses = async (page: number) => {
     setLoading(true);
     try {
-      const category = major === 'all' ? '' : MAJOR_LABEL[major] || '';
+      const selectedMajor = MAJOR_LIST.find(m => m.id === major);
+      const category = major === 'all' ? '' : selectedMajor?.name || '';
       const response = await courseCatalogService.getPublishedCourses(
         page,
         pageSize,
-        '', 
+        '', // Clear q when filtering by category tab
         category
       );
 
@@ -125,7 +122,7 @@ export function HomePage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="mx-auto max-w-[2000px] px-4 sm:px-10 py-8 mb-20"
+      className="mx-auto max-w-[1800px] w-full px-0 py-8 mb-20"
     >
       <motion.div
         initial={{ opacity: 0, x: -20 }}
@@ -172,7 +169,7 @@ export function HomePage() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
-            <SectionHeader title={major === 'all' ? "Khóa học mới nhất" : (MAJOR_LABEL[major] || "")} count={totalElements} />
+            <SectionHeader title={major === 'all' ? "Khóa học mới nhất" : (MAJOR_LIST.find(m => m.id === major)?.name || "")} count={totalElements} />
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {courses.map((c, i) => (
                 <CourseCard key={c.courseId} course={c} />
