@@ -91,6 +91,12 @@ public class Course {
     @Column(name = "youtube_video_id", length = 20)
     String youtubeVideoId;
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "tbl_course_learning_outcomes", joinColumns = @JoinColumn(name = "course_id"))
+    @Column(name = "outcome", columnDefinition = "text")
+    @Builder.Default
+    List<String> learningOutcomes = new ArrayList<>();
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 30, nullable = false)
     @Builder.Default

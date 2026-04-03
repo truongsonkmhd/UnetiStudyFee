@@ -174,6 +174,13 @@ public class CourseTreeServiceImpl implements CourseTreeService {
         course.setStatus(req.getStatus());
         course.setIsPublished(req.getIsPublished());
         course.setPublishedAt(req.getPublishedAt());
+        
+        if (req.getLearningOutcomes() != null) {
+            course.getLearningOutcomes().clear();
+            course.getLearningOutcomes().addAll(req.getLearningOutcomes());
+        } else {
+            course.getLearningOutcomes().clear();
+        }
 
         // Cập nhật YouTube URL giới thiệu khóa học
         if (req.getVideoUrl() != null && !req.getVideoUrl().isBlank()) {
@@ -348,8 +355,8 @@ public class CourseTreeServiceImpl implements CourseTreeService {
 
         List<CourseModuleResponse> modules = courseModule.stream()
                 .sorted(Comparator.comparing(CourseModule::getOrderIndex, NULL_SAFE_INT))
-                .filter(m -> !isOnlyStudent(roles) || allowPublished(m.getIsPublished()))
                 .map(m -> mapModule(m, courseLessons, roles, exByLesson, quizByLesson))
+                .filter(m -> !isOnlyStudent(roles) || allowPublished(m.getIsPublished()) || !m.getLessons().isEmpty())
                 .toList();
 
         String videoId = course.getYoutubeVideoId();
@@ -369,6 +376,7 @@ public class CourseTreeServiceImpl implements CourseTreeService {
                 .subCategory(course.getSubCategory())
                 .duration(course.getDuration())
                 .capacity(course.getCapacity())
+                .learningOutcomes(course.getLearningOutcomes())
                 .publishedAt(course.getPublishedAt())
                 .isPublished(course.getIsPublished())
                 .status(course.getStatus())

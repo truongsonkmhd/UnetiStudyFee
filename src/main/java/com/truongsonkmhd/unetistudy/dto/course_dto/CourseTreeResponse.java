@@ -27,6 +27,7 @@ public class CourseTreeResponse {
     String requirements;
     String objectives;
     String syllabus;
+    List<String> learningOutcomes;
     java.time.LocalDateTime publishedAt;
     Boolean isPublished;
     CourseStatus status;
