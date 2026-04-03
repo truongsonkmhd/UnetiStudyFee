@@ -161,24 +161,19 @@ const CourseDetail: React.FC = () => {
 
                 <div className="flex-1 min-w-0">
 
-                    <div className="bg-card border border-border rounded-xl p-6 lg:p-8 mb-10">
-                        <h2 className="text-xl lg:text-2xl font-bold mb-6 text-foreground">Bạn sẽ học được gì?</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {[
-                                "Hiểu rõ các khái niệm cốt lõi của lập trình",
-                                "Xây dựng các dự án thực tế từ A-Z",
-                                "Làm chủ công nghệ và best practices mới nhất",
-                                "Tư duy lập trình và giải quyết vấn đề chuyên sâu",
-                                "Tự tin ứng tuyển vào các công ty công nghệ lớn",
-                                "Kỹ năng làm việc với Git, Terminal và Deploy",
-                            ].map((item, idx) => (
-                                <div key={idx} className="flex items-start gap-3 text-sm lg:text-base text-card-foreground">
-                                    <Check size={20} className="text-primary shrink-0 mt-0.5" />
-                                    <span>{item}</span>
-                                </div>
-                            ))}
+                    {course.learningOutcomes && course.learningOutcomes.length > 0 && (
+                        <div className="bg-card border border-border rounded-xl p-6 lg:p-8 mb-10">
+                            <h2 className="text-xl lg:text-2xl font-bold mb-6 text-foreground">Bạn sẽ học được gì?</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {course.learningOutcomes.map((item, idx) => (
+                                    <div key={idx} className="flex items-start gap-3 text-sm lg:text-base text-card-foreground">
+                                        <Check size={20} className="text-primary shrink-0 mt-0.5" />
+                                        <span>{item}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="mb-12">
                         <h2 className="text-2xl font-bold mb-6 text-foreground">Nội dung khóa học</h2>

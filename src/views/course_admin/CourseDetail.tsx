@@ -4,6 +4,7 @@ import CourseService from '@/services/courseService';
 import courseEnrollmentService from '@/services/courseEnrollmentService';
 import { LessonType } from '@/types/enum/LessonType';
 import { EnrollmentResponse } from '@/model/enrollment/EnrollmentResponse';
+import VideoPlayer from '@/components/common/VideoPlayer';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Edit3, PlayCircle,
@@ -227,16 +228,18 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courseId, slug, onBack, onE
         <div className="grid gap-10 lg:grid-cols-12">
           {/* Left Column: Description & Media */}
           <div className="lg:col-span-8 space-y-10">
-            {course.videoUrl && (
+            {(course.youtubeVideoId || course.videoUrl) && (
               <section className="space-y-4">
                 <h2 className="flex items-center gap-3 text-xl font-black tracking-tight text-foreground">
                   <PlayCircle className="h-6 w-6 text-primary" />
                   Video giới thiệu
                 </h2>
                 <div className="aspect-video overflow-hidden rounded-[2rem] border-4 border-card bg-foreground shadow-2xl ring-1 ring-border">
-                  <video controls src={course.videoUrl} className="h-full w-full object-contain">
-                    Your browser does not support the video tag.
-                  </video>
+                  <VideoPlayer
+                    videoId={course.youtubeVideoId}
+                    videoUrl={course.videoUrl}
+                    useNativeControls={true}
+                  />
                 </div>
               </section>
             )}

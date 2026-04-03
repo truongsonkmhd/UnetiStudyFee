@@ -42,7 +42,8 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
     status: CourseStatus.DRAFT,
     isPublished: false,
     publishedAt: undefined,
-    modules: []
+    modules: [],
+    learningOutcomes: []
   });
 
   const [loading, setLoading] = useState(false);
@@ -117,7 +118,8 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                 .map((q: any) => ({ id: q.templateId || q.quizId, title: q.title || 'Unknown' }))
             };
           })
-        }))
+        })),
+        learningOutcomes: course.learningOutcomes || []
       });
     }
   }, [course]);
@@ -222,7 +224,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
         {
           title: 'Chương mới',
           orderIndex: prev.modules.length + 1,
-          isPublished: false,
+          isPublished: true,
           lessons: []
         }
       ]
@@ -263,6 +265,28 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
     setFormData(prev => ({
       ...prev,
       modules: prev.modules.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addLearningOutcome = () => {
+    setFormData(prev => ({
+      ...prev,
+      learningOutcomes: [...(prev.learningOutcomes || []), '']
+    }));
+  };
+
+  const updateLearningOutcome = (index: number, value: string) => {
+    setFormData(prev => {
+      const outcomes = [...(prev.learningOutcomes || [])];
+      outcomes[index] = value;
+      return { ...prev, learningOutcomes: outcomes };
+    });
+  };
+
+  const removeLearningOutcome = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      learningOutcomes: (prev.learningOutcomes || []).filter((_, i) => i !== index)
     }));
   };
 
@@ -827,7 +851,8 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
       {activeSection === 'extra' && (
         <div className="space-y-8 rounded-[2.5rem] border border-border bg-card p-10 shadow-sm animate-in fade-in slide-in-from-bottom-6 duration-500">
           <div className="space-y-1">
-            <h2 className="text-3xl font-black text-foreground tracking-tight">Sức chứa tối đa & Mô tả chi tiết</h2>
+            <h2 className="text-3xl font-black text-foreground tracking-tight">Chi tiết mở rộng</h2>
+            <p className="text-base text-muted-foreground italic">Sức chứa tối đa & Kết quả học tập của khóa học.</p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-2">
@@ -840,6 +865,60 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                 onChange={handleInputChange}
                 className="w-full rounded-2xl border border-border bg-muted/50 px-6 py-4 text-sm font-medium text-foreground transition-all focus:border-primary focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10"
                 placeholder="Ví dụ: 100"
+              />
+            </div>
+
+            <div className="md:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-[14px] font-black uppercase tracking-widest text-foreground">Bạn sẽ học được gì ?</label>
+                <button
+                  type="button"
+                  onClick={addLearningOutcome}
+                  className="flex items-center gap-2 rounded-xl bg-primary/10 px-4 py-2 text-[13px] font-black text-primary transition-all hover:bg-primary hover:text-white"
+                >
+                  <PlusCircle className="h-4 w-4" /> THÊM MỤC
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {(!formData.learningOutcomes || formData.learningOutcomes.length === 0) ? (
+                  <div className="rounded-2xl border-2 border-dashed border-border py-8 text-center text-muted-foreground">
+                    <p className="text-sm font-medium italic">Chưa có mục tiêu học tập nào. Hãy thêm vài mục tiêu để thu hút học viên!</p>
+                  </div>
+                ) : (
+                  formData.learningOutcomes.map((outcome, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="mt-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-[10px] font-black text-emerald-500">
+                        {index + 1}
+                      </div>
+                      <input
+                        type="text"
+                        value={outcome}
+                        onChange={(e) => updateLearningOutcome(index, e.target.value)}
+                        className="flex-1 rounded-2xl border border-border bg-muted/50 px-5 py-3 text-sm font-medium text-foreground transition-all focus:border-primary focus:bg-background focus:outline-none"
+                        placeholder="Ví dụ: Nắm vững kiến thức căn bản của ReactJS..."
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeLearningOutcome(index)}
+                        className="mt-1 rounded-xl p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <label className="text-[14px] font-black uppercase tracking-widest text-muted-foreground">Mô tả đầy đủ (Description)</label>
+              <textarea
+                name="description"
+                value={formData.description || ''}
+                onChange={handleInputChange}
+                className="w-full rounded-2xl border border-border bg-muted/50 px-5 py-4 text-sm font-medium text-foreground transition-all focus:border-primary focus:bg-background focus:outline-none min-h-[150px]"
+                placeholder="Nội dung chi tiết của khóa học..."
               />
             </div>
           </div>

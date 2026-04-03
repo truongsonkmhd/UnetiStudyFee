@@ -19,4 +19,5 @@ export interface CourseShowRequest {
   isPublished: boolean;
   publishedAt?: string;
   modules: CourseModuleRequest[];
+  learningOutcomes?: string[];
 }
