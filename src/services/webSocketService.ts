@@ -30,7 +30,7 @@ class WebSocketService {
         }
 
         const isConnected = this.client && this.client.connected;
-        
+
         if (isConnected) {
             const subscription = this.client!.subscribe(destination, (message: IMessage) => {
                 try {
@@ -41,7 +41,6 @@ class WebSocketService {
             });
             this.subscriptions.set(destination, subscription);
         } else {
-            // Nếu chưa connect, đợi event onConnect thay vì dùng setTimeout mù quáng
             console.log(`⏳ Connection not ready, queuing subscription for ${destination}`);
             const oldOnConnect = this.client!.onConnect;
             this.client!.onConnect = (frame) => {

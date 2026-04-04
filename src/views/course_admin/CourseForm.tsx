@@ -8,7 +8,7 @@ import { CourseLessonRequest } from '@/model/course-admin/CourseLessonRequest';
 import {
   Save, X, PlusCircle, Trash2, Video, Image as ImageIcon, CheckCircle2,
   Info, Layout, BookOpen, Settings, AlertCircle, ChevronDown,
-  ChevronUp, GripVertical, Rocket, PlayCircle, HelpCircle, Trophy, Calendar, Search
+  ChevronUp, GripVertical, Rocket, PlayCircle, HelpCircle, Trophy, Calendar, Search, Clock
 } from 'lucide-react';
 import CreateButton from '@/components/common/CreateButton';
 import TemplateSelector from './TemplateSelector';
@@ -43,7 +43,8 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
     isPublished: false,
     publishedAt: undefined,
     modules: [],
-    learningOutcomes: []
+    learningOutcomes: [],
+    duration: 0
   });
 
   const [loading, setLoading] = useState(false);
@@ -106,6 +107,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
               isPreview: lesson.isPreview,
               isPublished: lesson.isPublished,
               videoUrl: lesson.videoUrl,
+              duration: (lesson as any).duration,
               description: (lesson as any).description,
               content: (lesson as any).content,
               exerciseTemplateIds: codingExercises.map((ce: any) => ce.templateId || ce.exerciseId).filter(Boolean),
@@ -182,13 +184,11 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
       return;
     }
 
-    // Đảm bảo tính nhất quán của dữ liệu trước khi gửi
     const submissionData = { ...formData };
     if (submissionData.isPublished && !submissionData.publishedAt) {
       submissionData.publishedAt = new Date().toISOString();
     }
-    // Nếu không công bố, có thể giữ hoặc xóa ngày cũ tùy vào DB, ở đây ta đảm bảo gửi đi giá trị hiện tại của form
-    // Ensure the category name is sent if the backend expects the name (compatibility with HomePage)
+
     const major = MAJORS.find(m => m.id === formData.category);
     if (major) {
       submissionData.category = major.name;
@@ -305,6 +305,8 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                 lessonType: LessonType.VIDEO,
                 isPreview: false,
                 isPublished: false,
+                videoUrl: '',
+                duration: 0,
                 exerciseTemplateIds: [],
                 quizTemplateIds: [],
                 exerciseTemplates: [],
@@ -681,6 +683,30 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
                                     className="w-full rounded-xl border border-border bg-card pl-10 pr-4 py-2 text-xs font-bold text-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/5 placeholder:text-muted-foreground/30"
                                     placeholder="Link YouTube video bài giảng..."
                                   />
+                                </div>
+
+                                <div className="mt-3 flex items-center gap-4">
+                                  <div className="flex-1 space-y-1">
+                                    <label className="text-[12px] font-black uppercase tracking-widest text-muted-foreground/50 flex items-center gap-2">
+                                      <Clock className="h-3 w-3" />
+                                      Thời lượng video (giây)
+                                    </label>
+                                    <div className="relative group/dur">
+                                      <input
+                                        type="number"
+                                        value={lesson.duration || 0}
+                                        onChange={(e) => updateLesson(mIdx, lIdx, { duration: parseInt(e.target.value) || 0 })}
+                                        className="w-full rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/5"
+                                        placeholder="Ví dụ: 600"
+                                        min="0"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="h-full pt-6">
+                                    <span className="text-[11px] text-muted-foreground italic font-medium">
+                                      (Gợi ý: 10 phút = 600 giây)
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             )}

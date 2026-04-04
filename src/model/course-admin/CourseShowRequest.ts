@@ -13,11 +13,12 @@ export interface CourseShowRequest {
   imageFile?: File;
   videoUrl?: string;
   status: CourseStatus;
-  requirements?: string;
-  objectives?: string;
-  syllabus?: string;
   isPublished: boolean;
   publishedAt?: string;
   modules: CourseModuleRequest[];
   learningOutcomes?: string[];
+  duration?: number;
+  requirements?: string;
+  objectives?: string;
+  syllabus?: string;
 }

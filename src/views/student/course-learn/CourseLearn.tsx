@@ -22,6 +22,7 @@ const CourseLearn: React.FC = () => {
     const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
     const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
     const [currentVideoDuration, setCurrentVideoDuration] = useState<number>(0);
+    const [knownDurations, setKnownDurations] = useState<Record<string, number>>({});
 
     const [searchParams, setSearchParams] = useSearchParams();
     const jumpNext = searchParams.get('jumpNext');
@@ -201,6 +202,13 @@ const CourseLearn: React.FC = () => {
                 const newDuration = Math.floor(duration);
                 return prev !== newDuration ? newDuration : prev;
             });
+            if (currentLessonId) {
+                setKnownDurations(prev => {
+                    const newDuration = Math.floor(duration);
+                    if (prev[currentLessonId] === newDuration) return prev;
+                    return { ...prev, [currentLessonId]: newDuration };
+                });
+            }
         }
 
         const watchedPercent = duration > 0 ? Math.round((currentTime / duration) * 100) : 0;
@@ -384,7 +392,15 @@ const CourseLearn: React.FC = () => {
                             initialTime={currentLessonId ? lastPositions[currentLessonId] : 0}
                             onTimeUpdate={handleVideoTimeUpdate}
                             onDurationReady={(dur: number) => {
-                                if (dur > 0) setCurrentVideoDuration(Math.floor(dur));
+                                if (dur > 0) {
+                                    setCurrentVideoDuration(Math.floor(dur));
+                                    if (currentLessonId) {
+                                        setKnownDurations(prev => ({
+                                            ...prev,
+                                            [currentLessonId]: Math.floor(dur)
+                                        }));
+                                    }
+                                }
                             }}
                             onEnded={() => {
                                 if (currentLessonId) saveProgress(currentLessonId, ProgressStatus.DONE, 100, 0);
@@ -579,20 +595,20 @@ const CourseLearn: React.FC = () => {
 
                                                 if (hasVideo) {
                                                     Icon = Play;
-                                                    iconColorClass = isActive ? "text-primary-foreground" : "text-primary-foreground";
-                                                    bgColorClass = isActive ? "bg-primary" : "bg-primary/80 group-hover:bg-primary";
+                                                    iconColorClass = isActive ? "text-primary-foreground" : "text-primary";
+                                                    bgColorClass = "bg-primary/10 group-hover:bg-primary/20";
                                                 } else if (hasCode) {
                                                     Icon = Code;
-                                                    iconColorClass = isActive ? "text-primary-foreground" : "text-primary";
-                                                    bgColorClass = isActive ? "bg-primary" : "bg-primary/20 group-hover:bg-primary/30";
+                                                    iconColorClass = isActive ? "text-primary-foreground" : "text-violet-500";
+                                                    bgColorClass = "bg-violet-500/10 group-hover:bg-violet-500/20";
                                                 } else if (hasQuiz) {
                                                     Icon = FileQuestion;
-                                                    iconColorClass = isActive ? "text-emerald-500-foreground" : "text-emerald-500";
-                                                    bgColorClass = isActive ? "bg-emerald-500" : "bg-emerald-500/20 group-hover:bg-emerald-500/30";
+                                                    iconColorClass = isActive ? "text-primary-foreground" : "text-emerald-500";
+                                                    bgColorClass = "bg-emerald-500/10 group-hover:bg-emerald-500/20";
                                                 } else {
                                                     Icon = Play;
-                                                    iconColorClass = isActive ? "text-foreground" : "text-muted-foreground";
-                                                    bgColorClass = isActive ? "bg-muted" : "bg-muted group-hover:bg-muted/80";
+                                                    iconColorClass = isActive ? "text-primary-foreground" : "text-muted-foreground";
+                                                    bgColorClass = "bg-muted group-hover:bg-muted/80";
                                                 }
 
                                                 return (
@@ -605,18 +621,22 @@ const CourseLearn: React.FC = () => {
                                                                 } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                         >
                                                             <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                                <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${isLocked
+                                                                <div className={`relative w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${isLocked
                                                                     ? 'bg-muted text-muted-foreground'
-                                                                    : isCompleted
-                                                                        ? 'bg-emerald-500 text-white'
+                                                                    : isActive
+                                                                        ? 'bg-primary shadow-sm'
                                                                         : bgColorClass
                                                                     }`}>
                                                                     {isLocked ? (
                                                                         <Lock size={14} />
-                                                                    ) : isCompleted ? (
-                                                                        <CheckCircle2 size={14} />
                                                                     ) : (
-                                                                        <Icon size={14} className={`${iconColorClass} ${hasVideo ? 'fill-current ml-0.5' : ''}`} />
+                                                                        <Icon size={14} className={`${isActive ? 'text-primary-foreground' : iconColorClass} ${hasVideo ? 'fill-current ml-0.5' : ''}`} />
+                                                                    )}
+                                                                    
+                                                                    {isCompleted && !isLocked && (
+                                                                        <div className="absolute -bottom-0.5 -right-0.5 bg-emerald-500 rounded-full p-0.5 shadow-sm border border-white">
+                                                                            <CheckCircle2 size={10} className="text-white" />
+                                                                        </div>
                                                                     )}
                                                                 </div>
                                                                 <span className={`text-sm flex-1 truncate text-left transition-colors ${isActive ? 'text-primary font-semibold' : 'text-muted-foreground group-hover:text-foreground'
@@ -624,11 +644,15 @@ const CourseLearn: React.FC = () => {
                                                                     {lessonIndex + 1}. {lesson.title}
                                                                 </span>
                                                             </div>
-                                                            {hasVideo && (
+                                                            {(hasVideo || (lesson.duration && lesson.duration > 0)) && (
                                                                 <div className="flex items-center gap-2 flex-shrink-0">
-                                                                    <Clock size={12} className="text-muted-foreground" />
-                                                                    <span className="text-xs text-muted-foreground">
-                                                                        {isActive && currentVideoDuration > 0 ? formatTime(currentVideoDuration) : '--:--'}
+                                                                    <Clock size={12} className={isActive ? "text-primary-foreground/70" : "text-muted-foreground"} />
+                                                                    <span className={`text-xs tabular-nums ${isActive ? "text-primary-foreground/90 font-medium" : "text-muted-foreground"}`}>
+                                                                        {lesson.duration 
+                                                                            ? formatTime(lesson.duration) 
+                                                                            : (knownDurations[lesson.lessonId] > 0 
+                                                                                ? formatTime(knownDurations[lesson.lessonId]) 
+                                                                                : (isActive && currentVideoDuration > 0 ? formatTime(currentVideoDuration) : '--:--'))}
                                                                     </span>
                                                                 </div>
                                                             )}

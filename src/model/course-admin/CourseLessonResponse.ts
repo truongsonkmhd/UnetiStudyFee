@@ -19,4 +19,5 @@ export interface CourseLessonResponse {
   quizzes: QuizDTO[];
 
   totalPoints?: number;
+  duration?: number;
 }
