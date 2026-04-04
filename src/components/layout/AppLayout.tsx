@@ -86,9 +86,6 @@ export function AppLayout() {
                 <Bell className="w-5 h-5" />
               </Button>
 
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Mail className="w-5 h-5" />
-              </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -155,7 +152,6 @@ export function AppLayout() {
 
         {/* Floating buttons */}
         <div className="fixed bottom-4 right-4 z-[60] flex flex-col items-end gap-3">
-          <ChatQAButton />
           <ChatQAButton2 />
         </div>
       </div>

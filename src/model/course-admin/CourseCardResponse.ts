@@ -10,4 +10,7 @@ export interface CourseCardResponse {
   enrolledCount?: number;
   capacity?: number;
   instructorName?: string;
+  showStudentCount?: boolean;
+  showProgress?: boolean;
+  progressPercentage?: number;
 }

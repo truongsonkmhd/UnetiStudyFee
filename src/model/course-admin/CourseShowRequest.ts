@@ -15,6 +15,8 @@ export interface CourseShowRequest {
   status: CourseStatus;
   isPublished: boolean;
   publishedAt?: string;
+  showStudentCount?: boolean;
+  showProgress?: boolean;
   modules: CourseModuleRequest[];
   learningOutcomes?: string[];
   duration?: number;

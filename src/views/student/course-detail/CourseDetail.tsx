@@ -8,11 +8,15 @@ import { CourseTreeResponse } from '@/model/course-admin/CourseTreeResponse';
 import webSocketService from '@/services/webSocketService';
 import { EnrollmentResponse } from '@/model/enrollment/EnrollmentResponse';
 import VideoPlayer from '@/components/common/VideoPlayer';
+import { actionAuth } from '@/components/context/AuthContext';
+import { motion } from 'framer-motion';
 
 
 const CourseDetail: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
+    const { hasRole } = actionAuth();
+    const isAdmin = hasRole(["ROLE_ADMIN", "Quản trị viên"]);
     const [course, setCourse] = useState<CourseTreeResponse | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
@@ -140,14 +144,34 @@ const CourseDetail: React.FC = () => {
                         </h1>
 
                         <div
-                            className="text-lg text-background/90 mb-6 leading-relaxed max-w-3xl line-clamp-3"
-                            dangerouslySetInnerHTML={{ __html: course.description || course.title }}
+                            className="text-lg text-background/90 mb-6 leading-relaxed max-w-3xl line-clamp-2 opacity-90"
+                            dangerouslySetInnerHTML={{ __html: course.shortDescription || course.description || course.title }}
                         />
 
-                        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-background/80">
-                            <div className="flex items-center gap-1.5">
-                                <Users size={16} /> {studentCount.toLocaleString()} học viên
+                        {/* PROGRESS BAR */}
+                        {!isAdmin && (course.showProgress === true || (course as any).show_progress === true) && course.progressPercentage !== undefined && course.progressPercentage !== null && (
+                            <div className="mb-8 max-w-md">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm font-bold text-background/80 uppercase tracking-wider">Tiến độ học tập</span>
+                                    <span className="text-sm font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full">{Math.round(course.progressPercentage)}%</span>
+                                </div>
+                                <div className="h-2.5 w-full bg-background/10 rounded-full overflow-hidden backdrop-blur-sm border border-background/5">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${course.progressPercentage}%` }}
+                                        transition={{ duration: 1.2, ease: "easeOut" }}
+                                        className="h-full bg-gradient-to-r from-primary via-blue-400 to-primary rounded-full shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]"
+                                    />
+                                </div>
                             </div>
+                        )}
+
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-background/80">
+                            {(isAdmin || course.showStudentCount === true || (course as any).show_student_count === true) && (
+                                <div className="flex items-center gap-1.5">
+                                    <Users size={16} /> {studentCount.toLocaleString()} học viên
+                                </div>
+                            )}
                             <div className="flex items-center gap-1.5">
                                 <Calendar size={16} /> Cập nhật {lastUpdated}
                             </div>
@@ -160,19 +184,48 @@ const CourseDetail: React.FC = () => {
 
                 <div className="flex-1 min-w-0">
 
-                    {course.learningOutcomes && course.learningOutcomes.length > 0 && (
-                        <div className="bg-card border border-border rounded-xl p-6 lg:p-8 mb-10">
-                            <h2 className="text-xl lg:text-2xl font-bold mb-6 text-foreground">Bạn sẽ học được gì?</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {course.learningOutcomes.map((item, idx) => (
-                                    <div key={idx} className="flex items-start gap-3 text-sm lg:text-base text-card-foreground">
-                                        <Check size={20} className="text-primary shrink-0 mt-0.5" />
-                                        <span>{item}</span>
-                                    </div>
-                                ))}
+                    {/* LEARNING OUTCOMES & DESCRIPTION SECTION */}
+                    <div className="space-y-8 mb-10">
+                        {course.learningOutcomes && course.learningOutcomes.length > 0 && (
+                            <div className="bg-card border border-border rounded-xl p-6 lg:p-8 shadow-sm">
+                                <h2 className="text-xl lg:text-2xl font-bold mb-6 text-foreground flex items-center gap-2">
+                                    <Check size={24} className="text-primary" /> Bạn sẽ học được gì?
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {course.learningOutcomes.map((item, idx) => (
+                                        <div key={idx} className="flex items-start gap-3 text-sm lg:text-base text-card-foreground">
+                                            <Check size={18} className="text-primary shrink-0 mt-1" />
+                                            <span>{item}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+
+                        {course.description && (
+                            <div className="bg-card border border-border rounded-xl p-6 lg:p-8 shadow-sm text-foreground/90">
+                                <h2 className="text-xl lg:text-2xl font-bold mb-6 text-foreground">Giới thiệu khóa học</h2>
+                                <div
+                                    className="prose prose-slate dark:prose-invert max-w-none text-sm lg:text-base leading-relaxed"
+                                    dangerouslySetInnerHTML={{ __html: course.description }}
+                                />
+                            </div>
+                        )}
+
+                        {course.requirements && (
+                            <div className="bg-card border border-border rounded-xl p-6 lg:p-8 shadow-sm">
+                                <h2 className="text-xl lg:text-2xl font-bold mb-6 text-foreground">Yêu cầu</h2>
+                                <div className="space-y-3">
+                                    {course.requirements.split('\n').map((req, i) => (
+                                        <div key={i} className="flex items-start gap-3 text-sm lg:text-base text-card-foreground">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2.5 shrink-0" />
+                                            <span>{req}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     <div className="mb-12">
                         <h2 className="text-2xl font-bold mb-6 text-foreground">Nội dung khóa học</h2>
@@ -180,7 +233,7 @@ const CourseDetail: React.FC = () => {
                         <div className="flex flex-wrap justify-between items-end mb-4 text-sm font-medium text-foreground gap-4">
                             <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-lg">
                                 <span className="text-foreground font-bold">{course.modules.length}</span> chương •
-                                <span className="text-foreground font-bold">{totalLessons}</span> bài học •
+                                <span className="text-foreground font-bold">{totalLessons}</span> bài học
                             </div>
                             <button
                                 className="text-primary font-bold hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-all text-sm"
@@ -232,7 +285,7 @@ const CourseDetail: React.FC = () => {
                 </div>
 
                 <div className="w-full lg:w-[380px] shrink-0 relative">
-                    <div className="lg:sticky lg:top-24 space-y-6">
+                    <div className="space-y-6">
                         <div className="bg-card border border-border rounded-2xl overflow-hidden">
                             <div
                                 className="relative w-full aspect-video bg-black group cursor-pointer overflow-hidden border-b border-border"

@@ -5,9 +5,12 @@ import { CourseCardResponse } from "@/model/course-admin/CourseCardResponse";
 import { useNavigate } from "react-router-dom";
 import courseEnrollmentService from "@/services/courseEnrollmentService";
 import defaultAvatar from "@/assets/img/avatar-default.png";
+import { actionAuth } from "@/components/context/AuthContext";
 
 const CourseCard: React.FC<{ course: CourseCardResponse }> = ({ course }) => {
   const navigate = useNavigate();
+  const { hasRole } = actionAuth();
+  const isAdmin = hasRole(["ROLE_ADMIN", "Quản trị viên"]);
 
   const handleClick = async () => {
     try {
@@ -76,30 +79,57 @@ const CourseCard: React.FC<{ course: CourseCardResponse }> = ({ course }) => {
               {course.title}
             </h4>
 
+            {/* PROGRESS BAR */}
+            {(() => {
+              const hasProgress = !isAdmin &&
+                (course.showProgress === true || (course as any).show_progress === true) &&
+                course.progressPercentage !== undefined &&
+                course.progressPercentage !== null;
+              if (!hasProgress) return null;
+              const pct = course.progressPercentage as number;
+              return (
+                <div className="mt-auto pt-2">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                      Tiến độ
+                    </span>
+                    <span className={`text-[10px] font-black ${pct >= 100 ? 'text-emerald-500' : 'text-blue-600 dark:text-blue-400'}`}>
+                      {pct >= 100 ? '✓ Hoàn thành' : `${Math.round(pct)}%`}
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-800/50 shadow-inner">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className={`h-full rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)] ${pct >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}
+                    />
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-800/50">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full overflow-hidden ring-2 ring-blue-500/10 shadow-sm border border-white">
+            <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+              <div className="w-7 h-7 shrink-0 rounded-full overflow-hidden ring-2 ring-blue-500/10 shadow-sm border border-white">
                 <img src={defaultAvatar} className="w-full h-full object-cover" alt="Inst" />
               </div>
-              <span className="text-[13px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[80px]">
+              <span className="text-[13px] font-bold text-slate-500 dark:text-slate-400 truncate">
                 {course.instructorName || "Sơn Đặng"}
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/30 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-slate-800/50">
-              <Users className="w-3.5 h-3.5 text-blue-500" />
-              <span className="text-[13px] font-black tracking-tight">
-                {course.enrolledCount || 0} / {course.capacity || "Null"}
-              </span>
-            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {(isAdmin || course.showStudentCount === true || (course as any).show_student_count === true) && (
+                <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/30 px-1.5 py-1 rounded-md border border-slate-100 dark:border-slate-800/50 whitespace-nowrap">
+                  <Users className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                  <span className="text-[11px] font-black tracking-tight">
+                    {course.enrolledCount || 0}/{course.capacity || "100"}
+                  </span>
+                </div>
+              )}
 
-            <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500">
-              <Clock className="w-4 h-4 fill-slate-400/10" />
-              <span className="text-[13px] font-bold tracking-tight">
-                {course.totalModules * 2}h 30p
-              </span>
             </div>
           </div>
         </div>

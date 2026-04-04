@@ -41,6 +41,8 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
     enrolledCount: 0,
     status: CourseStatus.DRAFT,
     isPublished: false,
+    showStudentCount: false,
+    showProgress: false,
     publishedAt: undefined,
     modules: [],
     learningOutcomes: [],
@@ -88,6 +90,8 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
         enrolledCount: course.enrolledCount || 0,
         status: course.status,
         isPublished: course.isPublished,
+        showStudentCount: course.showStudentCount === true,
+        showProgress: course.showProgress === true,
         publishedAt: course.publishedAt || (course.isPublished ? new Date().toISOString() : undefined),
         videoUrl: (course as any).videoUrl || '',
         modules: course.modules.map(module => ({
@@ -957,8 +961,12 @@ const CourseForm: React.FC<CourseFormProps> = ({ course, onSubmit, onCancel }) =
             courseId={(course as any)?.courseId}
             status={formData.status}
             isPublished={formData.isPublished}
+            showStudentCount={formData.showStudentCount === true}
+            showProgress={formData.showProgress === true}
             onStatusChange={(status) => handleInputChange({ target: { name: 'status', value: status } } as any)}
             onPublishedChange={(isPublished) => handleInputChange({ target: { name: 'isPublished', checked: isPublished, type: 'checkbox' } } as any)}
+            onShowStudentCountChange={(v) => setFormData(prev => ({ ...prev, showStudentCount: v }))}
+            onShowProgressChange={(v) => setFormData(prev => ({ ...prev, showProgress: v }))}
           />
         </div>
       )}

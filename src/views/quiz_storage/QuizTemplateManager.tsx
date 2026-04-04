@@ -438,7 +438,7 @@ const QuizTemplateManager: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-xl border border-border">
                         <RotateCcw size={14} className="text-orange-500" />
-                        {template.maxAttempts || 3} lượt
+                        {template.maxAttempts || 3} lần làm lại
                       </div>
                     </div>
                   </div>

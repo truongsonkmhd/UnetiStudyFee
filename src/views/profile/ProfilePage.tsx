@@ -172,7 +172,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 max-w-[1440px] mx-auto px-4 sm:px-6">
       {/* HEADER */}
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

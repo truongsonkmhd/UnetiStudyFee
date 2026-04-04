@@ -45,11 +45,18 @@ interface CourseSettingsViewProps {
   courseId?: string;
   status: CourseStatus;
   isPublished: boolean;
+  showStudentCount: boolean;
+  showProgress: boolean;
   onStatusChange: (status: CourseStatus) => void;
   onPublishedChange: (isPublished: boolean) => void;
+  onShowStudentCountChange: (v: boolean) => void;
+  onShowProgressChange: (v: boolean) => void;
 }
 
-const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({ courseId, status, isPublished, onStatusChange, onPublishedChange }) => {
+const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({ 
+  courseId, status, isPublished, showStudentCount, showProgress, 
+  onStatusChange, onPublishedChange, onShowStudentCountChange, onShowProgressChange 
+}) => {
   const [settings, setSettings] = useState({
     allowEnroll: true,
     showStudentCount: true,
@@ -70,39 +77,6 @@ const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({ courseId, statu
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* ─────────── TRUY CẬP & ĐĂNG KÝ ─────────── */}
-        <section className="rounded-[2.5rem] border border-border bg-card overflow-hidden shadow-sm">
-          <div className="px-8 pt-8 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-2xl bg-primary/10 text-primary">
-                <Lock className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-foreground">Quyền truy cập & Đăng ký</h3>
-                <p className="text-xs text-muted-foreground">Quản lý cách học viên tìm thấy và tham gia khóa học của bạn.</p>
-              </div>
-            </div>
-          </div>
-          <div className="px-8 pb-4 divide-y divide-border/50">
-            <SettingToggle
-              label="Chế độ riêng tư"
-              description="Khóa học chỉ hiển thị với người được mời trực tiếp, ẩn khỏi tìm kiếm công khai."
-              value={settings.privateMode}
-              onChange={toggle('privateMode')}
-              icon={Lock}
-              iconColor="text-destructive"
-            />
-            <SettingToggle
-              label="Yêu cầu phê duyệt"
-              description="Học viên cần được quản trị viên phê duyệt trước khi có thể vào học."
-              value={settings.requireApproval}
-              onChange={toggle('requireApproval')}
-              icon={Shield}
-              iconColor="text-amber-500"
-            />
-          </div>
-        </section>
-
         {/* ─────────── HIỂN THỊ & GIAO DIỆN ─────────── */}
         <section className="rounded-[2.5rem] border border-border bg-card overflow-hidden shadow-sm">
           <div className="px-8 pt-8 pb-4">
@@ -120,16 +94,16 @@ const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({ courseId, statu
             <SettingToggle
               label="Hiện số lượng học viên"
               description="Trang khóa học sẽ hiển thị tổng số học viên đã đăng ký cho người xem."
-              value={settings.showStudentCount}
-              onChange={toggle('showStudentCount')}
+              value={showStudentCount}
+              onChange={onShowStudentCountChange}
               icon={Users}
               iconColor="text-purple-500"
             />
             <SettingToggle
               label="Hiện tiến độ học tập"
               description="Học viên có thể theo dõi phần trăm hoàn thành của mình trong khóa học."
-              value={settings.showProgress}
-              onChange={toggle('showProgress')}
+              value={showProgress}
+              onChange={onShowProgressChange}
               icon={ToggleLeft}
               iconColor="text-blue-500"
             />

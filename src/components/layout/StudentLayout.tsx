@@ -192,17 +192,7 @@ export function StudentLayout() {
                 </main>
             </div>
             <div className="fixed bottom-6 right-6 z-[60] flex flex-col items-end gap-3">
-                <button
-                    onClick={() => navigate("/chat")}
-                    title="Trợ lý AI"
-                    className="group relative flex items-center justify-center h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 hover:scale-110 active:scale-95 transition-all duration-300"
-                >
-                    <MessageCircle className="h-6 w-6 text-white" />
-                    <span className="absolute right-full mr-4 px-3 py-1.5 bg-slate-800 border border-slate-700 text-xs font-bold text-white rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                        Hỏi đáp AI
-                    </span>
 
-                </button>
                 <button
                     onClick={() => navigate("/chat")}
                     title="Hỗ trợ"
