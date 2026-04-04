@@ -279,7 +279,14 @@ const CodingExerciseView: React.FC = () => {
                         toast.error('Có lỗi xảy ra khi thực thi mã');
                     }
                 } else {
-                    const currentIndex = activeTestCaseIndexRef.current;
+                    // Nhận diện Test Case bằng testCaseId thay vì dùng Ref hiện tại (tránh lỗi cộng dồn)
+                    let currentIndex = activeTestCaseIndexRef.current;
+                    if (data.testCaseId) {
+                        const matchedIdx = sampleCasesRef.current.findIndex(tc => tc.testCaseId === data.testCaseId);
+                        if (matchedIdx !== -1) {
+                            currentIndex = matchedIdx;
+                        }
+                    }
 
                     const tcResult: TestCaseResult = {
                         verdict: data.verdict || data.status,
@@ -316,15 +323,23 @@ const CodingExerciseView: React.FC = () => {
                     if (isPassed && !passedCaseIndicesRef.current.has(currentIndex)) {
                         passedCaseIndicesRef.current.add(currentIndex);
                         setPassedCaseIndices(new Set(passedCaseIndicesRef.current));
-                        setRunScore(prev => prev + (tcResult.points || 0));
                     } else if (!isPassed && passedCaseIndicesRef.current.has(currentIndex)) {
-                        // Nếu vừa fail và trước đó đã pass -> trừ điểm
                         passedCaseIndicesRef.current.delete(currentIndex);
                         setPassedCaseIndices(new Set(passedCaseIndicesRef.current));
-                        setRunScore(prev => Math.max(0, prev - (tcResult.points || 0)));
                     }
 
-                    // Cập nhật hiển thị kết quả (UI console)
+                    // Tính lại tổng điểm tích lũy dựa trên tỷ lệ phần trăm các case đã pass
+                    const passedCount = passedCaseIndicesRef.current.size;
+                    const totalCount = sampleCasesRef.current.length;
+                    const totalPoints = exerciseDetailRef.current?.points || 0;
+
+                    if (totalCount > 0) {
+                        const calculatedScore = Math.round((passedCount / totalCount) * totalPoints);
+                        setRunScore(calculatedScore);
+                    } else {
+                        setRunScore(0);
+                    }
+
                     // Cập nhật hiển thị kết quả (UI console)
                     setSubmission(prev => {
                         const existing = prev?.testCaseResults ? [...prev.testCaseResults] : [];
@@ -375,10 +390,7 @@ const CodingExerciseView: React.FC = () => {
 
     const handleCodeChange = (newCode: string) => {
         setCode(newCode);
-        setRunScore(0);
-        passedCaseIndicesRef.current = new Set();
-        setPassedCaseIndices(new Set());
-        setCaseResults({});
+        // Không xóa kết quả cũ ở đây nữa để tránh gây khó chịu cho người dùng
     };
 
     const handleLanguageChange = (lang: string) => {
@@ -428,10 +440,25 @@ const CodingExerciseView: React.FC = () => {
     }, [id, courseSlug, fromExam]);
 
     const handleRunCurrentCase = async () => {
+        const currentIndex = activeTestCaseIndex;
+        const currentCase = sampleCasesRef.current[currentIndex];
         const targetExerciseId = exerciseDetail?.exerciseId || exerciseDetail?.templateId;
+
+        // Xóa kết quả riêng của Case hiện tại trước khi chạy
+        setCaseResults(prev => {
+            const next = { ...prev };
+            delete next[currentIndex];
+            return next;
+        });
+        setPassedCaseIndices(prev => {
+            const next = new Set(prev);
+            next.delete(currentIndex);
+            passedCaseIndicesRef.current.delete(currentIndex);
+            return next;
+        });
+
         if (!targetExerciseId) return;
 
-        const currentCase = sampleCases[activeTestCaseIndex];
         if (!currentCase) {
             console.error('No current case found for index:', activeTestCaseIndex);
             return;
@@ -454,6 +481,16 @@ const CodingExerciseView: React.FC = () => {
                 currentCase.testCaseId
             );
             setConsoleOutput(`Yêu cầu chạy mã đã được gửi. Đang chờ kết quả...`);
+
+            // Thêm Timeout cứu cánh: Sau 30s tự động tắt trạng thái quay vòng
+            setTimeout(() => {
+                setIsRunningCase(prev => {
+                    if (prev) {
+                        setConsoleOutput(curr => curr + "\n⚠️ Quá thời gian chờ (Timeout). Vui lòng kiểm tra Docker hoặc kết nối mạng!");
+                    }
+                    return false;
+                });
+            }, 30000);
         } catch (error: any) {
             console.error('Run error:', error);
             const msg = error.message || 'Lỗi không xác định';
@@ -517,9 +554,15 @@ const CodingExerciseView: React.FC = () => {
                 }, 0);
 
                 // Cố định điểm nếu pass hết nhưng tổng điểm tính ra bằng 0 (do cấu hình cũ)
+                // Luôn tính điểm theo tỷ lệ %: (số case đạt / tổng số case) * tổng điểm bài tập
                 const passedCount = results.filter((tc: any) => (tc?.verdict === 'ACCEPTED' || tc?.status === 'ACCEPTED')).length;
-                if (finalScore === 0 && passedCount > 0 && exerciseDetail?.points) {
-                    finalScore = Math.floor((passedCount / results.length) * exerciseDetail.points);
+                const totalCount = results.length;
+                const exercisePoints = exerciseDetail?.points || 0;
+
+                if (totalCount > 0) {
+                    finalScore = Math.round((passedCount / totalCount) * exercisePoints);
+                } else {
+                    finalScore = 0;
                 }
 
                 result.score = finalScore;

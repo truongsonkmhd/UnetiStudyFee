@@ -1,3 +1,45 @@
-<img width="1880" height="932" alt="image" src="https://github.com/user-attachments/assets/d9b33e0e-e69d-4cbf-b822-c7e92be64884" />
-<img width="1877" height="927" alt="image" src="https://github.com/user-attachments/assets/599c6f70-1f1b-43b0-875a-013d752a1deb" />
-![Uploading image.png…]()
+# UnetiStudy - Đồ án tốt nghiệp kết thúc quãng thời gian học tại Uneti
+
+## 1. Introduction
+....
+
+## 2. Setting project
+### Getting started with Docker compose
+...
+
+## 3. Key features
+- **Basic authentication:** login, register, forgot password, change password
+- **Realtime chat and notifications**
+
+## 4. Technologies
+
+**BackEnd**
+- Spring boot
+- Websocket
+- ElasticSearch
+- rabbitMQ
+- Maven
+
+**FrontEnd**
+- ReactJS
+- TailwindCSS
+
+**Database**
+- Postgres
+- Redis
+
+**Authentication**
+- JWT
+- Oauth2 with Google
+
+**Storage**
+- Cloudinary for storing images
+
+**Other**
+- python train ai
+
+## 5. Screenshots
+ 
+## 6. Diagrams
+
+System architecture

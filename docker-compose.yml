@@ -1,0 +1,99 @@
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: postgres_container
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - spring_net
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
+    networks:
+      - spring_net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_container
+    restart: unless-stopped
+    ports:
+      - "5672:5672" # AMQP
+      - "15672:15672" # UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - spring_net
+
+  spring-app:
+    build: .
+    container_name: spring_app_container
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    ports:
+      - "${SERVER_PORT:-8097}:8097"
+      - "5005:5005"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      SUPABASE_BUCKET: ${SUPABASE_BUCKET}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      ML_SERVICE_URL: ${ML_SERVICE_URL:-http://host.docker.internal:8000}
+
+      # thêm để JudgeService dùng
+      JUDGE_WORKDIR_HOST: /opt/judge-workdir
+      JUDGE_WORKDIR_CONTAINER: /work
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/judge-workdir:/opt/judge-workdir
+    networks:
+      - spring_net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  judge-api:
+    image: uneti-judge-api:latest
+    container_name: judge-api
+    ports:
+      - "8089:8089"
+    environment:
+      - TZ=Asia/Bangkok
+      - JUDGE_WORKDIR_CONTAINER=/work
+      - JUDGE_WORKDIR_HOST=/opt/judge-workdir
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/judge-workdir:/work
+    networks:
+      - spring_net
+
+networks:
+  spring_net:
+
+
+volumes:
+  postgres_data:
+  redis_data:
