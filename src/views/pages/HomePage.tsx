@@ -39,11 +39,7 @@ const SectionHeader: React.FC<{
         </span>
       )}
     </div>
-    {rightSlot || (
-      <button className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-blue-500 transition-all group">
-        Xem tất cả <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-      </button>
-    )}
+    {rightSlot}
   </div>
 );
 

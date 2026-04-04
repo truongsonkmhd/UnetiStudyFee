@@ -18,6 +18,8 @@ export interface CourseShowRequest {
   syllabus?: string;
   isPublished: boolean;
   publishedAt?: string;
+  showStudentCount?: boolean;
+  showProgress?: boolean;
   modules: CourseModuleRequest[];
   learningOutcomes?: string[];
 }

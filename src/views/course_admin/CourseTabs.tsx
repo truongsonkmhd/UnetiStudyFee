@@ -45,7 +45,17 @@ const CourseTabs: React.FC<CourseTabsProps> = ({ courseId }) => {
 
       {/* Tab Content */}
       <div>
-        {activeTab === 'settings' && <CourseSettingsView courseId={courseId} />}
+        {activeTab === 'settings' && <CourseSettingsView 
+            courseId={courseId}
+            status={'DRAFT' as any}
+            isPublished={false}
+            showStudentCount={true}
+            showProgress={true}
+            onStatusChange={() => {}}
+            onPublishedChange={() => {}}
+            onShowStudentCountChange={() => {}}
+            onShowProgressChange={() => {}}
+        />}
       </div>
     </div>
 

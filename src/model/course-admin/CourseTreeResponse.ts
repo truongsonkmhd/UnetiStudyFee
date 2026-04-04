@@ -22,6 +22,9 @@ export interface CourseTreeResponse {
   syllabus?: string;
   shortDescription?: string;
   learningOutcomes?: string[];
+  showStudentCount?: boolean;
+  showProgress?: boolean;
+  progressPercentage?: number;
   modules: CourseModuleResponse[];
   enrolledCount?: number;
   rating?: number;
