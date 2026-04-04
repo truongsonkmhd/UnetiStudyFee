@@ -21,6 +21,7 @@ export interface CourseTreeResponse {
   objectives?: string;
   syllabus?: string;
   shortDescription?: string;
+  learningOutcomes?: string[];
   modules: CourseModuleResponse[];
   enrolledCount?: number;
   rating?: number;
