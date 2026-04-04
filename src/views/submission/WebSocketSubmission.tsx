@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import SockJS from "sockjs-client";
 import { Client, type IMessage, type StompSubscription } from "@stomp/stompjs";
-import { console } from "inspector";
 
 // ================== Types ==================
 type Verdict =

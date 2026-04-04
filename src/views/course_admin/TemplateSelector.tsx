@@ -25,28 +25,44 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ type, selectedIds, 
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [tempSelected, setTempSelected] = useState<string[]>(selectedIds);
+    // Lưu map id -> title của tất cả các item đã từng load hoặc được selected
+    // để không mất title khi search thay đổi
+    const [knownTitles, setKnownTitles] = useState<Record<string, string>>({});
+
+    // Sync tempSelected khi selectedIds prop thay đổi (ví dụ mở lại dialog)
+    useEffect(() => {
+        setTempSelected(selectedIds);
+    }, [selectedIds]);
 
     const loadTemplates = useCallback(async () => {
         setLoading(true);
         try {
+            let loaded: TemplateItem[] = [];
             if (type === 'CODE') {
                 const response = await codingExerciseTemplateService.searchAllTemplates({ q: searchTerm, page: 0, size: 50 });
-                setTemplates(response.items.map(t => ({
+                loaded = response.items.map(t => ({
                     id: t.templateId,
                     title: t.title,
                     points: t.points,
                     difficulty: t.difficulty,
                     category: t.category
-                })));
+                }));
             } else {
                 const response = await quizTemplateService.searchTemplates({ searchTerm: searchTerm, page: 0, size: 50, isActive: true });
-                setTemplates(response.items.map(t => ({
+                loaded = response.items.map(t => ({
                     id: t.templateId,
                     title: t.templateName,
-                    points: t.passScore, // passScore as a reference for points
+                    points: t.passScore,
                     category: t.category
-                })));
+                }));
             }
+            setTemplates(loaded);
+            // Cập nhật knownTitles để không mất title khi search thay đổi
+            setKnownTitles(prev => {
+                const next = { ...prev };
+                loaded.forEach(t => { next[t.id] = t.title; });
+                return next;
+            });
         } catch (error) {
             console.error(error);
             toast.error(`Không thể tải danh sách ${type === 'CODE' ? 'bài tập' : 'trắc nghiệm'}`);
@@ -67,13 +83,11 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ type, selectedIds, 
     };
 
     const handleConfirm = () => {
-        const selections: TemplateSelection[] = tempSelected.map(id => {
-            const template = templates.find(t => t.id === id);
-            return {
-                id,
-                title: template?.title || 'Unknown'
-            };
-        });
+        const selections: TemplateSelection[] = tempSelected.map(id => ({
+            id,
+            // Dùng knownTitles để lấy title ngay cả khi item không còn trong danh sách hiện tại
+            title: knownTitles[id] || templates.find(t => t.id === id)?.title || 'Unknown'
+        }));
         onSelect(tempSelected, selections);
         onClose();
     };

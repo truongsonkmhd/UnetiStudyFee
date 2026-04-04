@@ -80,7 +80,11 @@ const MyCourses: React.FC = () => {
                                 slug: enrollment.slug,
                                 shortDescription: '',
                                 isPublished: true,
-                                totalModules: 0,
+                                totalModules: enrollment.totalModules || 0,
+                                enrolledCount: enrollment.enrolledCount || 0,
+                                capacity: enrollment.capacity || 0,
+                                imageUrl: enrollment.imageUrl,
+                                instructorName: enrollment.instructorName,
                             };
                             return (
                                 <motion.div

@@ -12,4 +12,9 @@ export interface EnrollmentResponse {
     requestMessage?: string;
     rejectionReason?: string;
     slug: string;
+    imageUrl?: string;
+    instructorName?: string;
+    totalModules?: number;
+    enrolledCount?: number;
+    capacity?: number;
 }

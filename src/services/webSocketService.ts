@@ -29,19 +29,26 @@ class WebSocketService {
             this.connect();
         }
 
-        const subscribeInternal = () => {
-            if (this.client && this.client.connected) {
-                const subscription = this.client.subscribe(destination, (message: IMessage) => {
+        const isConnected = this.client && this.client.connected;
+        
+        if (isConnected) {
+            const subscription = this.client!.subscribe(destination, (message: IMessage) => {
+                try {
                     callback(JSON.parse(message.body));
-                });
-                this.subscriptions.set(destination, subscription);
-            } else {
-                // Wait for connection and retry
-                setTimeout(subscribeInternal, 100);
-            }
-        };
-
-        subscribeInternal();
+                } catch (e) {
+                    console.error("❌ Failed to parse WS message body", e);
+                }
+            });
+            this.subscriptions.set(destination, subscription);
+        } else {
+            // Nếu chưa connect, đợi event onConnect thay vì dùng setTimeout mù quáng
+            console.log(`⏳ Connection not ready, queuing subscription for ${destination}`);
+            const oldOnConnect = this.client!.onConnect;
+            this.client!.onConnect = (frame) => {
+                if (oldOnConnect) oldOnConnect(frame);
+                this.subscribe(destination, callback);
+            };
+        }
     }
 
     unsubscribe(destination: string) {

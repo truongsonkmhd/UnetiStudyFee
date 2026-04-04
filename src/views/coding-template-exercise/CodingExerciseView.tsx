@@ -555,10 +555,10 @@ const CodingExerciseView: React.FC = () => {
 
                 // Cố định điểm nếu pass hết nhưng tổng điểm tính ra bằng 0 (do cấu hình cũ)
                 // Luôn tính điểm theo tỷ lệ %: (số case đạt / tổng số case) * tổng điểm bài tập
+                // Luôn tính điểm theo tỷ lệ %: (số case đạt / tổng số case) * tổng điểm bài tập
                 const passedCount = results.filter((tc: any) => (tc?.verdict === 'ACCEPTED' || tc?.status === 'ACCEPTED')).length;
                 const totalCount = results.length;
                 const exercisePoints = exerciseDetail?.points || 0;
-
                 if (totalCount > 0) {
                     finalScore = Math.round((passedCount / totalCount) * exercisePoints);
                 } else {

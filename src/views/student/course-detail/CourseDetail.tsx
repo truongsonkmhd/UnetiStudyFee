@@ -117,7 +117,6 @@ const CourseDetail: React.FC = () => {
     }
 
     const totalLessons = course.modules.reduce((acc, m) => acc + (m.lessons ? m.lessons.length : 0), 0);
-    const formattedDuration = "28h 05m";
     const studentCount = course.enrolledCount || 0;
     const lastUpdated = course.updatedAt ? new Date(course.updatedAt).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' }) : new Date().toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' });
 
@@ -187,7 +186,6 @@ const CourseDetail: React.FC = () => {
                             <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-lg">
                                 <span className="text-foreground font-bold">{course.modules.length}</span> chương •
                                 <span className="text-foreground font-bold">{totalLessons}</span> bài học •
-                                <span>Thời lượng <span className="text-foreground font-bold">{formattedDuration}</span></span>
                             </div>
                             <button
                                 className="text-primary font-bold hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-all text-sm"
@@ -293,9 +291,6 @@ const CourseDetail: React.FC = () => {
                                         <li className="flex items-center gap-3 text-sm text-muted-foreground">
                                             <Film size={18} className="text-foreground shrink-0" /> <span>Tổng số <b>{totalLessons}</b> bài học</span>
                                         </li>
-                                        <li className="flex items-center gap-3 text-sm text-muted-foreground">
-                                            <Clock size={18} className="text-foreground shrink-0" /> <span>Thời lượng <b>{formattedDuration}</b></span>
-                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -310,16 +305,16 @@ const CourseDetail: React.FC = () => {
             {isPlayingPreview && (course.youtubeVideoId || course.videoUrl) && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 p-4 sm:p-6">
                     <div className="absolute inset-0" onClick={() => setIsPlayingPreview(false)}></div>
-                    
+
                     <div className="relative w-full max-w-4xl bg-background rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200 z-10 flex flex-col max-h-[90vh]">
-                        
+
                         {/* Header/Title Area */}
                         <div className="px-5 pt-5 pb-3 md:px-6 md:pt-6 md:pb-4 flex justify-between items-start shrink-0">
                             <div className="pr-4">
                                 <h4 className="text-sm font-medium text-muted-foreground mb-1">Giới thiệu khóa học</h4>
                                 <h2 className="text-lg md:text-xl font-bold text-foreground line-clamp-1">{course.title}</h2>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => setIsPlayingPreview(false)}
                                 className="p-2 -mr-2 -mt-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors shrink-0"
                             >

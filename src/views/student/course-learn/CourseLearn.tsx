@@ -569,7 +569,7 @@ const CourseLearn: React.FC = () => {
                                                 const isCompleted = completedLessons.has(lesson.lessonId);
                                                 const isLocked = isLessonLocked(lesson.lessonId);
 
-                                                const hasVideo = !!lesson.videoUrl;
+                                                const hasVideo = !!lesson.videoUrl || !!lesson.youtubeVideoId;
                                                 const hasCode = lesson.codingExercises && lesson.codingExercises.length > 0;
                                                 const hasQuiz = lesson.quizzes && lesson.quizzes.length > 0;
 
@@ -624,12 +624,14 @@ const CourseLearn: React.FC = () => {
                                                                     {lessonIndex + 1}. {lesson.title}
                                                                 </span>
                                                             </div>
-                                                            <div className="flex items-center gap-2 flex-shrink-0">
-                                                                <Clock size={12} className="text-muted-foreground" />
-                                                                <span className="text-xs text-muted-foreground">
-                                                                    {isActive && currentVideoDuration > 0 ? formatTime(currentVideoDuration) : '--:--'}
-                                                                </span>
-                                                            </div>
+                                                            {hasVideo && (
+                                                                <div className="flex items-center gap-2 flex-shrink-0">
+                                                                    <Clock size={12} className="text-muted-foreground" />
+                                                                    <span className="text-xs text-muted-foreground">
+                                                                        {isActive && currentVideoDuration > 0 ? formatTime(currentVideoDuration) : '--:--'}
+                                                                    </span>
+                                                                </div>
+                                                            )}
                                                         </button>
 
                                                         {isActive && !isLocked && (

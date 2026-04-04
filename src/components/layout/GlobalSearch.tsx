@@ -97,7 +97,7 @@ export function GlobalSearch() {
         <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-300 ${isOpen ? 'text-blue-500' : 'text-slate-400 group-focus-within:text-blue-500'}`} />
         <input
           type="text"
-          placeholder="Tìm kiếm khóa học..."
+          placeholder="Tìm kiếm khóa học , lớp học..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.trim().length >= 1 && setIsOpen(true)}
