@@ -13,17 +13,8 @@ import {
     Bell,
     LogOut,
     User as UserIcon,
-    Home,
-    Trophy,
     BookOpen,
     GraduationCap,
-    FileText,
-    Settings,
-    MessageCircle,
-    Zap,
-    Crown,
-    ChevronDown,
-    Search,
 } from "lucide-react";
 import { chatboxCuImg, logoIcon } from "@/assets";
 import { actionAuth } from "@/components/context/AuthContext";
@@ -31,7 +22,6 @@ import { toast } from "sonner";
 import { PATHS } from "@/constants/paths";
 import defaultAvatar from "@/assets/img/avatar-default.png";
 import { APP_NAME } from "@/utils/config";
-import { Button } from "@/components/ui/button";
 import { GlobalSearch } from "./GlobalSearch";
 
 interface NavItem {
@@ -133,11 +123,11 @@ export function StudentLayout() {
                         </nav>
                     </div>
 
-                    <div className="flex items-center gap-8 shrink-0">
-                        <div className="hidden xl:block">
-                            <GlobalSearch />
-                        </div>
+                    <div className="flex-1 max-w-3xl mx-8 hidden xl:block">
+                        <GlobalSearch />
+                    </div>
 
+                    <div className="flex items-center gap-6 shrink-0">
                         <div className="flex items-center gap-4 border-l border-border/50 pl-6 mr-2">
                             <ThemeToggle />
                             <button className="relative p-2 text-muted-foreground hover:text-foreground transition-all hover:bg-muted rounded-full">

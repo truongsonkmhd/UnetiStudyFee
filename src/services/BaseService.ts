@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 import { IResponseMessage } from "@/model/common/IResponseMessage";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "https://unetistudybee.onrender.com";
+  import.meta.env.VITE_API_BASE_URL ?? "https://unetistudybee.onrender.com/api";
 
 interface ServiceResponse<T> {
   success: boolean;

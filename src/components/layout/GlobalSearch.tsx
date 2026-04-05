@@ -92,26 +92,26 @@ export function GlobalSearch() {
   };
 
   return (
-    <div className="relative w-full max-w-[600px]" ref={searchRef}>
+    <div className="relative w-full" ref={searchRef}>
       <div className="relative group">
-        <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-300 ${isOpen ? 'text-blue-500' : 'text-slate-400 group-focus-within:text-blue-500'}`} />
+        <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${isOpen ? 'text-blue-500' : 'text-slate-400 group-focus-within:text-blue-500'}`} />
         <input
           type="text"
           placeholder="Tìm kiếm khóa học , lớp học..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.trim().length >= 1 && setIsOpen(true)}
-          className="w-full bg-slate-100/30 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl py-2.5 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500/60 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-slate-950 transition-all duration-300 shadow-sm focus:shadow-md"
+          className="w-full bg-slate-100/30 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl py-3.5 pl-12 pr-12 text-base font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500/60 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-slate-950 transition-all duration-300 shadow-sm focus:shadow-md"
         />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
           {isLoading ? (
-            <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+            <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
           ) : query && (
             <button
               onClick={() => { setQuery(''); setResults({ courses: [], classes: [] } as GlobalQuickSearchResponse); setIsOpen(false); }}
-              className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors"
+              className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors"
             >
-              <X className="w-4 h-4 text-slate-400" />
+              <X className="w-5 h-5 text-slate-400" />
             </button>
           )}
         </div>

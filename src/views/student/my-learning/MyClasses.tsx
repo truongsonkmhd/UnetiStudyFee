@@ -20,13 +20,7 @@ const MyClasses: React.FC = () => {
         setLoading(true);
         try {
             const classes = await classService.student.getMyClasses(jwtClaims.userID);
-            // Ẩn lớp học đã hết thời gian diễn ra (endDate < hiện tại)
-            const now = new Date();
-            const activeClasses = (classes || []).filter(cls => {
-                if (!cls.endDate) return true; // Không có endDate → luôn hiển thị
-                return new Date(cls.endDate) >= now;
-            });
-            setMyClasses(activeClasses);
+            setMyClasses(classes || []);
         } catch (error) {
             console.error("Failed to fetch my classes", error);
         } finally {
@@ -61,12 +55,18 @@ const MyClasses: React.FC = () => {
                                     <div className="flex flex-col h-full justify-between">
                                         <div>
                                             <div className="flex items-center gap-3 mb-6">
-                                                <div className={`px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest ${cls.isActive
-                                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                                                    : 'bg-muted text-muted-foreground border-border'
-                                                    }`}>
-                                                    {cls.isActive ? 'Đang hoạt động' : 'Kết thúc'}
-                                                </div>
+                                                {(() => {
+                                                    const isExpired = cls.endDate && new Date(cls.endDate) < new Date();
+                                                    const isActive = cls.isActive && !isExpired;
+                                                    return (
+                                                        <div className={`px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest ${isActive
+                                                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                                            : 'bg-red-500/10 text-red-600 border-red-500/20'
+                                                            }`}>
+                                                            {isActive ? 'Đang hoạt động' : 'Đã kết thúc'}
+                                                        </div>
+                                                    );
+                                                })()}
                                                 <div className="px-4 py-1.5 rounded-full border border-border/50 bg-muted/30 text-[10px] font-black text-muted-foreground tracking-widest">
                                                     #{cls.classCode}
                                                 </div>
@@ -104,13 +104,25 @@ const MyClasses: React.FC = () => {
                                         </div>
 
                                         <div className="mt-8 pt-6 border-t border-border/30 flex items-center justify-between">
-                                            <div 
-                                                className="flex items-center gap-2 group/link cursor-pointer"
-                                                onClick={() => navigate(`/my-classes/${cls.classId}`)}
-                                            >
-                                                <span className="text-sm font-black text-primary group-hover/link:underline">CHI TIẾT LỚP HỌC</span>
-                                                <ArrowRight size={14} className="text-primary group-hover/link:translate-x-1 transition-transform" />
-                                            </div>
+                                            {(() => {
+                                                const isExpired = cls.endDate && new Date(cls.endDate) < new Date();
+                                                if (isExpired) {
+                                                    return (
+                                                        <div className="flex items-center gap-2 opacity-50 cursor-not-allowed">
+                                                            <span className="text-sm font-black text-muted-foreground">LỚP HỌC ĐÃ KẾT THÚC</span>
+                                                        </div>
+                                                    );
+                                                }
+                                                return (
+                                                    <div 
+                                                        className="flex items-center gap-2 group/link cursor-pointer"
+                                                        onClick={() => navigate(`/my-classes/${cls.classId}`)}
+                                                    >
+                                                        <span className="text-sm font-black text-primary group-hover/link:underline">CHI TIẾT LỚP HỌC</span>
+                                                        <ArrowRight size={14} className="text-primary group-hover/link:translate-x-1 transition-transform" />
+                                                    </div>
+                                                );
+                                            })()}
                                             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500/10 to-transparent border border-violet-500/10 flex items-center justify-center text-violet-500 group-hover:scale-110 transition-transform duration-500">
                                                 <GraduationCap size={24} />
                                             </div>
