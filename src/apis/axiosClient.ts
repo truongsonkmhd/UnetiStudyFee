@@ -9,7 +9,7 @@ import axios, {
 import queryString from "query-string";
 import { toast } from "sonner";
 
-const baseUrlRaw = import.meta.env.VITE_API_URL || "http://localhost:8097/api";
+const baseUrlRaw = import.meta.env.VITE_API_BASE_URL || "http://localhost:8097/api";
 const refreshEndpointRaw =
   import.meta.env.VITE_REFRESH_TOKEN_ENDPOINT || "/authenticate/refresh-token";
 

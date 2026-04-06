@@ -27,7 +27,5 @@ export interface CourseTreeResponse {
   progressPercentage?: number;
   modules: CourseModuleResponse[];
   enrolledCount?: number;
-  rating?: number;
-  ratingCount?: number;
   updatedAt?: string;
 }

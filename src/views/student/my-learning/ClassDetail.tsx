@@ -93,7 +93,7 @@ const ClassDetail: React.FC = () => {
         <div className="min-h-screen bg-[#020617] text-slate-200 selection:bg-primary/30 pb-20 overflow-x-hidden">
 
 
-            <div className="max-w-7xl mx-auto px-6 relative z-10 pt-8">
+            <div className="max-w-full mx-auto px-6 relative z-10 pt-8">
                 {/* Back Button */}
                 <motion.button
                     whileHover={{ x: -4 }}
@@ -446,15 +446,15 @@ const ClassDetail: React.FC = () => {
                             }
                             key="0"
                         >
-                            <div className="max-w-4xl mx-auto py-8">
+                            <div className="max-w-full mx-auto py-8">
                                 {loadingCourses ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {[1, 2].map(i => (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                        {[1, 2, 3, 4].map(i => (
                                             <div key={i} className="h-32 rounded-2xl bg-white/5 animate-pulse border border-white/5" />
                                         ))}
                                     </div>
                                 ) : courses.length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                         {courses.map((course, i) => (
                                             <motion.div
                                                 key={course.courseId}
@@ -536,7 +536,7 @@ const ClassDetail: React.FC = () => {
                             }
                             key="2"
                         >
-                            <div className="max-w-4xl mx-auto py-10">
+                            <div className="max-w-full mx-auto py-10">
                                 {(() => {
                                     // Lọc bỏ bài thi đã hết thời gian
                                     const now = new Date();
@@ -603,26 +603,6 @@ const ClassDetail: React.FC = () => {
                                         <Empty description={<span className="text-slate-500 font-black uppercase tracking-widest text-xs">Hiện tại chưa có bài tập nào</span>} />
                                     );
                                 })()}
-                            </div>
-                        </TabPane>
-
-                        <TabPane
-                            tab={
-                                <span className="flex items-center gap-2 px-4 py-2">
-                                    <MessageSquare size={18} /> Thảo luận
-                                </span>
-                            }
-                            key="3"
-                        >
-                            <div className="max-w-4xl mx-auto py-20 text-center">
-                                <div className="w-20 h-20 rounded-full bg-violet-600/20 text-violet-600 flex items-center justify-center mx-auto mb-6">
-                                    <MessageSquare size={40} />
-                                </div>
-                                <h3 className="text-2xl font-black text-white mb-2">Không gian thảo luận</h3>
-                                <p className="text-slate-500 font-medium mb-8 max-w-sm mx-auto">Nơi chia sẻ kiến thức, đặt câu hỏi cho giảng viên và thảo luận cùng bạn bè cùng lớp.</p>
-                                <button className="px-8 py-4 rounded-2xl bg-violet-600 font-black text-white text-sm uppercase tracking-widest hover:bg-violet-700 transition-all">
-                                    BẮT ĐẦU CHIA SẺ
-                                </button>
                             </div>
                         </TabPane>
                     </Tabs>

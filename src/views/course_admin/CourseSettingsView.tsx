@@ -53,9 +53,9 @@ interface CourseSettingsViewProps {
   onShowProgressChange: (v: boolean) => void;
 }
 
-const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({ 
-  courseId, status, isPublished, showStudentCount, showProgress, 
-  onStatusChange, onPublishedChange, onShowStudentCountChange, onShowProgressChange 
+const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({
+  courseId, status, isPublished, showStudentCount, showProgress,
+  onStatusChange, onPublishedChange, onShowStudentCountChange, onShowProgressChange
 }) => {
   const [settings, setSettings] = useState({
     allowEnroll: true,
@@ -65,7 +65,6 @@ const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({
     sendEnrollNotification: true,
     sendCompletionCertificate: false,
     allowDiscussion: true,
-    allowRating: true,
     privateMode: false,
     showProgress: true,
   });
@@ -126,14 +125,6 @@ const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({
           <div className="px-8 pb-4 divide-y divide-border/50">
 
             <SettingToggle
-              label="Cho phép đánh giá & xếp hạng"
-              description="Học viên có thể để lại đánh giá sao và nhận xét sau khi hoàn thành."
-              value={settings.allowRating}
-              onChange={toggle('allowRating')}
-              icon={Eye}
-              iconColor="text-amber-500"
-            />
-            <SettingToggle
               label="Thông báo đăng ký mới"
               description="Gửi email thông báo cho quản trị viên khi có người đăng ký mới."
               value={settings.sendEnrollNotification}
@@ -159,18 +150,18 @@ const CourseSettingsView: React.FC<CourseSettingsViewProps> = ({
           </div>
           <div className="px-8 pb-6 space-y-2">
             <div className="flex flex-col gap-2 py-4 border-b border-border">
-               <label className="text-sm font-black text-foreground">Trạng thái quản lý hệ thống</label>
-               <select
-                 value={status}
-                 onChange={(e) => onStatusChange(e.target.value as CourseStatus)}
-                 className="w-full rounded-2xl border border-border bg-muted/50 px-4 py-3 text-sm font-bold text-foreground transition-all focus:bg-muted outline-none"
-               >
-                  <option value={CourseStatus.DRAFT}>Bản nháp (Nội bộ)</option>
-                  <option value={CourseStatus.APPROVED}>Đã kiểm duyệt (Đã duyệt)</option>
-                  <option value={CourseStatus.ARCHIVED}>Lưu trữ (Ẩn)</option>
-               </select>
+              <label className="text-sm font-black text-foreground">Trạng thái quản lý hệ thống</label>
+              <select
+                value={status}
+                onChange={(e) => onStatusChange(e.target.value as CourseStatus)}
+                className="w-full rounded-2xl border border-border bg-muted/50 px-4 py-3 text-sm font-bold text-foreground transition-all focus:bg-muted outline-none"
+              >
+                <option value={CourseStatus.DRAFT}>Bản nháp (Nội bộ)</option>
+                <option value={CourseStatus.APPROVED}>Đã kiểm duyệt (Đã duyệt)</option>
+                <option value={CourseStatus.ARCHIVED}>Lưu trữ (Ẩn)</option>
+              </select>
             </div>
-            
+
             <SettingToggle
               label="Công khai khóa học ngay!"
               description="Kích hoạt để người học có thể tìm thấy khóa học này trên hệ thống."
