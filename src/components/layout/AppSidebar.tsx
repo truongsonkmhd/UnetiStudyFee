@@ -60,7 +60,7 @@ const navigationGroups: {
           requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_TEACHER],
         },
         {
-          title: "Kho bài trắc nghiệm",
+          title: "Kho bài quiz",
           url: PATHS.QUIZ_LIBRARY,
           icon: quizIcon,
           requiredRoles: [RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_TEACHER],

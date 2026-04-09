@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import {
   Brain, X, Play, Wifi, WifiOff, RefreshCw,
   Users, Target, AlertTriangle, CheckCircle2,
-  ChevronRight,
+  ChevronRight, Mail, Send, Loader2,
 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
@@ -24,12 +24,19 @@ interface RiskItem {
 }
 interface AnalyticsState {
   behavioral: ClusterItem[];
-  performance: ClusterItem[];
   riskCluster: ClusterItem[];
   riskPredict: RiskItem[];
 }
 
-type TabKey = 'behavioral' | 'performance' | 'risk' | 'predict';
+type TabKey = 'behavioral' | 'risk' | 'predict';
+
+interface EmailModalState {
+  open: boolean;
+  riskLevel: string;
+  recipients: RiskItem[];
+  subject: string;
+  body: string;
+}
 
 // ──────────────────────────────────────────────
 // COLORS
@@ -37,7 +44,9 @@ type TabKey = 'behavioral' | 'performance' | 'risk' | 'predict';
 const CLUSTER_COLORS = ['#6c63ff', '#00d4aa', '#ff6b6b', '#ffd93d', '#f97316'];
 const RISK_COLORS: Record<string, string> = {
   LOW: '#10b981', MEDIUM: '#f59e0b', HIGH: '#ef4444',
+  'THẤP': '#10b981', 'TRUNG BÌNH': '#f59e0b', 'CAO': '#ef4444',
   'On Track': '#10b981', 'Need Support': '#f59e0b', 'At Risk': '#ef4444',
+  'Đúng tiến độ': '#10b981', 'Cần hỗ trợ': '#f59e0b', 'Nguy cơ cao': '#ef4444',
 };
 
 function riskBadge(level: string) {
@@ -51,6 +60,9 @@ function riskBadge(level: string) {
     'At Risk': 'bg-red-500/15 text-red-400 border border-red-500/30',
     'Need Support': 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30',
     'On Track': 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
+    'Nguy cơ cao': 'bg-red-500/15 text-red-400 border border-red-500/30',
+    'Cần hỗ trợ': 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30',
+    'Đúng tiến độ': 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
   };
   return map[level] || 'bg-violet-500/15 text-violet-400 border border-violet-500/30';
 }
@@ -59,31 +71,89 @@ function riskBadge(level: string) {
 // PARSERS
 // ──────────────────────────────────────────────
 function parseCluster(raw: any): ClusterItem[] {
-  // Backend bọc kết quả trong field 'data'
   const items: any[] = (raw?.data?.results || raw?.results) ?? [];
-  return items.map((r: any) => ({
-    userId: r.user_id || r.userId || '',
-    username: r.username || '',
-    fullName: r.full_name || r.fullName || r.username || r.user_id || '—',
-    avatar: r.avatar || '',
-    clusterId: r.cluster_id ?? r.clusterId ?? 0,
-    clusterLabel: r.cluster_label || r.clusterLabel || `Nhóm ${r.cluster_id ?? 0}`,
-    clusterScore: r.cluster_score ?? r.clusterScore ?? 0,
-  }));
-}
+  const transMap: Record<string, string> = {
+    'On Track': 'Đúng tiến độ',
+    'Need Support': 'Cần hỗ trợ',
+    'At Risk': 'Nguy cơ cao'
+  };
 
-function parseRisk(raw: any): RiskItem[] {
-  // Backend bọc kết quả trong field 'data'
-  const items: any[] = (raw?.data?.results || raw?.results) ?? [];
-  return items.map((r: any) => {
-    const prob = r.risk_probability ?? r.riskProbability ?? r.risk_prob ?? 0;
-    const level = r.risk_level || r.riskLevel ||
-      (prob > 0.7 ? 'HIGH' : prob > 0.3 ? 'MEDIUM' : 'LOW');
+  const parsed = items.map((r: any) => {
+    let lbl = r.cluster_label || r.clusterLabel || `Nhóm ${r.cluster_id ?? 0}`;
+    lbl = transMap[lbl] || lbl;
+
     return {
       userId: r.user_id || r.userId || '',
       username: r.username || '',
       fullName: r.full_name || r.fullName || r.username || r.user_id || '—',
       avatar: r.avatar || '',
+      clusterId: r.cluster_id ?? r.clusterId ?? 0,
+      clusterLabel: lbl,
+      clusterScore: r.cluster_score ?? r.clusterScore ?? 0,
+    };
+  });
+
+  // Calculate a meaningful deterministic 1-10 score based on K-Means distance
+  // Principles:
+  // - Close to centroid (small distance) = Strong representative of that cluster.
+  // - Good clusters: Score approaches 10 if distance is small.
+  // - Bad clusters: Score approaches 1 if distance is small.
+  parsed.forEach(p => {
+    const rawDist = p.clusterScore; // original K-Means distance
+    const lbl = p.clusterLabel.toLowerCase();
+
+    let baseScore = 6.0;
+
+    // Group 1: Good
+    if (lbl.includes('chăm') || lbl.includes('tốt') || lbl.includes('tiến độ')) {
+      // 10.0 is perfect. Subtract distance (scaled) to penalize being at the edge. Min 8.0.
+      p.clusterScore = Math.max(8.0, 10.0 - (rawDist * 0.3));
+    }
+    // Group 2: Bad
+    else if (lbl.includes('lười') || lbl.includes('nguy cơ') || lbl.includes('risk')) {
+      // 1.0 is profoundly bad. Add distance (scaled) as they move away from the worst core. Max 4.5.
+      p.clusterScore = Math.min(4.5, 1.0 + (rawDist * 0.3));
+    }
+    // Group 3: Average / Need Support / Late but consistent
+    else {
+      // Base is 6.0. Can fluctuate between 4.5 and 7.9.
+      // We do a simple hash-like bounding using the distance.
+      const variance = (rawDist % 3.0) - 1.5; // range [-1.5, 1.5]
+      p.clusterScore = Math.max(4.6, Math.min(7.9, 6.5 + variance));
+    }
+  });
+
+  return parsed;
+}
+
+function parseRisk(raw: any, knownUsers: ClusterItem[] = []): RiskItem[] {
+  const items: any[] = (raw?.data?.results || raw?.results) ?? [];
+  const userMap = new Map<string, ClusterItem>();
+  knownUsers.forEach(u => userMap.set(u.userId, u));
+
+  return items.map((r: any) => {
+    const prob = r.risk_probability ?? r.riskProbability ?? r.risk_prob ?? 0;
+    let level = r.risk_level || r.riskLevel ||
+      (prob > 0.7 ? 'HIGH' : prob > 0.3 ? 'MEDIUM' : 'LOW');
+
+    const transMap: Record<string, string> = {
+      'HIGH': 'CAO',
+      'MEDIUM': 'TRUNG BÌNH',
+      'LOW': 'THẤP',
+      'High': 'CAO',
+      'Medium': 'TRUNG BÌNH',
+      'Low': 'THẤP'
+    };
+    level = transMap[level] || level;
+
+    const uid = r.user_id || r.userId || '';
+    const known = userMap.get(uid);
+
+    return {
+      userId: uid,
+      username: r.username || known?.username || '',
+      fullName: r.full_name || r.fullName || known?.fullName || r.username || known?.username || uid || '—',
+      avatar: r.avatar || known?.avatar || '',
       riskLevel: level,
       riskProbability: prob,
     };
@@ -94,6 +164,67 @@ function groupCount(items: ClusterItem[]) {
   const m: Record<string, number> = {};
   items.forEach(i => { m[i.clusterLabel] = (m[i.clusterLabel] || 0) + 1; });
   return Object.entries(m).map(([name, value]) => ({ name, value }));
+}
+
+function buildEmailTemplate(riskLevel: string, className: string): { subject: string; body: string } {
+  const isHigh = riskLevel === 'CAO' || riskLevel === 'HIGH';
+  const isLow = riskLevel === 'THẤP' || riskLevel === 'LOW';
+  if (isHigh) {
+    return {
+      subject: `[Cảnh báo học tập] Tình trạng học tập trong lớp "${className}"`,
+      body: `Kính gửi bạn học sinh,
+
+Hệ thống AI phân tích của chúng tôi đã phát hiện bạn đang có nguy cơ cao gặp khó khăn trong lớp học "${className}".
+
+Một số dấu hiệu được ghi nhận:
+• Tỉ lệ hoàn thành bài học còn thấp
+• Thời gian không hoạt động kéo dài
+• Điểm trung bình các bài kiểm tra chưa đạt kỳ vọng
+
+Chúng tôi rất quan tâm đến kết quả học tập của bạn và mong bạn:
+1. Dành thêm thời gian ôn luyện các bài chưa hoàn thành
+2. Liên hệ trực tiếp với giáo viên nếu cần hỗ trợ
+3. Tham gia tích cực hơn vào các buổi học trực tuyến
+
+Nếu bạn gặp bất kỳ khó khăn nào, đừng ngần ngại liên hệ với giáo viên phụ trách.
+
+Chúc bạn học tập tiến bộ!
+Đội ngũ giảng dạy — ${className}`,
+    };
+  } else if (isLow) {
+    return {
+      subject: `[Khen thưởng] Thành tích học tập xuất sắc — Lớp "${className}"`,
+      body: `Kính gửi bạn học sinh,
+
+Chúng tôi vui mừng thông báo rằng hệ thống AI ghi nhận bạn đang có thành tích học tập rất tốt trong lớp "${className}"!
+
+Những điểm nổi bật của bạn:
+• Tỉ lệ hoàn thành bài học cao
+• Điểm số các bài kiểm tra ổn định
+• Tham gia học tập đều đặn và tích cực
+
+Hãy tiếp tục duy trì phong độ học tập tuyệt vời này! Bạn đang là tấm gương tốt cho cả lớp.
+
+Chúc bạn tiếp tục học tập thật hiệu quả!
+Đội ngũ giảng dạy — ${className}`,
+    };
+  } else {
+    return {
+      subject: `[Thông báo] Cập nhật tình trạng học tập — Lớp "${className}"`,
+      body: `Kính gửi bạn học sinh,
+
+Đây là thông báo cập nhật tình trạng học tập của bạn trong lớp "${className}".
+
+Hệ thống AI ghi nhận bạn đang ở mức học tập trung bình. Để cải thiện kết quả:
+• Ôn lại các bài học còn tồn đọng
+• Tham gia đầy đủ các buổi học
+• Liên hệ giáo viên nếu cần giải đáp thắc mắc
+
+Chúng tôi tin tưởng bạn có thể đạt được kết quả tốt hơn!
+
+Đội ngũ giảng dạy — ${className}`,
+    };
+  }
 }
 
 // ──────────────────────────────────────────────
@@ -132,7 +263,6 @@ const ClusterTable: React.FC<{ items: ClusterItem[]; colorMap: Record<number, st
                 <Avatar src={item.avatar} name={item.fullName} />
                 <div>
                   <div className="font-medium text-slate-200 text-xs">{item.fullName}</div>
-                  <div className="text-slate-500 text-[11px]">@{item.username}</div>
                 </div>
               </div>
             </td>
@@ -152,17 +282,14 @@ const ClusterTable: React.FC<{ items: ClusterItem[]; colorMap: Record<number, st
   </div>
 );
 
-// ──────────────────────────────────────────────
-// RISK TABLE
-// ──────────────────────────────────────────────
-const RiskTable: React.FC<{ items: RiskItem[] }> = ({ items }) => {
+const RiskTable: React.FC<{ items: RiskItem[]; onSendOne?: (item: RiskItem) => void }> = ({ items, onSendOne }) => {
   const sorted = [...items].sort((a, b) => b.riskProbability - a.riskProbability);
   return (
     <div className="overflow-y-auto" style={{ maxHeight: 340 }}>
       <table className="w-full text-sm">
         <thead className="sticky top-0" style={{ background: '#1a2235' }}>
           <tr>
-            {['Hạng', 'Học sinh', 'Xác suất bỏ học', 'Mức độ'].map(h => (
+            {['Hạng', 'Học sinh', 'Xác suất bỏ học', 'Mức độ', 'Hành động'].map(h => (
               <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{h}</th>
             ))}
           </tr>
@@ -186,8 +313,8 @@ const RiskTable: React.FC<{ items: RiskItem[] }> = ({ items }) => {
                     <div className="h-full rounded-full transition-all"
                       style={{
                         width: `${(item.riskProbability * 100).toFixed(0)}%`,
-                        background: item.riskLevel === 'HIGH' ? 'linear-gradient(90deg,#ef4444,#dc2626)'
-                          : item.riskLevel === 'MEDIUM' ? 'linear-gradient(90deg,#f59e0b,#f97316)'
+                        background: (item.riskLevel === 'HIGH' || item.riskLevel === 'CAO') ? 'linear-gradient(90deg,#ef4444,#dc2626)'
+                          : (item.riskLevel === 'MEDIUM' || item.riskLevel === 'TRUNG BÌNH') ? 'linear-gradient(90deg,#f59e0b,#f97316)'
                             : 'linear-gradient(90deg,#10b981,#00d4aa)',
                       }} />
                   </div>
@@ -198,13 +325,119 @@ const RiskTable: React.FC<{ items: RiskItem[] }> = ({ items }) => {
               </td>
               <td className="px-4 py-2.5">
                 <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${riskBadge(item.riskLevel)}`}>
-                  {item.riskLevel === 'HIGH' ? 'CAO' : item.riskLevel === 'MEDIUM' ? 'TRUNG BÌNH' : 'THẤP'}
+                  {item.riskLevel === 'HIGH' ? 'CAO' : item.riskLevel === 'MEDIUM' ? 'TRUNG BÌNH' : item.riskLevel === 'LOW' ? 'THẤP' : item.riskLevel}
                 </span>
+              </td>
+              <td className="px-4 py-2.5">
+                {onSendOne && (
+                  <button
+                    onClick={() => onSendOne(item)}
+                    title="Gửi email cho học sinh này"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all hover:scale-105"
+                    style={{ background: 'rgba(108,99,255,0.15)', color: '#a78bfa', border: '1px solid rgba(108,99,255,0.3)' }}
+                  >
+                    <Mail className="w-3 h-3" />
+                    Gửi
+                  </button>
+                )}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+    </div>
+  );
+};
+
+
+// ──────────────────────────────────────────────
+// EMAIL MODAL
+// ──────────────────────────────────────────────
+interface EmailModalProps {
+  state: EmailModalState;
+  sending: boolean;
+  onClose: () => void;
+  onSubjectChange: (v: string) => void;
+  onBodyChange: (v: string) => void;
+  onSend: () => void;
+}
+const EmailModal: React.FC<EmailModalProps> = ({ state, sending, onClose, onSubjectChange, onBodyChange, onSend }) => {
+  if (!state.open) return null;
+  const isHigh = state.riskLevel === 'CAO' || state.riskLevel === 'HIGH';
+  const isLow = state.riskLevel === 'THẤP' || state.riskLevel === 'LOW';
+  const accentColor = isHigh ? '#ef4444' : isLow ? '#10b981' : '#f59e0b';
+  const accentBg = isHigh ? 'rgba(239,68,68,0.08)' : isLow ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.08)';
+  const label = isHigh ? '🔴 Rủi ro CAO' : isLow ? '🟢 Rủi ro THẤP' : '🟡 Rủi ro TRUNG BÌNH';
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+      <div className="w-full max-w-2xl rounded-2xl border flex flex-col" style={{ background: '#0f1724', borderColor: '#1e2d45', maxHeight: '90vh' }}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: '#1e2d45' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: accentBg, border: `1px solid ${accentColor}30` }}>
+              <Mail className="w-4 h-4" style={{ color: accentColor }} />
+            </div>
+            <div>
+              <div className="text-white font-bold text-sm">Gửi email đánh giá</div>
+              <div className="text-xs" style={{ color: accentColor }}>{label} — {state.recipients.length} học sinh</div>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+          {/* Recipients */}
+          <div>
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Người nhận ({state.recipients.length})</div>
+            <div className="flex flex-wrap gap-1.5 p-3 rounded-xl" style={{ background: '#131929', border: '1px solid #1e2d45' }}>
+              {state.recipients.slice(0, 20).map(r => (
+                <span key={r.userId} className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium" style={{ background: `${accentColor}18`, color: accentColor, border: `1px solid ${accentColor}30` }}>
+                  <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: accentColor }} />
+                  {r.fullName || r.username}
+                </span>
+              ))}
+              {state.recipients.length > 20 && (
+                <span className="text-[11px] text-slate-500 px-2 py-0.5">+{state.recipients.length - 20} khác...</span>
+              )}
+            </div>
+          </div>
+          {/* Subject */}
+          <div>
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Tiêu đề email</label>
+            <input
+              value={state.subject}
+              onChange={e => onSubjectChange(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl text-sm text-slate-200 outline-none focus:ring-2 transition-all"
+              style={{ background: '#131929', border: '1px solid #1e2d45' }}
+            />
+          </div>
+          {/* Body */}
+          <div>
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Nội dung email</label>
+            <textarea
+              rows={10}
+              value={state.body}
+              onChange={e => onBodyChange(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl text-sm text-slate-200 outline-none resize-none font-mono leading-relaxed transition-all"
+              style={{ background: '#131929', border: '1px solid #1e2d45' }}
+            />
+          </div>
+        </div>
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t" style={{ borderColor: '#1e2d45' }}>
+          <button onClick={onClose} disabled={sending}
+            className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-white/10 transition-all disabled:opacity-50">
+            Hủy
+          </button>
+          <button onClick={onSend} disabled={sending}
+            className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-60"
+            style={{ background: `linear-gradient(135deg,${accentColor},${isHigh ? '#dc2626' : isLow ? '#059669' : '#d97706'})`, boxShadow: sending ? 'none' : `0 8px 20px ${accentColor}40` }}>
+            {sending ? <><Loader2 className="w-4 h-4 animate-spin" />Đang gửi...</> : <><Send className="w-4 h-4" />Gửi {state.recipients.length} email</>}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -235,7 +468,11 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
   const [status, setStatus] = useState<'idle' | 'ok' | 'error' | 'insufficient'>('idle');
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [data, setData] = useState<AnalyticsState>({
-    behavioral: [], performance: [], riskCluster: [], riskPredict: [],
+    behavioral: [], riskCluster: [], riskPredict: [],
+  });
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailModal, setEmailModal] = useState<EmailModalState>({
+    open: false, riskLevel: '', recipients: [], subject: '', body: '',
   });
 
   const runAll = useCallback(async () => {
@@ -243,18 +480,19 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
       setRunning(true);
       setStatus('idle');
       setErrorMsg('');
-      const [beh, perf, riskC, riskP] = await aiService.runAll(classId);
+      const [beh, riskC, riskP] = await aiService.runAll(classId);
+
+      const behaviorItems = parseCluster(beh);
       setData({
-        behavioral: parseCluster(beh),
-        performance: parseCluster(perf),
+        behavioral: behaviorItems,
         riskCluster: parseCluster(riskC),
-        riskPredict: parseRisk(riskP),
+        riskPredict: parseRisk(riskP, behaviorItems),
       });
+
       setStatus('ok');
       toast.success(`Phân tích ${className} hoàn tất!`);
     } catch (e: any) {
       const msg: string = e?.response?.data?.message || e?.message || 'Lỗi không xác định';
-      // Phát hiện Cold Start error từ backend
       const isColdStart = msg.includes('ngày') || msg.includes('Cần ít nhất') || msg.includes('chưa đủ dữ liệu');
       if (isColdStart) {
         setStatus('insufficient');
@@ -268,15 +506,37 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
     }
   }, [classId, className]);
 
+  const openEmailModal = useCallback((riskLevel: string, recipients: RiskItem[]) => {
+    const { subject, body } = buildEmailTemplate(riskLevel, className);
+    setEmailModal({ open: true, riskLevel, recipients, subject, body });
+  }, [className]);
+
+  const handleSendEmail = useCallback(async () => {
+    try {
+      setSendingEmail(true);
+      await aiService.sendRiskEmail(classId, {
+        riskLevel: emailModal.riskLevel,
+        studentIds: emailModal.recipients.map(r => r.userId),
+        subject: emailModal.subject,
+        emailBody: emailModal.body,
+      });
+      toast.success(`Đã gửi ${emailModal.recipients.length} email thành công!`);
+      setEmailModal(prev => ({ ...prev, open: false }));
+    } catch (e: any) {
+      toast.error('Gửi email thất bại: ' + (e?.message || 'Lỗi không xác định'));
+    } finally {
+      setSendingEmail(false);
+    }
+  }, [classId, emailModal]);
+
   // ── stats
-  const totalStudents = data.behavioral.length || data.riskPredict.length || data.performance.length;
+  const totalStudents = data.behavioral.length || data.riskPredict.length;
   const behavGroups = new Set(data.behavioral.map(i => i.clusterLabel)).size;
-  const highRisk = data.riskPredict.filter(i => i.riskLevel === 'HIGH').length;
-  const lowRisk = data.riskPredict.filter(i => i.riskLevel === 'LOW').length;
+  const highRisk = data.riskPredict.filter(i => i.riskLevel === 'HIGH' || i.riskLevel === 'CAO').length;
+  const lowRisk = data.riskPredict.filter(i => i.riskLevel === 'LOW' || i.riskLevel === 'THẤP').length;
 
   // ── chart data
   const behavChart = groupCount(data.behavioral);
-  const perfChart = groupCount(data.performance);
   const riskClusterChart = groupCount(data.riskCluster);
   const riskPredChart = (() => {
     const m: Record<string, number> = {};
@@ -286,7 +546,6 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
 
   const TABS: { key: TabKey; label: string; icon: string }[] = [
     { key: 'behavioral', label: 'Hành vi', icon: '🧠' },
-    { key: 'performance', label: 'Năng lực', icon: '📊' },
     { key: 'risk', label: 'Nhóm rủi ro', icon: '⚠️' },
     { key: 'predict', label: 'Dự báo rủi ro', icon: '🔮' },
   ];
@@ -310,7 +569,7 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
           <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
             style={{ background: 'linear-gradient(135deg,#6c63ff,#00d4aa)' }}>🧠</div>
           <div>
-            <div className="text-white font-bold text-base leading-tight">Bảng điều khiển Phân tích AI</div>
+            <div className="text-white font-bold text-base leading-tight">Bảng điều khiển phân tích tiến độ học sinh bằng Ai</div>
             <div className="text-slate-400 text-xs flex items-center gap-1.5">
               <ChevronRight className="w-3 h-3" />
               {className}
@@ -325,8 +584,8 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
             {status === 'ok'
               ? <><Wifi className="w-3 h-3 text-emerald-400" /><span className="text-emerald-400">Đã phân tích</span></>
               : status === 'error' ? <><WifiOff className="w-3 h-3 text-red-400" /><span className="text-red-400">Lỗi</span></>
-              : status === 'insufficient' ? <><div className="w-2 h-2 rounded-full bg-blue-400" /><span className="text-blue-400">Chưa đủ dữ liệu</span></>
-              : <><div className="w-2 h-2 rounded-full bg-slate-500" /><span className="text-slate-400">Chưa phân tích</span></>}
+                : status === 'insufficient' ? <><div className="w-2 h-2 rounded-full bg-blue-400" /><span className="text-blue-400">Chưa đủ dữ liệu</span></>
+                  : <><div className="w-2 h-2 rounded-full bg-slate-500" /><span className="text-slate-400">Chưa phân tích</span></>}
           </div>
 
           {/* run */}
@@ -353,7 +612,7 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
         <div className="grid grid-cols-4 gap-4">
           {[
             { icon: <Users className="w-5 h-5" />, label: 'Tổng học sinh', value: totalStudents || '—', color: '#e2e8f0' },
-            { icon: <Target className="w-5 h-5" />, label: 'Behavioral nhóm', value: behavGroups || '—', color: '#6c63ff' },
+            { icon: <Target className="w-5 h-5" />, label: 'Nhóm hành vi', value: behavGroups || '—', color: '#6c63ff' },
             { icon: <AlertTriangle className="w-5 h-5" />, label: 'Nguy cơ cao', value: highRisk || '—', color: '#ef4444' },
             { icon: <CheckCircle2 className="w-5 h-5" />, label: 'An toàn (LOW)', value: lowRisk || '—', color: '#10b981' },
           ].map(s => (
@@ -366,7 +625,7 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
           ))}
         </div>
 
-        {/* TABS */}
+        {/* TABS — 3 tabs only */}
         <div className="flex gap-1 p-1 rounded-xl w-fit border" style={{ background: '#131929', borderColor: '#1e2d45' }}>
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
@@ -429,53 +688,6 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
           </div>
         )}
 
-        {/* ── PERFORMANCE */}
-        {tab === 'performance' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-2xl border p-5" style={{ background: '#131929', borderColor: '#1e2d45' }}>
-                <div className="text-sm font-semibold text-slate-200 mb-4">🍩 Phân bố năng lực</div>
-                {perfChart.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={260}>
-                    <PieChart>
-                      <Pie data={perfChart} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value">
-                        {perfChart.map((_, i) => <Cell key={i} fill={CLUSTER_COLORS[i % CLUSTER_COLORS.length]} />)}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend formatter={(v) => <span className="text-slate-300 text-xs">{v}</span>} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : <EmptyChart />}
-              </div>
-              <div className="rounded-2xl border p-5" style={{ background: '#131929', borderColor: '#1e2d45' }}>
-                <div className="text-sm font-semibold text-slate-200 mb-4">📊 Số lượng theo nhóm năng lực</div>
-                {perfChart.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={perfChart} margin={{ top: 10, right: 10, left: -20, bottom: 60 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e2d45" />
-                      <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} angle={-30} textAnchor="end" interval={0} />
-                      <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                        {perfChart.map((_, i) => <Cell key={i} fill={CLUSTER_COLORS[i % CLUSTER_COLORS.length]} />)}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : <EmptyChart />}
-              </div>
-            </div>
-            <div className="rounded-2xl border overflow-hidden" style={{ background: '#131929', borderColor: '#1e2d45' }}>
-              <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: '#1e2d45' }}>
-                <span className="text-sm font-semibold text-slate-200">📋 Top 50 học sinh — Năng lực</span>
-                <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(0,212,170,.15)', color: '#00d4aa' }}>NĂNG LỰC</span>
-              </div>
-              {data.performance.length > 0
-                ? <ClusterTable items={data.performance} colorMap={makeColorMap(data.performance)} />
-                : <EmptyTable />}
-            </div>
-          </div>
-        )}
-
         {/* ── RISK CLUSTER */}
         {tab === 'risk' && (
           <div className="space-y-4">
@@ -527,17 +739,15 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
           </div>
         )}
 
-        {/* ── RISK PREDICT */}
         {tab === 'predict' && (
           <div className="space-y-4">
-            {/* Gauge */}
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: '🟢 Rủi ro Thấp', key: 'LOW', color: '#10b981', sub: 'học sinh an toàn' },
-                { label: '🟡 Rủi ro Trung bình', key: 'MEDIUM', color: '#f59e0b', sub: 'cần theo dõi' },
-                { label: '🔴 Rủi ro Cao', key: 'HIGH', color: '#ef4444', sub: 'nguy cơ bỏ học' },
+                { label: '🟢 Rủi ro Thấp', key: 'THẤP', color: '#10b981', sub: 'học sinh an toàn' },
+                { label: '🟡 Rủi ro Trung bình', key: 'TRUNG BÌNH', color: '#f59e0b', sub: 'cần theo dõi' },
+                { label: '🔴 Rủi ro Cao', key: 'CAO', color: '#ef4444', sub: 'nguy cơ bỏ học' },
               ].map(g => {
-                const count = data.riskPredict.filter(i => i.riskLevel === g.key).length;
+                const count = data.riskPredict.filter(i => i.riskLevel === g.key || i.riskLevel === (g.key === 'CAO' ? 'HIGH' : g.key === 'TRUNG BÌNH' ? 'MEDIUM' : 'LOW')).length;
                 return (
                   <div key={g.key} className="rounded-2xl border p-5" style={{ background: '#131929', borderColor: '#1e2d45' }}>
                     <div className="text-sm font-semibold text-slate-200 mb-3">{g.label}</div>
@@ -595,10 +805,39 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
             <div className="rounded-2xl border overflow-hidden" style={{ background: '#131929', borderColor: '#1e2d45' }}>
               <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: '#1e2d45' }}>
                 <span className="text-sm font-semibold text-slate-200">🔴 Top 30 học sinh nguy cơ cao nhất</span>
-                <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(239,68,68,.15)', color: '#ef4444' }}>RANDOM FOREST</span>
+                <div className="flex items-center gap-2">
+                  {data.riskPredict.length > 0 && (
+                    <>
+                      <button
+                        onClick={() => {
+                          const highStudents = data.riskPredict.filter(i => i.riskLevel === 'CAO' || i.riskLevel === 'HIGH');
+                          if (highStudents.length > 0) openEmailModal('CAO', highStudents);
+                          else toast.error('Không có học sinh nguy cơ CAO');
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
+                        style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)' }}
+                      >
+                        <Mail className="w-3.5 h-3.5" />
+                        Gửi email h/s CAO
+                      </button>
+                      <button
+                        onClick={() => {
+                          const lowStudents = data.riskPredict.filter(i => i.riskLevel === 'THẤP' || i.riskLevel === 'LOW');
+                          if (lowStudents.length > 0) openEmailModal('THẤP', lowStudents);
+                          else toast.error('Không có học sinh rủi ro THẤP');
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
+                        style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)' }}
+                      >
+                        <Mail className="w-3.5 h-3.5" />
+                        Gửi email h/s THẤP
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
               {data.riskPredict.length > 0
-                ? <RiskTable items={data.riskPredict} />
+                ? <RiskTable items={data.riskPredict} onSendOne={(item) => openEmailModal(item.riskLevel, [item])} />
                 : <EmptyTable />}
             </div>
           </div>
@@ -640,6 +879,16 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
           </div>
         )}
       </div>
+
+      {/* EMAIL MODAL */}
+      <EmailModal
+        state={emailModal}
+        sending={sendingEmail}
+        onClose={() => setEmailModal(prev => ({ ...prev, open: false }))}
+        onSubjectChange={v => setEmailModal(prev => ({ ...prev, subject: v }))}
+        onBodyChange={v => setEmailModal(prev => ({ ...prev, body: v }))}
+        onSend={handleSendEmail}
+      />
     </div>
   );
 };
@@ -648,7 +897,7 @@ const ClassAiInsights: React.FC<Props> = ({ classId, className, onClose }) => {
 const EmptyChart = () => (
   <div className="flex flex-col items-center justify-center h-48 text-slate-600">
     <Brain className="w-8 h-8 mb-2 opacity-30" />
-    <span className="text-sm">Nhấn "Chạy phân tích" để xem dữ liệu</span>
+    <span className="text-sm">Nhấn &quot;Chạy phân tích&quot; để xem dữ liệu</span>
   </div>
 );
 

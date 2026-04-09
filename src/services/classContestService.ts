@@ -20,7 +20,7 @@ const classContestService = {
     if (params?.isActive !== undefined) queryParams.append("isActive", String(params.isActive));
     if (params?.page !== undefined) queryParams.append("page", String(params.page));
     if (params?.size !== undefined) queryParams.append("size", String(params.size));
-    
+
     return apiService.get<ClassSummary[]>(
       `${CLASS_BASE_ENDPOINT}${queryParams.toString() ? `?${queryParams}` : ""}`
     );

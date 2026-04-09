@@ -33,9 +33,10 @@ const ClassManagementDashboard = () => {
   const [contestToReschedule, setContestToReschedule] = useState<ClassContestResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { jwtClaims } = actionAuth();
-  const [detailTab, setDetailTab] = useState<'contests'>('contests');
+  const [detailTab, setDetailTab] = useState<'contests' | 'courses'>('courses');
   const [showAiInsights, setShowAiInsights] = useState(false);
   const [aiInsightsClass, setAiInsightsClass] = useState<ClazzResponse | null>(null);
+  const [classCourses, setClassCourses] = useState<any[]>([]);
 
   const [createForm, setCreateForm] = useState({
     classCode: "",
@@ -215,20 +216,41 @@ const ClassManagementDashboard = () => {
   const fetchClassContests = async (classId: string) => {
     try {
       const data = await classContestService.getClassContests(classId);
-      setSelectedClassContests(data);
+      // Handle both array response and paginated response
+      if (Array.isArray(data)) {
+        setSelectedClassContests(data);
+      } else if (data && typeof data === 'object' && 'items' in data) {
+        // Backend might return a PageResponse
+        setSelectedClassContests((data as any).items || []);
+      } else {
+        console.warn("Unexpected class contests response format:", data);
+        setSelectedClassContests([]);
+      }
     } catch (err: any) {
       console.error("Error fetching class contests:", err);
+      setSelectedClassContests([]);
       toast.error(err?.message || "Không thể tải danh sách bài thi của lớp");
     }
   };
 
-  const handleSelectClass = (cls: ClazzResponse) => {
+  const handleSelectClass = async (cls: ClazzResponse) => {
     if (selectedClass?.classId === cls.classId) {
       setSelectedClass(null);
       setSelectedClassContests([]);
+      setClassCourses([]);
     } else {
       setSelectedClass(cls);
-      if (cls.classId) fetchClassContests(cls.classId);
+      if (cls.classId) {
+        fetchClassContests(cls.classId);
+        // Fetch courses for this class
+        try {
+          const courses = await classService.admin.getCoursesInClass(cls.classId);
+          setClassCourses(Array.isArray(courses) ? courses : []);
+        } catch (err) {
+          console.error("Error fetching class courses:", err);
+          setClassCourses([]);
+        }
+      }
     }
   };
 
@@ -566,17 +588,94 @@ const ClassManagementDashboard = () => {
                     <div className="flex items-center justify-between mb-4 border-b border-border pb-1">
                       <div className="flex gap-4">
                         <button
+                          onClick={() => setDetailTab('courses')}
+                          className={`pb-2 text-sm font-medium transition-colors border-b-2 ${detailTab === 'courses' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                        >
+                          <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> Khóa học</span>
+                        </button>
+                        <button
                           onClick={() => setDetailTab('contests')}
                           className={`pb-2 text-sm font-medium transition-colors border-b-2 ${detailTab === 'contests' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                         >
-                          Bài thi của lớp
+                          <span className="flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5" /> Bài thi</span>
                         </button>
                       </div>
                     </div>
 
-                    {false ? (
-                      <span />
-                    ) : (
+                    {/* ── COURSES TAB */}
+                    {detailTab === 'courses' && (
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-bold text-foreground">Khóa học của lớp</h4>
+                        </div>
+                        {classCourses.length === 0 ? (
+                          <div className="text-center py-8 bg-muted/20 rounded-lg border border-dashed border-border">
+                            <BookOpen className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
+                            <p className="text-sm text-muted-foreground">Chưa có khóa học nào được gán cho lớp này</p>
+                          </div>
+                        ) : (
+                          <div className="grid gap-3">
+                            {classCourses.map((course: any, idx: number) => {
+                              const lessonCount = course.lessonCount || course.totalLessons || 0;
+                              const completedRate = course.completedRate || 0;
+                              return (
+                                <div key={course.courseId || idx} className="p-4 bg-muted/30 rounded-lg border border-border hover:border-primary/30 transition-colors">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex-1">
+                                      <h5 className="font-bold text-foreground mb-1 flex items-center gap-2">
+                                        <BookOpen className="w-4 h-4 text-primary" />
+                                        {course.title || course.courseName || 'N/A'}
+                                      </h5>
+                                      {course.description && (
+                                        <p className="text-xs text-muted-foreground line-clamp-2">{course.description}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-4 gap-3 text-xs mb-3">
+                                    <div className="bg-background p-2.5 rounded border border-border">
+                                      <div className="text-muted-foreground mb-1">📚 Bài học</div>
+                                      <div className="font-bold text-foreground">{lessonCount}</div>
+                                    </div>
+                                    <div className="bg-background p-2.5 rounded border border-border">
+                                      <div className="text-muted-foreground mb-1">🎬 Video</div>
+                                      <div className="font-bold text-foreground">{course.videoCount || 0}</div>
+                                    </div>
+                                    <div className="bg-background p-2.5 rounded border border-border">
+                                      <div className="text-muted-foreground mb-1">📝 Quiz</div>
+                                      <div className="font-bold text-foreground">{course.quizCount || 0}</div>
+                                    </div>
+                                    <div className="bg-background p-2.5 rounded border border-border">
+                                      <div className="text-muted-foreground mb-1">💻 Coding</div>
+                                      <div className="font-bold text-foreground">{course.codingCount || 0}</div>
+                                    </div>
+                                  </div>
+                                  {/* Progress bar */}
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                                      <div
+                                        className="h-full rounded-full transition-all duration-500"
+                                        style={{
+                                          width: `${Math.min(100, completedRate)}%`,
+                                          background: completedRate >= 80 ? 'linear-gradient(90deg, #10b981, #00d4aa)'
+                                            : completedRate >= 50 ? 'linear-gradient(90deg, #f59e0b, #f97316)'
+                                            : 'linear-gradient(90deg, #6366f1, #8b5cf6)',
+                                        }}
+                                      />
+                                    </div>
+                                    <span className="text-xs font-mono text-muted-foreground min-w-[40px] text-right">
+                                      {completedRate.toFixed(0)}%
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* ── CONTESTS TAB */}
+                    {detailTab === 'contests' && (
                       <>
                         <div className="flex items-center justify-between mb-4">
                           <h4 className="font-bold text-foreground">Bài thi của lớp</h4>

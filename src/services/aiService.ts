@@ -8,11 +8,6 @@ class AiService extends BaseService {
     return this.get(`${this.base}/${classId}/analytics/behavioral`);
   }
 
-  /** GET /api/class/{id}/analytics/performance → ClusterResponseDTO */
-  getPerformance(classId: string) {
-    return this.get(`${this.base}/${classId}/analytics/performance`);
-  }
-
   /** GET /api/class/{id}/analytics/risk-cluster → ClusterResponseDTO */
   getRiskCluster(classId: string) {
     return this.get(`${this.base}/${classId}/analytics/risk-cluster`);
@@ -23,14 +18,29 @@ class AiService extends BaseService {
     return this.get(`${this.base}/${classId}/analytics/risk-predict`);
   }
 
-  /** Chạy tất cả 4 phân tích song song */
+  /** Chạy tất cả 3 phân tích song song (bỏ Performance) */
   runAll(classId: string) {
     return Promise.all([
       this.getBehavioral(classId),
-      this.getPerformance(classId),
       this.getRiskCluster(classId),
       this.getRiskPredict(classId),
     ]);
+  }
+
+  /**
+   * POST /api/class/{classId}/analytics/send-risk-email
+   * Gửi email đánh giá/cảnh báo rủi ro đến học sinh
+   */
+  sendRiskEmail(
+    classId: string,
+    payload: {
+      riskLevel: string;
+      studentIds: string[];
+      subject: string;
+      emailBody: string;
+    }
+  ) {
+    return this.post(`${this.base}/${classId}/analytics/send-risk-email`, payload);
   }
 }
 

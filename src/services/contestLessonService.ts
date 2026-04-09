@@ -20,11 +20,12 @@ const contestLessonService = {
     const queryParams = new URLSearchParams();
     if (params.page !== undefined) queryParams.append("page", String(params.page));
     if (params.size !== undefined) queryParams.append("size", String(params.size));
-    if (params.q) queryParams.append("q", params.q);
+    if (params.q?.trim()) queryParams.append("q", params.q.trim());
     if (params.statusContest) queryParams.append("statusContest", params.statusContest);
 
+    const queryString = queryParams.toString();
     return apiService.get<PageResponse<ContestLessonSummary>>(
-      `${CONTEST_BASE_ENDPOINT}/search?${queryParams}`
+      `${CONTEST_BASE_ENDPOINT}/search${queryString ? `?${queryString}` : ''}`
     );
   },
 
@@ -67,9 +68,10 @@ const contestLessonService = {
     const queryParams = new URLSearchParams();
     if (params.page !== undefined) queryParams.append("page", String(params.page));
     if (params.size !== undefined) queryParams.append("size", String(params.size));
-    if (params.q) queryParams.append("q", params.q);
+    if (params.q?.trim()) queryParams.append("q", params.q.trim());
 
-    return apiService.get<PageResponse<ContestLessonSummary>>(`${CONTEST_BASE_ENDPOINT}/ready?${queryParams}`);
+    const queryString = queryParams.toString();
+    return apiService.get<PageResponse<ContestLessonSummary>>(`${CONTEST_BASE_ENDPOINT}/ready${queryString ? `?${queryString}` : ''}`);
   },
 };
 
